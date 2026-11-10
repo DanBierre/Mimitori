@@ -81,7 +81,7 @@ Issues and pull requests are welcome. Keep changes small and focused, run `npm t
 
 ## Credits
 
-- **JMdict** dictionary data © the Electronic Dictionary Research and Development Group, used under the [Creative Commons Attribution-ShareAlike 4.0 licence](https://www.edrdg.org/edrdg/licence.html).
+- **JMdict** dictionary data and its frequency marks © the Electronic Dictionary Research and Development Group, used under the [Creative Commons Attribution-ShareAlike 4.0 licence](https://www.edrdg.org/edrdg/licence.html).
 - **kuromoji.js** by Takuya Asano, Apache License 2.0. It ships the **IPADIC** dictionary, which has its own permissive licence.
 - Spaced repetition by **ts-fsrs** (MIT).
 - **transformers.js** by Hugging Face (Apache-2.0) and **ONNX Runtime Web** (MIT) run the speech model in your browser.

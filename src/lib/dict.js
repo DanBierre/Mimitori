@@ -7,6 +7,8 @@
 // File shape: { "食べる": [{ r: "たべる", g: ["to eat", ...], p: ["v1", "vt"] }], ... }
 // keyed by both kanji forms and kana forms.
 
+import { loadCommon } from "./common.js";
+
 const DICT_URL = "/dict/jmdict-lite.json";
 
 let dictPromise = null;
@@ -19,6 +21,7 @@ export function getDictStatus() {
 export function loadDict() {
   if (!dictPromise) {
     dictStatus = "loading";
+    loadCommon(); // fire and forget; never affects the dictionary
     dictPromise = fetch(DICT_URL)
       .then((res) => {
         const type = res.headers.get("content-type") || "";

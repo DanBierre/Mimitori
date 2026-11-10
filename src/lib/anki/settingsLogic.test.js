@@ -75,3 +75,22 @@ test("pickSampleQuery uses the deck at 5+ notes, else the whole collection", () 
   assert.deepEqual(pickSampleQuery({ deckCount: 4, deck: "D", model: "M" }), { query: '"note:M"', scope: "collection" });
   assert.deepEqual(pickSampleQuery({ deckCount: 0, deck: "D", model: "M" }), { query: '"note:M"', scope: "collection" });
 });
+
+const emptyState = (commonKnown) => ({ known: {}, words: {}, anki: { known: {}, inDeck: {} }, settings: { commonKnown } });
+
+test("wordState: very common word is known when commonKnown is on", () => {
+  const common = new Set(["何"]);
+  assert.equal(wordState(emptyState(true), "何", new Date(), common), "known");
+});
+
+test("wordState: commonKnown off leaves it new", () => {
+  const common = new Set(["何"]);
+  assert.equal(wordState(emptyState(false), "何", new Date(), common), "new");
+});
+
+test("wordState: a saved very common word stays saved", () => {
+  const now = new Date();
+  const s = emptyState(true);
+  s.words["何"] = { card: { ...newCard(), due: new Date(now.getTime() + 86400000) } };
+  assert.equal(wordState(s, "何", now, new Set(["何"])), "saved");
+});

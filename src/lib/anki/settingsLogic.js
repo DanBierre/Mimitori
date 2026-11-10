@@ -2,6 +2,7 @@
 // Pure helpers behind the Settings screen and the store (unit-tested).
 
 import { isDue } from "../srs.js";
+import { commonSet } from "../common.js";
 
 export const ROLE_LABELS = {
   expression: "Word",
@@ -63,12 +64,13 @@ export const hasWordField = (mapping) =>
   Object.values(mapping).some((m) => m.role === "expression" || m.role === "template");
 
 // "known" | "due" | "saved" | "inAnki" | "new". The app's own state wins over Anki's.
-export function wordState(state, base, now = new Date()) {
+export function wordState(state, base, now = new Date(), common = commonSet()) {
   if (state.known[base]) return "known";
   const word = state.words[base];
   if (word) return isDue(word.card, now) ? "due" : "saved";
   if (state.anki.known[base]) return "known";
-  return state.anki.inDeck[base] ? "inAnki" : "new";
+  if (state.anki.inDeck[base]) return "inAnki";
+  return state.settings?.commonKnown !== false && common.has(base) ? "known" : "new";
 }
 
 // Where to learn a note type's layout from: its cards in the deck if there are

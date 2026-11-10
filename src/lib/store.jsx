@@ -18,6 +18,7 @@ const DEFAULT_STATE = {
   settings: {
     furigana: "unknown",
     size: 26,
+    commonKnown: true, // treat very common words as known
     watch: { autoPause: false, speed: 1, showSecondLine: true },
     anki: { enabled: false, deck: "", model: "", mapping: {}, fieldList: [] },
   },
