@@ -7,6 +7,7 @@ import { useStore, ankiMode } from "../store";
 import { createAnki } from "./connect";
 import { readAllDecks } from "./known";
 import { listQueue } from "./queue";
+import { syncTags } from "./tags";
 
 export const anki = createAnki();
 
@@ -83,6 +84,13 @@ export function useAnki(active = true) {
         queued.forEach((q) => q.base && (inDeck[q.base] = true));
         setAnkiWords({ ...words, inDeck });
         setError("");
+        if (a.tagKnown) {
+          try {
+            await syncTags(anki, a, live.current.known); // the word sync above stays either way
+          } catch (e) {
+            setError(e.message);
+          }
+        }
       } catch (e) {
         lastSync = 0; // let the next focus try again
         setError(e.message);
