@@ -22,11 +22,13 @@ const ADD_STATUS = {
 // In Anki mode, ankiContext = { sentence, tokens, tokenIndex, translation?, fileName?,
 // timeMs?, video?, cue?, offsetMs? } and the main button adds a card to Anki.
 export default function WordPanel({ token, sentence, grammar = [], ankiContext, onSaved, onClose, onOpenSettings }) {
-  const { state, saveWord, removeWord, knowWord, unknowWord, setAnkiWords } = useStore();
+  const { state, saveWord, removeWord, knowWord, unknowWord, markInAnki } = useStore();
   const [add, setAdd] = useState(null); // null | key of ADD_STATUS | "queued" | { error }
   const [waiting, setWaiting] = useState(0);
   const noAudio = useRef(false);
-  const useAnkiAdd = ankiMode(state) && Boolean(ankiContext);
+  const current = useRef(token.base); // ignore late updates from a word we moved off
+  current.current = token.base;
+  const addToAnki = ankiMode(state) && Boolean(ankiContext);
   const [entry, setEntry] = useState({ status: "loading", data: null });
 
   useEffect(() => {
@@ -62,6 +64,8 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
 
   async function handleAdd() {
     const { video, cue, offsetMs, ...context } = ankiContext;
+    const base = token.base;
+    const live = () => current.current === base;
     noAudio.current = false;
     setAdd("adding");
     const result = await addCardFromWord({
@@ -75,18 +79,17 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
       maps: state.anki,
       onProgress: (p) => {
         if (p === "noAudio") noAudio.current = true;
-        else setAdd(p);
+        else if (live()) setAdd(p);
       },
     });
-    if (typeof result === "object") return setAdd(result);
-    if (result === "added" || result === "duplicate") {
-      setAnkiWords({ known: state.anki.known, inDeck: { ...state.anki.inDeck, [token.base]: true } });
-    }
+    if (result === "added" || result === "duplicate" || result === "queued") markInAnki(base);
     if (result === "queued") {
       const n = await listQueue().then((q) => q.length).catch(() => 1);
-      setWaiting(n);
+      if (live()) setWaiting(n);
       window.dispatchEvent(new Event("anki-queue-changed"));
     }
+    if (!live()) return;
+    if (typeof result === "object") return setAdd(result);
     setAdd(result === "added" && noAudio.current ? "noAudio" : result);
   }
 
@@ -167,21 +170,21 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
             </button>
           </>
         )}
-        {mark === "new" && (
+        {(mark === "new" || (addToAnki && (mark === "saved" || mark === "due"))) && (
           <>
             <button
               className="btn btn--primary"
-              onClick={useAnkiAdd ? handleAdd : handleSave}
+              onClick={addToAnki ? handleAdd : handleSave}
               disabled={add === "adding" || add === "recording"}
             >
-              {useAnkiAdd ? "Add to Anki" : "Save to review"}
+              {addToAnki ? "Add to Anki" : "Save to review"}
             </button>
             <button className="btn" onClick={() => knowWord(token.base)}>
               I know this
             </button>
           </>
         )}
-        {(mark === "saved" || mark === "due") && (
+        {!addToAnki && (mark === "saved" || mark === "due") && (
           <>
             <p className="word-panel__status">
               {mark === "due"

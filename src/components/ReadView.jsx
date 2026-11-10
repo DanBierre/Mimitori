@@ -6,6 +6,7 @@ import TokenLine from "./TokenLine";
 import { conjugationParts } from "../lib/conjugation";
 import { canSpeak, speak } from "../lib/speak";
 import WordPanel from "./WordPanel";
+import { sentenceAround, sentenceSpan } from "../lib/sentence";
 
 const SAMPLE =
   "今日は友達と一緒に日本語を勉強します。難しい漢字がたくさんありますが、毎日少しずつ読むと、だんだん分かるようになります。";
@@ -16,24 +17,9 @@ const FURIGANA_MODES = [
   ["off", "Off"],
 ];
 
-// Sentence containing token i, taken from the token stream so it matches
-// exactly what's on the sheet.
-function sentenceAround(tokens, i) {
-  const isEnd = (t) => /[。！？!?\n]/.test(t.surface);
-  let start = i;
-  while (start > 0 && !isEnd(tokens[start - 1])) start--;
-  let end = i;
-  while (end < tokens.length - 1 && !isEnd(tokens[end])) end++;
-  return tokens
-    .slice(start, end + 1)
-    .map((t) => t.surface)
-    .join("")
-    .trim();
-}
-
 function ankiContext(tokens, i) {
   const { start, end } = sentenceSpan(tokens, i);
-  return { sentence: sentenceAround(tokens, i), tokens: tokens.slice(start, end), tokenIndex: i - start };
+  return { sentence: sentenceAround(tokens, i), tokens: tokens.slice(start, end + 1), tokenIndex: i - start };
 }
 
 export default function ReadView({ onOpenSettings }) {

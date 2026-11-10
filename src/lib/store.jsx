@@ -97,6 +97,8 @@ function reducer(state, action) {
       return { ...state, settings: { ...state.settings, anki: { ...state.settings.anki, ...action.patch } } };
     case "ankiWords":
       return { ...state, anki: { known: action.known, inDeck: action.inDeck, syncedAt: Date.now() } };
+    case "markInAnki":
+      return { ...state, anki: { ...state.anki, inDeck: { ...state.anki.inDeck, [action.base]: true } } };
     default:
       return state;
   }
@@ -127,6 +129,7 @@ export function StoreProvider({ children }) {
       setSettings: (patch) => dispatch({ type: "settings", patch }),
       setWatchSettings: (patch) => dispatch({ type: "watch", patch }),
       setAnkiSettings: (patch) => dispatch({ type: "ankiSettings", patch }),
+      markInAnki: (base) => dispatch({ type: "markInAnki", base }),
       setAnkiWords: ({ known, inDeck }) => dispatch({ type: "ankiWords", known, inDeck }),
     }),
     [state]
