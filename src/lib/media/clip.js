@@ -10,6 +10,8 @@ const SEEK_TIMEOUT_MS = 2000;
 
 let busy = false; // one recording at a time; a second would clobber the saved state
 
+export const isRecording = () => busy;
+
 function waitFor(target, event) {
   return new Promise((resolve) => target.addEventListener(event, resolve, { once: true }));
 }
@@ -65,7 +67,7 @@ export async function recordLine(video, startMs, endMs) {
       }
       // rAF, not timeupdate: timeupdate only fires ~4x a second.
       function check() {
-        if (video.currentTime * 1000 >= stopAt || video.ended) done();
+        if (video.currentTime * 1000 >= stopAt || video.ended || video.paused) done();
         else raf = requestAnimationFrame(check);
       }
       check();

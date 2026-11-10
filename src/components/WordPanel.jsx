@@ -175,13 +175,16 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
             <button
               className="btn btn--primary"
               onClick={addToAnki ? handleAdd : handleSave}
-              disabled={add === "adding" || add === "recording"}
+              disabled={add === "adding" || add === "recording" || (addToAnki && entry.status === "loading")}
             >
               {addToAnki ? "Add to Anki" : "Save to review"}
             </button>
             <button className="btn" onClick={() => knowWord(token.base)}>
               I know this
             </button>
+            {addToAnki && entry.status === "missing" && (
+              <p className="word-panel__note">No meaning found — the card will have an empty meaning.</p>
+            )}
           </>
         )}
         {!addToAnki && (mark === "saved" || mark === "due") && (

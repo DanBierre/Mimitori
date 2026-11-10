@@ -19,12 +19,16 @@ export function createAnki({
         method: "POST",
         body: JSON.stringify({ action, version: API_VERSION, params }),
       });
+      if (res.ok === false) {
+        throw new AnkiError(`Anki replied ${res.status} ${res.statusText || ""}`.trim(), "anki");
+      }
       body = await res.json();
     } catch (e) {
+      if (e instanceof AnkiError) throw e;
       throw new AnkiError(e?.message || "Anki is unreachable", "unreachable");
     }
-    if (body.error) throw new AnkiError(body.error, "anki");
-    return body.result;
+    if (body?.error) throw new AnkiError(body.error, "anki");
+    return body?.result;
   }
 
   // Maps a version call to a status. Throws only non-"unreachable" errors.

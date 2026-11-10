@@ -20,6 +20,7 @@ import Icon from "./Icon";
 import { conjugationParts } from "../lib/conjugation";
 import { captureFrame, putImage } from "../lib/images";
 import { wordState } from "../lib/store";
+import { isRecording } from "../lib/media/clip";
 
 const NO_LINES = "We couldn't read any lines from this file. Is it a .srt, .vtt or .ass file?";
 const BAD_VIDEO = "Your browser can't play this video. MP4 files work best. Chrome and Edge play the most formats.";
@@ -149,7 +150,7 @@ export default function WatchView({ active, onOpenSettings }) {
       const t = v.currentTime * 1000;
       const off = offsetRef.current;
       const idx = cueIndexAt(primary.cues, t, off);
-      const park = ap.tick(t, idx, primary.cues, off, autoPauseRef.current && !v.paused);
+      const park = ap.tick(t, idx, primary.cues, off, autoPauseRef.current && !v.paused && !isRecording());
       if (park !== null) {
         // Stop just inside the line's end so it stays on screen to read.
         v.pause();

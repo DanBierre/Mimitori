@@ -1,7 +1,7 @@
 import { furiganaSegments } from "../furigana.js";
 
 export function escapeHtml(s) {
-  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\[/g, "&#91;").replace(/\]/g, "&#93;");
 }
 
 // Anki bracket syntax: base text runs back to the previous space (or `>`),
@@ -31,11 +31,13 @@ export function sentenceWithFurigana(tokens, highlight) {
   return out;
 }
 
-export function boldWord(sentence, surface) {
-  const s = escapeHtml(sentence);
-  const w = escapeHtml(surface);
-  const i = w ? s.indexOf(w) : -1;
-  return i < 0 ? s : `${s.slice(0, i)}<b>${w}</b>${s.slice(i + w.length)}`;
+// offset = where the tapped token starts in `sentence`; without it (or if it
+// doesn't line up) the first occurrence is bolded.
+export function boldWord(sentence, surface, offset) {
+  let i = -1;
+  if (surface) i = Number.isInteger(offset) && sentence.startsWith(surface, offset) ? offset : sentence.indexOf(surface);
+  if (i < 0) return escapeHtml(sentence);
+  return `${escapeHtml(sentence.slice(0, i))}<b>${escapeHtml(surface)}</b>${escapeHtml(sentence.slice(i + surface.length))}`;
 }
 
 export function formatMeaning(glosses, format) {

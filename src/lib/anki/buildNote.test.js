@@ -86,3 +86,15 @@ test("template without media", () => {
   assert.equal(n.fields.Back, "国語（こくご）＝Japanese language");
   assert.deepEqual(n.storeMedia, []);
 });
+
+test("buildNote collapses runs of <br> and bolds the tapped occurrence", async () => {
+  const { buildNote } = await import("./buildNote.js");
+  const word = { base: "食べる", surface: "食べ", reading: "たべる", glosses: ["eat"] };
+  const n = buildNote({
+    deck: "d", model: "m", word,
+    mapping: { A: { role: "template", template: "{expression}<br><br><br>{picture}<br><br>{meaning}" }, S: { role: "sentence" } },
+    context: { sentence: "食べて食べた", tokens: [{ surface: "食べ" }, { surface: "て" }, { surface: "食べ" }, { surface: "た" }], tokenIndex: 2 },
+  });
+  assert.equal(n.fields.A, "食べる<br><br>eat");
+  assert.equal(n.fields.S, "食べて<b>食べ</b>た");
+});

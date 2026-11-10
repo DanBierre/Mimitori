@@ -22,6 +22,7 @@ export function useAnki(active = true) {
   const [queueCount, setQueueCount] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const inMode = ankiMode(state); // turning Anki mode on triggers a sync
+  const deck = state.settings.anki.deck;
   const live = useRef(state);
   live.current = state;
 
@@ -68,7 +69,12 @@ export function useAnki(active = true) {
       setSyncing(true);
       try {
         const { deck, model, mapping } = s.settings.anki;
-        setAnkiWords(await fetchDeckWords(anki, { deck, model, mapping }));
+        const words = await fetchDeckWords(anki, { deck, model, mapping });
+        // Cards still waiting for Anki aren't in the deck yet; keep them marked.
+        const queued = await listQueue().catch(() => []);
+        const inDeck = { ...words.inDeck };
+        queued.forEach((q) => q.base && (inDeck[q.base] = true));
+        setAnkiWords({ ...words, inDeck });
         setError("");
       } catch (e) {
         lastSync = 0; // let the next focus try again
@@ -83,7 +89,7 @@ export function useAnki(active = true) {
   useEffect(() => {
     if (!active) return;
     check();
-    refreshKnown();
+    refreshKnown({ force: true }); // mode or deck changed: skip the throttle
     const onFocus = () => {
       check();
       refreshKnown();
@@ -91,7 +97,7 @@ export function useAnki(active = true) {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, check, inMode]);
+  }, [active, check, inMode, deck]);
 
   return { status, error, decks, models, queueCount, syncing, connect, check, refreshKnown, refreshQueue };
 }

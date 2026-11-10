@@ -70,7 +70,7 @@ export async function addCardFromWord({
 
     const full = buildNote({ deck, model, mapping, word, context: { ...context, now: d.now() }, media });
     if (!reachable) {
-      await d.enqueue(full);
+      await d.enqueue(full, { fieldList, base: word.base });
       return "queued";
     }
 
@@ -81,7 +81,7 @@ export async function addCardFromWord({
       return "added";
     } catch (e) {
       if (e?.kind === "unreachable") {
-        await d.enqueue(full);
+        await d.enqueue(full, { fieldList, base: word.base });
         return "queued";
       }
       if (/duplicate/i.test(e?.message || "")) return "duplicate";

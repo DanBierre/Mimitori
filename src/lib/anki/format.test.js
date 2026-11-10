@@ -68,3 +68,18 @@ test("sentenceWithFurigana spaces ruby across tokens", () => {
   assert.equal(sentenceWithFurigana(tokens, -1), "私[わたし]は 食[た]べ");
   assert.equal(sentenceWithFurigana(tokens, 2), "私[わたし]は<b>食[た]べ</b>");
 });
+
+test("brackets in plain text are encoded, furigana brackets stay", () => {
+  const tokens = [
+    { surface: "[音楽]", segments: [{ text: "[音楽]" }] },
+    { surface: "始", segments: [{ text: "始", ruby: "はじ" }] },
+  ];
+  assert.equal(boldWord("[音楽]始まるよ", "始"), "&#91;音楽&#93;<b>始</b>まるよ");
+  assert.equal(sentenceWithFurigana(tokens, -1), "&#91;音楽&#93; 始[はじ]");
+  assert.equal(formatMeaning(["[sound:x]"], "plain"), "&#91;sound:x&#93;");
+});
+
+test("boldWord bolds the tapped occurrence when given an offset", () => {
+  assert.equal(boldWord("食べて食べた", "食べ", 3), "食べて<b>食べ</b>た");
+  assert.equal(boldWord("食べて食べた", "食べ", 99), "<b>食べ</b>て食べた");
+});

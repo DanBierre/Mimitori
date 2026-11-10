@@ -3,6 +3,8 @@
 // the IndexedDB store below is browser-only. "failed" holds items that gave
 // up after repeated Anki errors, so the learner can retry them by hand.
 
+import { fieldListChanged } from "./fieldRoles.js";
+
 const MAX_FAILURES = 5;
 
 // "unreachable" (Anki closed) is not the card's fault, so it isn't counted.
@@ -17,6 +19,13 @@ export function classifyFlushError(err) {
   if (err.kind === "unreachable") return "unreachable";
   if (err.kind === "anki") return /duplicate/i.test(err.message) ? "done" : "failure";
   return "fatal";
+}
+
+// A queued card is stale if its note type's fields changed since it was saved.
+export function checkQueuedItem(item, currentFields) {
+  return item.fieldList && fieldListChanged(item.fieldList, currentFields)
+    ? "Your note type changed since this card was saved."
+    : null;
 }
 
 export const shouldGiveUp = (item) => item.failures >= MAX_FAILURES;
@@ -54,10 +63,12 @@ async function run(stores, mode, action) {
   });
 }
 
-export async function enqueue(note) {
+export async function enqueue(note, { fieldList, base } = {}) {
   const item = {
     id: crypto.randomUUID(),
     note,
+    fieldList,
+    base,
     failures: 0,
     lastError: "",
     queuedAt: Date.now(),
@@ -103,11 +114,21 @@ export function flushQueue(anki) {
 async function doFlush(anki) {
   const items = (await listQueue()).sort((a, b) => a.queuedAt - b.queuedAt);
   let sent = 0;
+  const fieldsByModel = new Map();
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     let outcome = "done";
     let error;
     try {
+      const model = item.note.modelName;
+      if (!fieldsByModel.has(model)) {
+        fieldsByModel.set(model, await anki.invoke("modelFieldNames", { modelName: model }));
+      }
+      const stale = checkQueuedItem(item, fieldsByModel.get(model));
+      if (stale) {
+        await moveToFailed({ ...item, lastError: stale });
+        continue;
+      }
       const { storeMedia = [], ...note } = item.note;
       for (const m of storeMedia) {
         await anki.invoke("storeMediaFile", { filename: m.filename, data: m.data });

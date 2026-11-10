@@ -29,3 +29,10 @@ test("classifyFlushError covers all four outcomes", () => {
   assert.equal(classifyFlushError(new AnkiError("model not found", "anki")), "failure");
   assert.equal(classifyFlushError(new TypeError("boom")), "fatal");
 });
+
+test("flushQueue fails a queued card whose note type changed", async () => {
+  const { checkQueuedItem } = await import("./queue.js");
+  assert.equal(checkQueuedItem({ fieldList: ["A", "B"] }, ["A", "B"]), null);
+  assert.match(checkQueuedItem({ fieldList: ["A", "B"] }, ["A", "C"]), /note type changed/);
+  assert.equal(checkQueuedItem({}, ["A"]), null);
+});

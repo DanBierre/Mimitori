@@ -76,3 +76,10 @@ test("connect", async () => {
     "unreachable",
   );
 });
+
+test("invoke survives a null body and reports non-ok HTTP as an anki error", async () => {
+  const nul = createAnki({ fetchImpl: async () => ({ ok: true, json: async () => null }) });
+  assert.equal(await nul.invoke("x"), undefined);
+  const bad = createAnki({ fetchImpl: async () => ({ ok: false, status: 500, statusText: "Boom", json: async () => ({}) }) });
+  await assert.rejects(() => bad.invoke("x"), (e) => e.kind === "anki" && /Boom/.test(e.message));
+});

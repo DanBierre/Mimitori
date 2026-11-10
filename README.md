@@ -41,7 +41,7 @@ The app can send cards straight to Anki. It works on desktop only, and Anki need
 
 Each card gets the word, reading, meaning, the sentence with the word in bold, and the second subtitle line. When you save from Watch, it also adds a screenshot and an audio clip of the line.
 
-If Anki is closed, cards wait in a queue and go in later.
+If Anki is closed, cards wait in a queue and go in later. A waiting card goes to the deck you chose when you saved it.
 
 Words already in your deck count as known, so they lose their furigana.
 
