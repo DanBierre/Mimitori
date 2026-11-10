@@ -4,12 +4,14 @@ import { downmix, resample } from "./audio.js";
 import { toCues, dropJunk } from "./clean.js";
 import { createWindower, pickRuntime, MODEL_ID } from "./windows.js";
 // ONNX runtime files. transformers.js would otherwise fetch these from jsdelivr.
+// This is transformers' own pinned onnxruntime-web, resolved through it; the build fails loudly if that changes.
 import ortMjs from "onnxruntime-web/ort-wasm-simd-threaded.asyncify.mjs?url";
 import ortWasm from "onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url";
 
 let asrPromise = null;
 let activeJob = null;
-let stopRequested = null; // jobId asked to stop
+const stopped = new Set(); // jobIds asked to stop
+let queue = Promise.resolve(); // jobs run one at a time, so two never use the pipeline together
 
 const post = (msg) => self.postMessage(msg);
 
@@ -27,6 +29,7 @@ function toError(e, phase) {
   if (e?.name === "QuotaExceededError") return new JobError("storage", message);
   if (phase === "model") return new JobError("model-download", message);
   if (phase === "decode") return new JobError("cant-decode", message);
+  // phase "infer" (and anything else) falls through to unknown
   return new JobError("unknown", message);
 }
 
@@ -52,7 +55,7 @@ function loadModel(jobId, gpu) {
           total += f.total;
         }
         const pct = Math.min(100, Math.max(0, Math.round((loaded / total) * 100)));
-        if (pct !== lastPct) {
+        if (pct > lastPct) {
           lastPct = pct;
           post({ type: "model", jobId: activeJob, pct });
         }
@@ -67,8 +70,15 @@ function loadModel(jobId, gpu) {
 }
 
 async function run({ jobId, file, fromS, task, gpu }) {
-  let phase = "model";
+  let phase = "unknown";
+  // A newer start supersedes this job, so it stops too.
+  const isStopped = () => jobId !== activeJob || stopped.has(jobId);
   try {
+    if (isStopped()) {
+      post({ type: "stopped", jobId, doneS: fromS });
+      return;
+    }
+    phase = "model";
     const { asr, device } = await loadModel(jobId, gpu);
     post({ type: "ready", jobId, device });
 
@@ -88,18 +98,17 @@ async function run({ jobId, file, fromS, task, gpu }) {
     const handle = async (win) => {
       let cues = [];
       if (!win.silent) {
-        phase = "model";
+        phase = "infer";
         const out = await asr(win.samples, { language: "japanese", task, return_timestamps: true });
-        phase = "decode";
         cues = dropJunk(toCues(win.startS, win.endS, out.chunks ?? []));
+        phase = "decode";
       }
       doneS = win.endS;
       post({ type: "cues", jobId, cues, doneS, totalS });
     };
-    const stopped = () => stopRequested === jobId;
 
     for await (const sample of new AudioSampleSink(track).samples(fromS)) {
-      if (stopped()) {
+      if (isStopped()) {
         sample.close();
         break;
       }
@@ -121,18 +130,18 @@ async function run({ jobId, file, fromS, task, gpu }) {
       sample.close();
       for (const win of windower.push(resample(downmix(planes), rate))) {
         await handle(win);
-        if (stopped()) break;
+        if (isStopped()) break;
       }
-      if (stopped()) break;
+      if (isStopped()) break;
     }
 
-    if (stopped()) {
+    if (isStopped()) {
       post({ type: "stopped", jobId, doneS });
       return;
     }
     for (const win of windower.flush()) {
       await handle(win);
-      if (stopped()) {
+      if (isStopped()) {
         post({ type: "stopped", jobId, doneS });
         return;
       }
@@ -146,9 +155,9 @@ async function run({ jobId, file, fromS, task, gpu }) {
 
 self.onmessage = (e) => {
   const msg = e.data;
-  if (msg.type === "stop") stopRequested = msg.jobId;
+  if (msg.type === "stop") stopped.add(msg.jobId);
   else if (msg.type === "start") {
     activeJob = msg.jobId;
-    run(msg);
+    queue = queue.then(() => run(msg));
   }
 };
