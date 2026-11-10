@@ -15,6 +15,7 @@ import TokenLine from "./TokenLine";
 import WordPanel from "./WordPanel";
 import WatchDrop from "./WatchDrop";
 import WatchControls, { SHORTCUTS } from "./WatchControls";
+import Transcript from "./Transcript";
 
 const NO_LINES = "We couldn't read any lines from this file. Is it a .srt, .vtt or .ass file?";
 const BAD_VIDEO = "Your browser can't play this video. MP4 files work best. Chrome and Edge play the most formats.";
@@ -235,6 +236,24 @@ export default function WatchView({ active }) {
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
+  // Focus mode: real fullscreen of the whole tab (so the word card still shows),
+  // or a full-window layout where element fullscreen isn't allowed (iPhone).
+  const rootRef = useRef(null);
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [focus, setFocus] = useState(false);
+  useEffect(() => {
+    const sync = () => setFocus(document.fullscreenElement === rootRef.current);
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+  function toggleFocus() {
+    const el = rootRef.current;
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (focus) setFocus(false);
+    else if (document.fullscreenEnabled && el?.requestFullscreen) el.requestFullscreen().catch(() => setFocus(true));
+    else setFocus(true);
+  }
+
   function togglePlay() {
     const v = videoRef.current;
     if (v) v.paused ? v.play() : v.pause();
@@ -242,7 +261,7 @@ export default function WatchView({ active }) {
 
   // Keyboard shortcuts, only while Watch is showing and never while typing.
   const keysRef = useRef(null);
-  keysRef.current = { togglePlay, replay, step, nudge };
+  keysRef.current = { togglePlay, replay, step, nudge, toggleFocus, focus };
   useEffect(() => {
     if (!active) return;
     const onKey = (e) => {
@@ -262,7 +281,11 @@ export default function WatchView({ active }) {
         "[": () => k.nudge(-100),
         "]": () => k.nudge(100),
         "?": () => setHelpOpen((o) => !o),
+        f: k.toggleFocus,
+        F: k.toggleFocus,
       };
+      // Esc leaves the full-window fallback (real fullscreen handles Esc itself).
+      if (e.key === "Escape" && k.focus && !document.fullscreenElement) actions.Escape = k.toggleFocus;
       const action = actions[e.key];
       if (!action) return;
       e.preventDefault();
@@ -290,7 +313,8 @@ export default function WatchView({ active }) {
 
   return (
     <div
-      className={`watch ${panelOpen ? "watch--panel-open" : ""}`}
+      ref={rootRef}
+      className={`watch ${panelOpen ? "watch--panel-open" : ""} ${focus ? "watch--focus" : ""}`}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
@@ -307,6 +331,8 @@ export default function WatchView({ active }) {
           />
         )}
 
+        <div className="watch__body">
+        <div className="watch__main">
         {video && (
           <div className="watch__stage">
             <video
@@ -359,6 +385,7 @@ export default function WatchView({ active }) {
             showSecondLine={showSecondLine}
             onToggleSecondLine={() => setWatchSettings({ showSecondLine: !showSecondLine })}
             onHelp={() => setHelpOpen((o) => !o)}
+            onFocus={toggleFocus}
           />
         )}
 
@@ -402,9 +429,24 @@ export default function WatchView({ active }) {
               </p>
             )}
             {primary.skipped > 0 && <p className="note">Skipped {primary.skipped} lines we couldn't read.</p>}
+            <button
+              className="btn btn--quiet watch__transcript-toggle"
+              aria-expanded={transcriptOpen}
+              onClick={() => setTranscriptOpen((o) => !o)}
+            >
+              {transcriptOpen ? "Hide transcript" : "Transcript"}
+            </button>
             <WatchDrop compact onFiles={handleFiles} />
           </div>
         )}
+        </div>
+
+        {ready && (
+          <div className={`watch__side ${transcriptOpen ? "watch__side--open" : ""}`}>
+            <Transcript cues={primary.cues} current={current} onJump={seekToCue} />
+          </div>
+        )}
+        </div>
       </section>
 
       {selectedToken && (

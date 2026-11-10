@@ -1150,3 +1150,140 @@
   font-family: var(--font-mincho);
   font-size: 18px;
 }
+
+/* Watch: transcript, focus mode, phone layout */
+
+.watch__side {
+  display: none;
+  margin-top: 12px;
+}
+
+.watch__side--open {
+  display: block;
+}
+
+.transcript {
+  position: relative;
+  max-height: 40dvh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--paper-shade);
+}
+
+.transcript__line {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 6px;
+  border: 0;
+  border-bottom: 1px solid var(--paper-shade);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.transcript__line:hover {
+  background: var(--paper-shade);
+}
+
+.transcript__line[aria-current="true"] {
+  background: var(--paper-shade);
+  box-shadow: inset 3px 0 0 var(--vermilion);
+}
+
+.transcript__time {
+  flex: none;
+  min-width: 3.2em;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  padding-top: 3px;
+}
+
+.transcript__text {
+  font-family: var(--font-mincho);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+@media (min-width: 960px) {
+  .watch__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .watch__side {
+    display: block;
+    margin-top: 0;
+    position: sticky;
+    top: 22px;
+  }
+
+  .watch__side .transcript {
+    max-height: calc(100dvh - 120px);
+  }
+
+  .watch__transcript-toggle {
+    display: none;
+  }
+}
+
+/* Focus mode: real fullscreen, or a full-window fallback (iPhone). */
+.watch--focus {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--felt);
+}
+
+.watch:fullscreen {
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--felt);
+}
+
+.watch--focus .watch__side,
+.watch--focus .watch__notes,
+.watch--focus .watch-help {
+  display: none;
+}
+
+.watch--focus .watch__body {
+  display: block;
+}
+
+.watch--focus .watch__sheet {
+  max-width: none;
+}
+
+.watch--focus .watch__video {
+  max-height: 70dvh;
+}
+
+.watch--focus .word-panel {
+  bottom: 10px;
+}
+
+@media (max-width: 719px) {
+  .watch__sheet {
+    padding-inline: 12px;
+  }
+
+  .watch__lines {
+    padding-inline: 0;
+  }
+
+  .watch-controls__timing .segmented__label {
+    min-width: 0;
+    width: 100%;
+  }
+}
