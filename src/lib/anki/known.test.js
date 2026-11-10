@@ -35,6 +35,7 @@ test("fetchDeckWords splits known and inDeck", async () => {
   const calls = [];
   const info = (id, front, back) => ({
     noteId: id,
+    modelName: "M",
     fields: { Front: { value: front, order: 0 }, Back: { value: back, order: 1 } },
   });
   const anki = {
@@ -55,7 +56,41 @@ test("fetchDeckWords splits known and inDeck", async () => {
   assert.deepEqual(out, { known: { 食べる: true }, inDeck: { 雨: true } });
   const queries = calls.filter((c) => c[0] === "findNotes").map((c) => c[1].query);
   assert.deepEqual(queries, [
-    '"deck:日本語一般で" "note:M"',
-    '"deck:日本語一般で" "note:M" prop:ivl>=21',
+    '"deck:日本語一般で"',
+    '"deck:日本語一般で" prop:ivl>=21',
   ]);
+});
+
+test("wordFromNote: real Back variants", () => {
+  const tail = "<br><br>[sound:x.mp3]<br><br><img src=\"y.jpg\">";
+  const m = { Front: { role: "sentence" }, Back: DAN.Back };
+  const cases = [
+    ["国語", "あした<b>国語</b>だっけ", `国語 （こくご）＝Japanese language${tail}`],
+    ["種", "これは<b>種</b>だ", `種（たね）＝seed (e.g. of a plant); pip${tail}`],
+    ["信頼感", "<b>信頼感</b>がある", `信頼感 (しんらいかん) = trust${tail}`],
+    ["阻止", "<b>阻止</b>する", "阻止 （とし）＝　obstruction; prevention"],
+    ["ケガのせい", "<b>ケガ</b>のせい", `ケガのせい=Because of an injury${tail}`],
+    ["範囲", "<b>範囲</b>外", "範囲外はんいがい）=out of range"],
+  ];
+  for (const [want, Front, Back] of cases) assert.equal(wordFromNote({ Front, Back }, m), want);
+});
+
+test("fetchDeckWords reads all models, guessing unmapped ones", async () => {
+  const f = (v, o) => ({ value: v, order: o });
+  const notes = [
+    { noteId: 1, modelName: "Farm", fields: { Front: f("x<b>国語</b>y", 0), Back: f("国語 （こくご）＝language", 1) } },
+    ...[["雨", "あめ", "rain"], ["犬", "いぬ", "dog"], ["猫", "ねこ", "cat"]].map(([w, r, e], i) => ({
+      noteId: 10 + i,
+      modelName: "Basic",
+      fields: { Front: f(`それは<b>${w}</b>だ`, 0), Back: f(`${w}（${r}）＝${e}<br><br>[sound:a.mp3]<br><br><img src="a.jpg">`, 1) },
+    })),
+  ];
+  const anki = {
+    async invoke(action, params) {
+      if (action === "findNotes") return params.query.includes("ivl") ? [] : notes.map((n) => n.noteId);
+      return notes.filter((n) => params.notes.includes(n.noteId));
+    },
+  };
+  const out = await fetchDeckWords(anki, { deck: "D", model: "Farm", mapping: DAN });
+  assert.deepEqual(Object.keys(out.inDeck).sort(), ["国語", "犬", "猫", "雨"].sort());
 });

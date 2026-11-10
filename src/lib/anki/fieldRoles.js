@@ -103,7 +103,7 @@ function buildTemplate(raw, word) {
   return replaceLongestLatin(head + tail);
 }
 
-const squash = (t) => t.replace(/[\s​-‍﻿]/g, "");
+const squash = (t) => t.normalize("NFKC").replace(/[\s​-‍﻿]/g, "");
 
 // Pairs each sample's word with that sample's value of the field (by sample index).
 // Agreement is judged ignoring whitespace; the output is the most common exact variant.
