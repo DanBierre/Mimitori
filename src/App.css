@@ -1073,3 +1073,80 @@
     transition: none;
   }
 }
+
+.watch-controls {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--paper-shade);
+}
+
+.watch-controls__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.watch-controls__toggle[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.watch-controls .btn,
+.watch-controls .segmented__btn,
+.watch-controls .stepper__btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.watch-controls__timing .segmented__label {
+  min-width: 11em;
+}
+
+.watch-help {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: var(--paper-shade);
+  border-radius: 3px;
+}
+
+.watch-help dl {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 6px;
+}
+
+.watch-help dl > div {
+  display: flex;
+  gap: 12px;
+}
+
+.watch-help dt {
+  min-width: 5.5em;
+}
+
+.watch-help dd {
+  margin: 0;
+}
+
+.watch-help kbd {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  padding: 1px 6px;
+  border: 1px solid var(--guide);
+  border-radius: 3px;
+  background: var(--paper);
+}
+
+.watch-controls__sync {
+  padding: 10px 12px;
+  background: var(--paper-shade);
+  border-left: 3px solid var(--vermilion);
+}
+
+.watch-controls__sync-line {
+  font-family: var(--font-mincho);
+  font-size: 18px;
+}

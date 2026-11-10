@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cueIndexAt, nearestCueIndex, lineUpOffset, shouldAutoPause, pickPrimary } from "./cues.js";
+import { cueIndexAt, nearestCueIndex, nextCueIndex, alignOffset, shouldAutoPause, pickPrimary } from "./cues.js";
 
 const cues = [
   { start: 1000, end: 2000, text: "一" },
@@ -29,10 +29,20 @@ test("nearestCueIndex gap", () => {
   assert.equal(nearestCueIndex([], 0, 0), -1);
 });
 
-test("lineUpOffset", () => {
-  assert.equal(lineUpOffset(cues, 1300, 0), 300);
-  assert.equal(lineUpOffset(cues, 2900, 0), -100);
-  assert.equal(lineUpOffset(cues, 1300, 2000), 300); // ignores the old offset's value, only uses it to find the line
+test("nextCueIndex", () => {
+  assert.equal(nextCueIndex(cues, 500, 0), 0);
+  assert.equal(nextCueIndex(cues, 1500, 0), 1);
+  assert.equal(nextCueIndex(cues, 3200, 0), 2);
+  assert.equal(nextCueIndex(cues, 9000, 0), 2); // nothing left: last line
+  assert.equal(nextCueIndex(cues, 1500, 2000), 0); // subtitles 2 s late: line 1 hasn't shown yet
+  assert.equal(nextCueIndex([], 0, 0), -1);
+});
+
+test("alignOffset", () => {
+  // Subtitles 2 s late: learner hears line 2 (starts 3000) at 3000 → offset back to 0.
+  assert.equal(alignOffset(cues[1], 3000), 0);
+  // Subtitles early: line 1 heard at 1800 → +800.
+  assert.equal(alignOffset(cues[0], 1800), 800);
 });
 
 test("shouldAutoPause natural", () => {

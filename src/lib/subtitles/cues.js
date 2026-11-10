@@ -31,14 +31,17 @@ export function nearestCueIndex(cues, t, offset) {
   return last;
 }
 
-// New offset that makes the line closest to t start exactly at t.
-export function lineUpOffset(cues, t, offset) {
-  let best = 0;
-  for (let i = 1; i < cues.length; i++) {
-    if (Math.abs(cues[i].start + offset - t) < Math.abs(cues[best].start + offset - t)) best = i;
-  }
-  return t - cues[best].start;
+// The next line still to appear (with the current offset), else the last one.
+// "Line up a line" freezes this as its target, so it works for subtitles that
+// are early or late.
+export function nextCueIndex(cues, t, offset) {
+  if (!cues.length) return -1;
+  const i = cues.findIndex((c) => c.start + offset > t);
+  return i === -1 ? cues.length - 1 : i;
 }
+
+// Offset that makes `cue` start at time t (when the learner heard it).
+export const alignOffset = (cue, t) => t - cue.start;
 
 // True only when normal playback just crossed the end of `cue`. A jump of a
 // second or more (seek, prev/next) or going backwards never counts.

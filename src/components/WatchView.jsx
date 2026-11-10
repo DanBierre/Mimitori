@@ -1,11 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { getTokenizer, tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furigana";
 import { readSubtitleFile, isVideoFile } from "../lib/subtitles/loadFile";
-import { cueIndexAt, pickPrimary } from "../lib/subtitles/cues";
+import {
+  alignOffset,
+  cueIndexAt,
+  nearestCueIndex,
+  nextCueIndex,
+  pickPrimary,
+  shouldAutoPause,
+} from "../lib/subtitles/cues";
+import { writeSrt } from "../lib/subtitles/write";
 import { useStore } from "../lib/store";
 import TokenLine from "./TokenLine";
 import WordPanel from "./WordPanel";
 import WatchDrop from "./WatchDrop";
+import WatchControls, { SHORTCUTS } from "./WatchControls";
 
 const NO_LINES = "We couldn't read any lines from this file. Is it a .srt, .vtt or .ass file?";
 const BAD_VIDEO = "Your browser can't play this video. MP4 files work best. Chrome and Edge play the most formats.";
@@ -16,9 +25,12 @@ const hasJapanese = (cues) => cues.some((c) => JAPANESE_REGEX.test(c.text));
 // renders through TokenLine (furigana, tappable words) and words open the same
 // WordPanel as Read, so saved words land in Review.
 export default function WatchView({ active }) {
-  const { state } = useStore();
+  const { state, setWatchSettings } = useStore();
   const { size } = state.settings;
-  const { showSecondLine } = state.settings.watch;
+  const { showSecondLine, autoPause, speed } = state.settings.watch;
+  const autoPauseRef = useRef(autoPause);
+  autoPauseRef.current = autoPause;
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const videoRef = useRef(null);
   const [video, setVideo] = useState(null); // { url, name }
@@ -49,6 +61,7 @@ export default function WatchView({ active }) {
   function loadPrimary(file) {
     setPrimary(file);
     setOffset(0);
+    setSyncTarget(null);
     setSelection(null);
     setTokens([]);
   }
@@ -119,24 +132,145 @@ export default function WatchView({ active }) {
     const v = videoRef.current;
     if (!v || !primary) return;
     let raf = 0;
+    let prev = v.currentTime * 1000;
+    let prevIdx = -1;
+    let pausedAt = -1; // the line we just auto-paused on, so resuming doesn't pause again
     const tick = () => {
       const t = v.currentTime * 1000;
-      setCurrent(cueIndexAt(primary.cues, t, offsetRef.current));
+      const off = offsetRef.current;
+      const idx = cueIndexAt(primary.cues, t, off);
+      if (prevIdx !== pausedAt) pausedAt = -1;
+      if (
+        autoPauseRef.current &&
+        !v.paused &&
+        prevIdx !== -1 &&
+        prevIdx !== pausedAt &&
+        shouldAutoPause(prev, t, primary.cues[prevIdx], off)
+      ) {
+        // Stop just inside the line's end so it stays on screen to read.
+        v.pause();
+        v.currentTime = Math.max(0, (primary.cues[prevIdx].end + off - 40) / 1000);
+        pausedAt = prevIdx;
+        prev = v.currentTime * 1000;
+        return;
+      }
+      prev = t;
+      prevIdx = idx;
+      setCurrent(idx);
       setSecondCurrent(second ? cueIndexAt(second.cues, t, 0) : -1);
       if (!v.paused) raf = requestAnimationFrame(tick);
     };
     const restart = () => {
       cancelAnimationFrame(raf);
+      // A seek isn't playback: start the crossing check from where we landed.
+      prev = v.currentTime * 1000;
+      prevIdx = cueIndexAt(primary.cues, prev, offsetRef.current);
       tick();
+    };
+    // timeupdate (~4×/s) keeps things moving when animation frames don't run,
+    // e.g. a background tab. It's playback, so it doesn't reset `prev`.
+    const onTime = () => {
+      cancelAnimationFrame(raf);
+      tick();
+    };
+    // Any seek (scrub, prev/next, replay) isn't playback: mark it so a short
+    // jump across a line's end never counts as "the line finished".
+    const onSeeking = () => {
+      prev = Infinity;
     };
     const events = ["play", "seeked", "loadedmetadata"];
     events.forEach((e) => v.addEventListener(e, restart));
+    v.addEventListener("timeupdate", onTime);
+    v.addEventListener("seeking", onSeeking);
     restart();
     return () => {
       cancelAnimationFrame(raf);
       events.forEach((e) => v.removeEventListener(e, restart));
+      v.removeEventListener("timeupdate", onTime);
+      v.removeEventListener("seeking", onSeeking);
     };
   }, [video, primary, second, offset]);
+
+  // Speed applies to every new video too.
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.playbackRate = speed;
+  }, [speed, video]);
+
+  function seekToCue(i) {
+    const v = videoRef.current;
+    if (!v || !primary || i < 0 || i >= primary.cues.length) return;
+    v.currentTime = Math.max(0, (primary.cues[i].start + offset) / 1000);
+  }
+
+  const nowMs = () => (videoRef.current?.currentTime || 0) * 1000;
+
+  function replay() {
+    if (!primary) return;
+    seekToCue(nearestCueIndex(primary.cues, nowMs(), offset));
+    videoRef.current?.play();
+  }
+
+  function step(dir) {
+    if (!primary) return;
+    const i = nearestCueIndex(primary.cues, nowMs(), offset) + dir;
+    seekToCue(Math.min(primary.cues.length - 1, Math.max(0, i)));
+  }
+
+  const nudge = (delta) => setOffset((o) => o + delta);
+  // "Line up a line": freeze the next line to appear, then the learner presses
+  // Now when they hear it spoken.
+  const [syncTarget, setSyncTarget] = useState(null);
+  const startSync = () => primary && setSyncTarget(nextCueIndex(primary.cues, nowMs(), offset));
+  function syncNow() {
+    setOffset(alignOffset(primary.cues[syncTarget], nowMs()));
+    setSyncTarget(null);
+  }
+
+  function download() {
+    const blob = new Blob([writeSrt(primary.cues, offset)], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${primary.name.replace(/\.[^.]+$/, "")}-fixed.srt`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  function togglePlay() {
+    const v = videoRef.current;
+    if (v) v.paused ? v.play() : v.pause();
+  }
+
+  // Keyboard shortcuts, only while Watch is showing and never while typing.
+  const keysRef = useRef(null);
+  keysRef.current = { togglePlay, replay, step, nudge };
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = e.target;
+      if (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName)) return;
+      // A keyboard-focused control keeps Space for itself (words excepted, so
+      // Space after tapping a word carries on playing).
+      if (e.key === " " && (el.tagName === "A" || (el.tagName === "BUTTON" && !el.classList.contains("word")))) return;
+      const k = keysRef.current;
+      const actions = {
+        " ": k.togglePlay,
+        r: k.replay,
+        R: k.replay,
+        ArrowLeft: () => k.step(-1),
+        ArrowRight: () => k.step(1),
+        "[": () => k.nudge(-100),
+        "]": () => k.nudge(100),
+        "?": () => setHelpOpen((o) => !o),
+      };
+      const action = actions[e.key];
+      if (!action) return;
+      e.preventDefault();
+      action();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [active]);
 
   function selectWord(i) {
     if (i === null) {
@@ -202,6 +336,47 @@ export default function WatchView({ active }) {
                 {second && showSecondLine && <p className="watch__second">{secondCue ? secondCue.text : " "}</p>}
               </div>
             )}
+          </div>
+        )}
+
+        {ready && (
+          <WatchControls
+            onReplay={replay}
+            onPrev={() => step(-1)}
+            onNext={() => step(1)}
+            speed={speed}
+            onSpeed={(s) => setWatchSettings({ speed: s })}
+            autoPause={autoPause}
+            onAutoPause={(on) => setWatchSettings({ autoPause: on })}
+            offsetMs={offset}
+            onNudge={nudge}
+            onLineUp={startSync}
+            syncText={syncTarget !== null ? primary.cues[syncTarget].text.replace(/\n/g, "") : null}
+            onSyncNow={syncNow}
+            onSyncCancel={() => setSyncTarget(null)}
+            onDownload={download}
+            hasSecondLine={Boolean(second)}
+            showSecondLine={showSecondLine}
+            onToggleSecondLine={() => setWatchSettings({ showSecondLine: !showSecondLine })}
+            onHelp={() => setHelpOpen((o) => !o)}
+          />
+        )}
+
+        {helpOpen && (
+          <div className="watch-help" role="region" aria-label="Keyboard shortcuts">
+            <dl>
+              {SHORTCUTS.map(([key, what]) => (
+                <div key={key}>
+                  <dt>
+                    <kbd>{key}</kbd>
+                  </dt>
+                  <dd>{what}</dd>
+                </div>
+              ))}
+            </dl>
+            <button className="btn btn--quiet" onClick={() => setHelpOpen(false)}>
+              Close
+            </button>
           </div>
         )}
 
