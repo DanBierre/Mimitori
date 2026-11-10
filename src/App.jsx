@@ -43,7 +43,8 @@ function Shell() {
     <div className="app">
       <header className="app__header">
         <h1 className="app__title">
-          Mimitori
+          <img className="app__logo" src="/favicon.svg" alt="" width="24" height="24" />
+          mimitori
         </h1>
         <div className="app__side">
           <p className="app__known">{knownCount} known</p>

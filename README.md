@@ -1,3 +1,5 @@
+<img src="brand/mark.svg" width="72" height="72" alt="" />
+
 # Mimitori
 
 A free, open source study app for Japanese learners. Read real Japanese or watch your own videos with Japanese subtitles, tap any word for its meaning, save it, and review it later. No account, no setup, and your files never leave your computer.
@@ -81,6 +83,7 @@ Issues and pull requests are welcome. Keep changes small and focused, run `npm t
 - **JMdict** dictionary data © the Electronic Dictionary Research and Development Group, used under the [Creative Commons Attribution-ShareAlike 4.0 licence](https://www.edrdg.org/edrdg/licence.html).
 - **kuromoji.js** by Takuya Asano, Apache License 2.0. It ships the **IPADIC** dictionary, which has its own permissive licence.
 - Spaced repetition by **ts-fsrs** (MIT).
+- The ear in the logo is based on the ear icon from **Tabler Icons** (MIT). Logo sources and the script that renders the icons live in `brand/`.
 
 ## Licence
 
