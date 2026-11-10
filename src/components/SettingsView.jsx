@@ -34,7 +34,7 @@ function RoleSelect({ field, value, isTemplate, onChange }) {
 }
 
 export default function SettingsView({ active }) {
-  const { state, setAnkiSettings } = useStore();
+  const { state, setAnkiSettings, setSettings } = useStore();
   const cfg = state.settings.anki;
   const a = useAnki(active);
   const [draft, setDraft] = useState(null); // { fieldNames, guesses, roles }
@@ -197,9 +197,55 @@ export default function SettingsView({ active }) {
             {a.syncing ? "Syncing…" : "Sync known words"}
           </button>
           <span className="note settings__inline">
-            {Object.keys(state.anki.known).length} known, {Object.keys(state.anki.inDeck).length} in the deck. Last synced {ago(state.anki.syncedAt)}.
+            {Object.keys(state.anki.known).length} known, {Object.keys(state.anki.inDeck).length} in Anki. Last synced {ago(state.anki.syncedAt)}.
           </span>
         </div>
+        {a.progress && (
+          <p className="note" role="status">Reading {a.progress.deck}… {a.progress.done} of {a.progress.total}</p>
+        )}
+        {a.deckNotes.map((n) => <p key={n} className="note">{n}</p>)}
+
+        {ready && connected && (
+          <>
+            <p className="settings__label">Decks to read</p>
+            {a.decks.map((d) => {
+              const isAddTo = d === cfg.deck;
+              const on = isAddTo || cfg.readDecks.includes(d);
+              return (
+                <label key={d} className="settings__toggle">
+                  <input
+                    type="checkbox"
+                    checked={on}
+                    disabled={isAddTo}
+                    onChange={(e) => {
+                      const rest = cfg.readDecks.filter((x) => x !== d && x !== cfg.deck);
+                      setAnkiSettings({ readDecks: e.target.checked ? [...rest, d] : rest });
+                      a.refreshKnown({ force: true });
+                    }}
+                  />
+                  <span>{d}</span>
+                </label>
+              );
+            })}
+            <label className="settings__toggle">
+              <input type="checkbox" checked={cfg.tagKnown} onChange={(e) => setAnkiSettings({ tagKnown: e.target.checked })} />
+              <span>Tag words I know in Anki</span>
+            </label>
+            <p className="note">
+              Adds a mimitori-known tag to cards in {cfg.deck} for words you've marked known here. Only that deck, nothing else is changed.
+            </p>
+          </>
+        )}
+
+        <label className="settings__toggle">
+          <input
+            type="checkbox"
+            checked={state.settings.commonKnown !== false}
+            onChange={(e) => setSettings({ commonKnown: e.target.checked })}
+          />
+          <span>Treat very common words as known</span>
+        </label>
+        <p className="note">About 2,000 everyday words like 何, する and いる. They won't get furigana or be suggested for Anki.</p>
 
         <p className="note">
           {a.queueCount} {a.queueCount === 1 ? "card is" : "cards are"} waiting for Anki.

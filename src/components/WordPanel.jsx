@@ -4,6 +4,7 @@ import { ankiMode, useStore, wordState } from "../lib/store";
 import { anki } from "../lib/anki/useAnki";
 import { addCardFromWord } from "../lib/anki/addCard";
 import { listQueue } from "../lib/anki/queue";
+import { isVeryCommon } from "../lib/common";
 import { formatInterval } from "../lib/srs";
 import { canSpeak, speak } from "../lib/speak";
 import Icon from "./Icon";
@@ -42,11 +43,15 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
     };
   }, [token.base, token.surface, token.reading]);
 
+  const [sure, setSure] = useState(false); // very-common notice acknowledged
   useEffect(() => {
     setAdd(null);
+    setSure(false);
   }, [token.base]);
 
   const mark = wordState(state, token.base);
+  // "known" only because it's very common: Anki add stays reachable, behind a notice.
+  const commonOnly = addToAnki && mark === "known" && !state.known[token.base] && !state.anki.known[token.base] && isVeryCommon(token.base);
   const saved = state.words[token.base];
   const reading = entry.data?.reading || token.reading || "";
 
@@ -202,7 +207,24 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
             </button>
           </>
         )}
-        {mark === "known" && (
+        {commonOnly && (
+          <>
+            <p className="word-panel__status">Treated as known. Furigana is hidden for it.</p>
+            {!sure ? (
+              <button className="btn btn--primary" onClick={() => setSure(true)}>
+                Add to Anki
+              </button>
+            ) : (
+              <>
+                <p className="word-panel__note">This is a very common word.</p>
+                <button className="btn btn--primary" onClick={handleAdd} disabled={add === "adding" || add === "recording" || entry.status === "loading"}>
+                  Add anyway
+                </button>
+              </>
+            )}
+          </>
+        )}
+        {mark === "known" && !commonOnly && (
           <>
             <p className="word-panel__status">Marked as known. Furigana is hidden for it.</p>
             <button className="btn" onClick={() => unknowWord(token.base)}>
