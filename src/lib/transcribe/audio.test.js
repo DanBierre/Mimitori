@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { downmix, resample, rms, pickCut } from "./audio.js";
+import { downmix, resample, createResampler, rms, pickCut } from "./audio.js";
 
 // Tiny seeded LCG so the noise never flakes.
 function noise(n, amp, seed = 1) {
@@ -50,3 +50,14 @@ test("resample keeps a long DC offset exact", () => {
   const out = resample(new Float32Array(600 * 48000).fill(0.1), 48000);
   for (let i = 0; i < out.length; i++) assert.ok(Math.abs(out[i] - 0.1) < 1e-6);
 });
+
+for (const rate of [48000, 44100]) {
+  test(`createResampler keeps total length exact over 24 min at ${rate} Hz`, () => {
+    const r = createResampler(rate);
+    const block = new Float32Array(1024);
+    const blocks = Math.floor((24 * 60 * rate) / 1024);
+    let out = 0;
+    for (let i = 0; i < blocks; i++) out += r.push(block).length;
+    assert.ok(Math.abs(out - Math.round((blocks * 1024 * 16000) / rate)) <= 1);
+  });
+}

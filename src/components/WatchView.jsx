@@ -69,7 +69,6 @@ export default function WatchView({ active, onOpenSettings }) {
 
   const t = useTranscribe(video?.file ?? null);
   const [card, setCard] = useState(false); // first-use download notice
-  const [wantEnglish, setWantEnglish] = useState(false);
   const [pastEnd, setPastEnd] = useState(false); // playhead is past the last line made so far
 
   const [offset, setOffset] = useState(0);
@@ -139,7 +138,6 @@ export default function WatchView({ active, onOpenSettings }) {
       setVideo({ url: URL.createObjectURL(vid), name: vid.name, file: vid });
       setVideoError(false);
       setCard(false);
-      setWantEnglish(false);
       // Lines made for the old video don't belong to this one.
       if (primary?.auto) {
         setPrimary(null);
@@ -294,7 +292,7 @@ export default function WatchView({ active, onOpenSettings }) {
 
   function makeSubtitles() {
     if (t.needsModelOk) setCard(true);
-    else t.start({ english: wantEnglish });
+    else t.start();
   }
 
   function download() {
@@ -582,14 +580,9 @@ export default function WatchView({ active, onOpenSettings }) {
               <MakeSubtitles
                 t={t}
                 card={card}
-                wantEnglish={wantEnglish}
-                onEnglish={(on) => {
-                  setWantEnglish(on);
-                  t.setEnglish(on);
-                }}
                 onConfirm={() => {
                   setCard(false);
-                  t.start({ english: wantEnglish });
+                  t.start();
                 }}
                 onCancel={() => setCard(false)}
                 onDownload={primary ? download : undefined}

@@ -1,6 +1,6 @@
 // Reads a video file in chunks, turns the audio into 16 kHz windows and runs
 // Whisper on each. Everything stays in this worker; nothing is uploaded.
-import { downmix, resample } from "./audio.js";
+import { downmix, createResampler } from "./audio.js";
 import { toCues, dropJunk } from "./clean.js";
 import { createWindower, pickRuntime, MODEL_ID } from "./windows.js";
 // ONNX runtime files. transformers.js would otherwise fetch these from jsdelivr.
@@ -78,10 +78,7 @@ async function run({ jobId, file, fromS, task, gpu }) {
       post({ type: "stopped", jobId, doneS: fromS });
       return;
     }
-    phase = "model";
-    const { asr, device } = await loadModel(jobId, gpu);
-    post({ type: "ready", jobId, device });
-
+    // Check the file first, so a bad file fails before the big model download.
     phase = "decode";
     const { Input, ALL_FORMATS, BlobSource, AudioSampleSink } = await import("mediabunny");
     const input = new Input({ formats: ALL_FORMATS, source: new BlobSource(file) });
@@ -92,8 +89,15 @@ async function run({ jobId, file, fromS, task, gpu }) {
     }
     const totalS = await track.computeDuration();
 
+    phase = "model";
+    const { asr, device } = await loadModel(jobId, gpu);
+    post({ type: "ready", jobId, device });
+    phase = "decode";
+
     const windower = createWindower({ rate: 16000, startS: fromS });
     let doneS = fromS;
+    let resampler = null;
+    let resamplerRate = 0;
 
     const handle = async (win) => {
       let cues = [];
@@ -128,7 +132,11 @@ async function run({ jobId, file, fromS, task, gpu }) {
       }
       const rate = sample.sampleRate;
       sample.close();
-      for (const win of windower.push(resample(downmix(planes), rate))) {
+      if (rate !== resamplerRate) {
+        resampler = createResampler(rate);
+        resamplerRate = rate;
+      }
+      for (const win of windower.push(resampler.push(downmix(planes)))) {
         await handle(win);
         if (isStopped()) break;
       }
@@ -158,6 +166,6 @@ self.onmessage = (e) => {
   if (msg.type === "stop") stopped.add(msg.jobId);
   else if (msg.type === "start") {
     activeJob = msg.jobId;
-    queue = queue.then(() => run(msg));
+    queue = queue.then(() => run(msg)).catch(() => {});
   }
 };

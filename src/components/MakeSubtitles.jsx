@@ -4,7 +4,7 @@ const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStar
 
 // The progress row under the player while subtitles are made, plus the
 // first-use download card. `t` is the useTranscribe result.
-export default function MakeSubtitles({ t, card, wantEnglish, onEnglish, onConfirm, onCancel, onDownload }) {
+export default function MakeSubtitles({ t, card, onConfirm, onCancel, onDownload }) {
   if (card) {
     return (
       <div className="make-subs make-subs--card" role="region" aria-label="Make subtitles">
@@ -22,7 +22,7 @@ export default function MakeSubtitles({ t, card, wantEnglish, onEnglish, onConfi
   }
 
   const { status, task, record } = t;
-  const time = `${clock(t.progressS)} of ${clock(t.totalS)}`;
+  const time = <span aria-hidden="true">{clock(t.progressS)} of {clock(t.totalS)}</span>;
   let row = null;
   if (status === "loading-model") {
     row = <>Getting the speech model… {t.modelPct}%</>;
@@ -34,10 +34,7 @@ export default function MakeSubtitles({ t, card, wantEnglish, onEnglish, onConfi
         Making subtitles… {time}{" "}
         <button className="link" onMouseDown={noFocus} onClick={t.stop}>
           Stop
-        </button>{" "}
-        <label className="make-subs__check">
-          <input type="checkbox" checked={wantEnglish} onChange={(e) => onEnglish(e.target.checked)} /> Also make English
-        </label>
+        </button>
       </>
     );
   } else if (record.done) {
@@ -64,7 +61,7 @@ export default function MakeSubtitles({ t, card, wantEnglish, onEnglish, onConfi
   if (!row) return null;
 
   return (
-    <p className="make-subs" role="status">
+    <p className="make-subs" role="status" aria-atomic="true">
       {row}
       {t.device === "wasm" && status === "running" && (
         <span className="make-subs__slow"> This computer will take about as long as the video, maybe longer.</span>

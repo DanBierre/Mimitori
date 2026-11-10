@@ -34,6 +34,26 @@ export function resample(samples, fromRate, toRate = 16000) {
   return out;
 }
 
+// Resamples a stream of blocks so the total output length stays exact
+// (per-block rounding would drift cue times by seconds over an episode).
+export function createResampler(fromRate, toRate = 16000) {
+  let inTotal = 0;
+  let outTotal = 0;
+  return {
+    push(block) {
+      inTotal += block.length;
+      const want = Math.round((inTotal * toRate) / fromRate) - outTotal;
+      outTotal += want;
+      const out = resample(block, fromRate, toRate);
+      if (out.length === want) return out;
+      const fixed = new Float32Array(want);
+      fixed.set(out.subarray(0, want));
+      if (want > out.length && out.length) fixed.fill(out[out.length - 1], out.length);
+      return fixed;
+    },
+  };
+}
+
 export function rms(samples, from = 0, to = samples.length) {
   if (to <= from) return 0;
   let sum = 0;
