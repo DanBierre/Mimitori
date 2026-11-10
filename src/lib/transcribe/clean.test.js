@@ -46,3 +46,15 @@ test("toCues clamps end to [start, window end]", () => {
   assert.equal(a.end, 15000);
   assert.equal(b.end, 40000);
 });
+
+test("dropJunk removes hums and grunts, keeps うん and words with ん", () => {
+  const texts = ["ん", "ん？", "んん", "んー", "ンっ", "うん", "なんで", "ん、何？"];
+  const kept = dropJunk(texts.map((text) => ({ start: 0, end: 1, text })));
+  assert.deepEqual(kept.map((c) => c.text), ["うん", "なんで", "ん、何？"]);
+});
+
+test("dropJunk collapses a loop of 3+ identical lines to the first", () => {
+  const texts = ["何？", "別に", "別に", "別に", "別に", "ねっ", "はい", "はい"];
+  const kept = dropJunk(texts.map((text, i) => ({ start: i, end: i + 1, text })));
+  assert.deepEqual(kept.map((c) => c.text), ["何？", "別に", "ねっ", "はい", "はい"]);
+});

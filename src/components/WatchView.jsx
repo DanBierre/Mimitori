@@ -111,6 +111,20 @@ export default function WatchView({ active, onOpenSettings }) {
     setTokens([]);
   }
 
+  // Back to the drop screen with nothing loaded.
+  function closeVideo() {
+    if (video) URL.revokeObjectURL(video.url);
+    setVideo(null);
+    setVideoError(false);
+    setPrimary(null);
+    setSecond(null);
+    setTokens([]);
+    setSelection(null);
+    setCard(false);
+    setFileError("");
+    setSample("off");
+  }
+
   // The learner's own files: the sample credit no longer applies.
   function pickFiles(list) {
     setSample("off");
@@ -138,15 +152,17 @@ export default function WatchView({ active, onOpenSettings }) {
       setVideo({ url: URL.createObjectURL(vid), name: vid.name, file: vid });
       setVideoError(false);
       setCard(false);
-      // Lines made for the old video don't belong to this one.
-      if (primary?.auto) {
-        setPrimary(null);
-        setTokens([]);
-        setSelection(null);
-      }
-      if (second?.auto) setSecond(null);
     }
-    const hadPrimary = primary && !(vid && primary.auto);
+    // Swapping one video for another: the old subtitles (loaded or made) belong
+    // to the old video. Subtitles dropped before the first video are kept.
+    const replacing = vid && (video || primary?.auto);
+    if (replacing) {
+      setPrimary(null);
+      setTokens([]);
+      setSelection(null);
+      setSecond(null);
+    }
+    const hadPrimary = primary && !replacing;
 
     // Anything that isn't a video is tried as subtitles, so a mislabelled
     // file still gets a clear message instead of being ignored.
@@ -444,6 +460,11 @@ export default function WatchView({ active, onOpenSettings }) {
 
       {video && (
         <section className="watch__stage" aria-label="Player">
+          {!focus && (
+            <button className="watch__close" onMouseDown={noFocus} onClick={closeVideo}>
+              <Icon name="prev" size={16} /> Close video
+            </button>
+          )}
           <div className="watch__frame">
             <video
               ref={videoRef}

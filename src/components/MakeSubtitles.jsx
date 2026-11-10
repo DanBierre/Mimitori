@@ -25,7 +25,13 @@ export default function MakeSubtitles({ t, card, onConfirm, onCancel, onDownload
   const time = <span aria-hidden="true">{clock(t.progressS)} of {clock(t.totalS)}</span>;
   let row = null;
   if (status === "loading-model") {
-    row = <>Getting the speech model… {t.modelPct}%</>;
+    // After the download the model still has to warm up on the GPU (a minute or two).
+    row =
+      t.modelPct >= 100 ? (
+        <>Warming up the speech model… This can take a couple of minutes.</>
+      ) : (
+        <>Getting the speech model… {t.modelPct}%</>
+      );
   } else if (status === "running" && task === "translate") {
     row = <>Making the English line… {time}</>;
   } else if (status === "running") {
