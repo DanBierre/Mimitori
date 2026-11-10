@@ -22,6 +22,8 @@ export const initialState = {
   progressS: 0,
   totalS: 0,
   record: emptyRecord(),
+  recordKey: null, // the file key the record belongs to (set once its load finishes)
+  loaded: false,
   error: null,
 };
 
@@ -90,6 +92,8 @@ export function reduce(state, action) {
         : [...state.record.edited, action.index];
       return { ...state, record: { ...state.record, ja, edited } };
     }
+    case "loaded":
+      return { ...state, loaded: true, recordKey: action.key };
     case "load":
       return { ...state, record: action.record, progressS: action.record.doneS, totalS: action.record.totalS };
     case "reset":

@@ -18,6 +18,7 @@ import WatchControls, { SHORTCUTS, noFocus } from "./WatchControls";
 import WatchTips from "./WatchTips";
 import Transcript from "./Transcript";
 import MakeSubtitles from "./MakeSubtitles";
+import { transcriptKey } from "../lib/transcribe/state";
 import { useTranscribe } from "../lib/transcribe/useTranscribe";
 import { SAMPLE, sampleFiles } from "../lib/firstRun";
 import Icon from "./Icon";
@@ -89,16 +90,12 @@ export default function WatchView({ active, onOpenSettings }) {
   // Transcribed lines flow into the primary / second line as they arrive, but
   // never over a subtitle file the learner loaded by hand. loadPrimary only for
   // the first batch, so offset, selection and auto-pause survive later batches.
-  const syncedFile = useRef(null);
   useEffect(() => {
     const file = video?.file ?? null;
-    // First run after a new video still holds the old record; the reset lands next render.
-    if (syncedFile.current !== file) {
-      syncedFile.current = file;
-      return;
-    }
+    // Only sync a record that belongs to this video (the hook loads it after the file changes).
+    if (!file || t.recordKey !== transcriptKey(file)) return;
     const { ja, en } = t.record;
-    if (!file || (primary && !primary.auto)) return;
+    if (primary && !primary.auto) return;
     if (ja.length && !primary) loadPrimary({ name: `${video.name} (auto)`, cues: ja, skipped: 0, auto: true });
     else if (ja.length && primary.cues !== ja) setPrimary((p) => ({ ...p, cues: ja }));
     if (en?.length && (!second || (second.auto && second.cues !== en))) {
@@ -401,7 +398,7 @@ export default function WatchView({ active, onOpenSettings }) {
 
   const ready = Boolean(video && primary);
   const busy = t.status === "loading-model" || t.status === "running";
-  const canMake = Boolean(video) && !primary && !busy && !t.record.ja.length && !t.record.done;
+  const canMake = Boolean(video) && t.loaded && !primary && !busy && !t.record.ja.length && !t.record.done;
   const listening = t.status === "running" && t.task === "transcribe" && pastEnd;
   const cue = primary && current !== -1 ? primary.cues[current] : null;
   const lineTokens = current !== -1 ? tokens[current] : null;

@@ -57,3 +57,11 @@ test("pickRuntime", () => {
   assert.deepEqual(pickRuntime({ webgpu: true, f16: false }), { device: "webgpu", dtype: q4 });
   assert.deepEqual(pickRuntime({ webgpu: false, f16: false }), { device: "wasm", dtype: q4 });
 });
+
+test("a final window under 2 s is flagged silent", () => {
+  const w = createWindower({});
+  const out = [...w.push(noise(31 * RATE)), ...w.flush()];
+  const last = out[out.length - 1];
+  assert.ok(last.endS - last.startS < 2);
+  assert.equal(last.silent, true);
+});

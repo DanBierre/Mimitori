@@ -4,6 +4,8 @@
 import { pickCut, rms } from "./audio.js";
 import { SILENCE_RMS } from "./clean.js";
 
+// A real last word under 2 s is lost; merge a short tail into the previous window if that matters.
+export const MIN_WINDOW_S = 2;
 export const MODEL_ID = "onnx-community/whisper-large-v3-turbo";
 
 export function createWindower({ rate = 16000, windowS = 30, searchS = 3, startS = 0 } = {}) {
@@ -17,7 +19,7 @@ export function createWindower({ rate = 16000, windowS = 30, searchS = 3, startS
       startS: startS + done / rate,
       endS: startS + (done + n) / rate,
       samples,
-      silent: rms(samples) < SILENCE_RMS,
+      silent: samples.length / rate < MIN_WINDOW_S || rms(samples) < SILENCE_RMS,
     };
     done += n;
     buf.copyWithin(0, n, len);

@@ -32,3 +32,17 @@ test("dropJunk keeps real short lines", () => {
   ];
   assert.deepEqual(dropJunk(cues), cues);
 });
+
+test("dropJunk removes sound tags and music marks, keeps real lines", () => {
+  const kept = dropJunk(["音楽", "(音楽)", "♪～", "音楽が好き"].map((text) => ({ start: 0, end: 1, text })));
+  assert.deepEqual(kept.map((c) => c.text), ["音楽が好き"]);
+});
+
+test("toCues clamps end to [start, window end]", () => {
+  const [a, b] = toCues(10, 40, [
+    { timestamp: [5, 3], text: "a" },
+    { timestamp: [5, 99], text: "b" },
+  ]);
+  assert.equal(a.end, 15000);
+  assert.equal(b.end, 40000);
+});

@@ -54,9 +54,10 @@ export function useTranscribe(file) {
         if (keyRef.current !== key) return; // the file changed while we were loading
         if (rec) {
           lastSaved.current = rec;
-          dispatch({ type: "load", record: rec });
+          dispatch({ type: "load", record: rec, key });
         }
         loaded.current = true;
+        dispatch({ type: "loaded", key });
       });
     return killWorker;
   }, [key]);
@@ -134,6 +135,8 @@ export function useTranscribe(file) {
     totalS: state.totalS,
     device: state.device,
     record: state.record,
+    recordKey: state.recordKey,
+    loaded: state.loaded,
     error: state.error,
     needsModelOk,
     start,
