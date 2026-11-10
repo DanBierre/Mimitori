@@ -11,6 +11,14 @@ export function recordFailure(item, kind, message) {
   return { ...item, failures: item.failures + 1, lastError: message };
 }
 
+// What a flush should do with an error from sending one card.
+export function classifyFlushError(err) {
+  if (err?.name !== "AnkiError") return "fatal";
+  if (err.kind === "unreachable") return "unreachable";
+  if (err.kind === "anki") return /duplicate/i.test(err.message) ? "done" : "failure";
+  return "fatal";
+}
+
 export const shouldGiveUp = (item) => item.failures >= MAX_FAILURES;
 
 const DB_NAME = "nihongo-reader-anki";
@@ -42,7 +50,7 @@ async function run(stores, mode, action) {
     const result = action((name) => tx.objectStore(name));
     tx.oncomplete = () => resolve(result?.result);
     tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error ?? new Error("Transaction aborted"));
   });
 }
 
@@ -80,28 +88,42 @@ export async function retryFailed(id) {
     };
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error ?? new Error("Transaction aborted"));
   });
 }
 
 // Sends queued cards oldest first. Stops at the first unreachable error.
-export async function flushQueue(anki) {
+// Overlapping calls share one run so a card is never sent twice.
+let inFlight = null;
+export function flushQueue(anki) {
+  if (!inFlight) inFlight = doFlush(anki).finally(() => (inFlight = null));
+  return inFlight;
+}
+
+async function doFlush(anki) {
   const items = (await listQueue()).sort((a, b) => a.queuedAt - b.queuedAt);
   let sent = 0;
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
+    let outcome = "done";
+    let error;
     try {
       const { storeMedia = [], ...note } = item.note;
       for (const m of storeMedia) {
         await anki.invoke("storeMediaFile", { filename: m.filename, data: m.data });
       }
       await anki.invoke("addNote", { note });
+    } catch (e) {
+      error = e;
+      outcome = classifyFlushError(e);
+    }
+    if (outcome === "fatal") throw error;
+    if (outcome === "unreachable") return { sent, waiting: items.length - i };
+    if (outcome === "done") {
       await removeQueued(item.id);
       sent++;
-    } catch (e) {
-      const kind = e?.kind === "anki" ? "anki" : "unreachable";
-      if (kind === "unreachable") return { sent, waiting: items.length - i };
-      const next = recordFailure(item, kind, e.message);
+    } else {
+      const next = recordFailure(item, "anki", error.message);
       if (shouldGiveUp(next)) await moveToFailed(next);
       else await run("queue", "readwrite", (s) => s("queue").put(next));
     }
