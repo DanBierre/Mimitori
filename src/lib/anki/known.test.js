@@ -94,3 +94,21 @@ test("fetchDeckWords reads all models, guessing unmapped ones", async () => {
   const out = await fetchDeckWords(anki, { deck: "D", model: "Farm", mapping: DAN });
   assert.deepEqual(Object.keys(out.inDeck).sort(), ["国語", "犬", "猫", "雨"].sort());
 });
+
+test("fetchDeckWords uses one guessed mapping per model for mature and other notes", async () => {
+  const f = (v, o) => ({ value: v, order: o });
+  const mk = (id, w, r, e) => ({
+    noteId: id,
+    modelName: "Basic",
+    fields: { Front: f(`それは<b>${w}</b>だ`, 0), Back: f(`${w}（${r}）＝${e}<br><br>[sound:a.mp3]<br><br><img src="a.jpg">`, 1) },
+  });
+  const notes = [mk(1, "雨", "あめ", "rain"), mk(2, "犬", "いぬ", "dog"), mk(3, "猫", "ねこ", "cat")];
+  const anki = {
+    async invoke(action, params) {
+      if (action === "findNotes") return params.query.includes("ivl") ? [3] : [1, 2, 3];
+      return notes.filter((n) => params.notes.includes(n.noteId));
+    },
+  };
+  const out = await fetchDeckWords(anki, { deck: "D", model: "Other", mapping: DAN });
+  assert.deepEqual(out, { known: { 猫: true }, inDeck: { 雨: true, 犬: true } });
+});

@@ -146,9 +146,10 @@ test("real shape: template with sound and picture slots", () => {
 test("template agreement ignores full/half width variants", () => {
   const tail = (n) => `<br><br>[sound:${n}.mp3]<br><br><img src="${n}.jpg">`;
   const r = guessFieldRoles(["Front", "Back"], [
-    { Front: "これは<b>種</b>だ", Back: `種（たね）＝seed (e.g. of a plant); pip${tail("a")}` },
+    { Front: "これは<b>種</b>だ", Back: `種 (たね) = seed${tail("a")}` },
     { Front: "<b>信頼感</b>がある", Back: `信頼感 (しんらいかん) = trust${tail("b")}` },
-    { Front: "あした<b>国語</b>だっけ", Back: `国語 （こくご）＝Japanese language${tail("c")}` },
+    { Front: "あした<b>国語</b>だっけ", Back: `国語（こくご）＝Japanese language${tail("c")}` },
+    { Front: "<b>阻止</b>する", Back: `阻止（とし）＝obstruction${tail("d")}` },
   ]);
   assert.equal(r.Back.role, "template");
 });

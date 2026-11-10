@@ -33,8 +33,10 @@ export function wordFromNote(fields, mapping) {
   return "";
 }
 
-async function notesFor(anki, query, mapping) {
-  const ids = await anki.invoke("findNotes", { query });
+export async function fetchDeckWords(anki, { deck, model, mapping }) {
+  const base = `"deck:${deck}"`;
+  const ids = await anki.invoke("findNotes", { query: base });
+  const matureIds = new Set(await anki.invoke("findNotes", { query: `${base} prop:ivl>=21` }));
   const infos = [];
   for (let i = 0; i < ids.length; i += 500) {
     infos.push(...(await anki.invoke("notesInfo", { notes: ids.slice(i, i + 500) })));
@@ -42,27 +44,20 @@ async function notesFor(anki, query, mapping) {
   const flat = (n) => Object.fromEntries(Object.entries(n.fields).map(([k, f]) => [k, f.value]));
   const byModel = {};
   for (const n of infos) (byModel[n.modelName] ||= []).push(n);
-  const words = [];
+  const known = {};
+  const inDeck = {};
   for (const [modelName, notes] of Object.entries(byModel)) {
-    let map = mapping.model === modelName ? mapping.map : null;
+    let map = modelName === model ? mapping : null;
     if (!map) {
+      // guessed once per model from the whole deck, so mature and other notes share it
       const names = Object.entries(notes[0].fields).sort((a, b) => a[1].order - b[1].order).map(([k]) => k);
       map = guessFieldRoles(names, notes.slice(0, 20).map(flat));
     }
     for (const n of notes) {
       const w = wordFromNote(flat(n), map);
-      if (w) words.push(w);
+      if (w) (matureIds.has(n.noteId) ? known : inDeck)[w] = true;
     }
   }
-  return words;
-}
-
-export async function fetchDeckWords(anki, { deck, model, mapping }) {
-  const base = `"deck:${deck}"`;
-  const m = { model, map: mapping };
-  const all = await notesFor(anki, base, m);
-  const mature = await notesFor(anki, `${base} prop:ivl>=21`, m);
-  const known = Object.fromEntries(mature.map((w) => [w, true]));
-  const inDeck = Object.fromEntries(all.filter((w) => !known[w]).map((w) => [w, true]));
+  for (const w of Object.keys(known)) delete inDeck[w];
   return { known, inDeck };
 }
