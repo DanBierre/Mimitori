@@ -30,6 +30,8 @@ function rawGzipDict() {
 
 export default defineConfig({
   plugins: [react(), rawGzipDict()],
+  worker: { format: "es" },
+  optimizeDeps: { exclude: ["@huggingface/transformers"] },
   server: {
     port: 5173,
   },
