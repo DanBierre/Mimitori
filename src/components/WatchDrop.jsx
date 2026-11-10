@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { noFocus } from "./WatchControls";
 
 const ACCEPT = "video/*,.mkv,.srt,.vtt,.ass,.ssa";
 
@@ -26,7 +27,7 @@ export default function WatchDrop({ onFiles, hasVideo, hasSubs, error, compact }
   if (compact) {
     return (
       <>
-        <button className="btn btn--quiet" onClick={() => inputRef.current.click()}>
+        <button className="btn btn--quiet" onMouseDown={noFocus} onClick={() => inputRef.current.click()}>
           Change files
         </button>
         {input}
@@ -50,7 +51,7 @@ export default function WatchDrop({ onFiles, hasVideo, hasSubs, error, compact }
     >
       <p className="watch-drop__prompt">{prompt}</p>
       <p className="watch-drop__hint">Add an English subtitle file too if you want it under each line.</p>
-      <button className="btn btn--primary" onClick={() => inputRef.current.click()}>
+      <button className="btn btn--primary" onMouseDown={noFocus} onClick={() => inputRef.current.click()}>
         Choose files
       </button>
       {input}

@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cueIndexAt, nearestCueIndex, nextCueIndex, alignOffset, shouldAutoPause, pickPrimary } from "./cues.js";
+import {
+  cueIndexAt,
+  nearestCueIndex,
+  nextCueIndex,
+  alignOffset,
+  shouldAutoPause,
+  pickPrimary,
+  createAutoPause,
+} from "./cues.js";
 
 const cues = [
   { start: 1000, end: 2000, text: "一" },
@@ -55,6 +63,55 @@ test("shouldAutoPause ignores seeks", () => {
   assert.equal(shouldAutoPause(2050, 1900, cues[0], 0), false);
   assert.equal(shouldAutoPause(1000, 1900, cues[0], 0), false);
   assert.equal(shouldAutoPause(1900, 2050, undefined, 0), false);
+});
+
+// The pause-after-each-line loop as the player drives it: seeked() when
+// playback (re)starts somewhere, seeking() on every seek, tick() each frame.
+const lines = [
+  { start: 1000, end: 4000, text: "一" },
+  { start: 4500, end: 6000, text: "二" },
+];
+
+test("auto-pause fires once, resume carries on", () => {
+  const ap = createAutoPause();
+  ap.seeked(3500, 0);
+  assert.equal(ap.tick(3900, 0, lines, 0), null);
+  assert.equal(ap.tick(4010, -1, lines, 0), 3960); // pause, parked just inside the line
+  ap.seeking(true); // the player's own park-seek
+  ap.seeked(3960, 0);
+  assert.equal(ap.tick(3990, 0, lines, 0), null);
+  assert.equal(ap.tick(4020, -1, lines, 0), null); // resumed: no second pause on the same line
+  assert.equal(ap.tick(4600, 1, lines, 0), null);
+  assert.equal(ap.tick(5900, 1, lines, 0), null);
+  assert.equal(ap.tick(6010, -1, lines, 0), 5960); // next line still pauses
+});
+
+test("replay after auto-pause pauses again", () => {
+  const ap = createAutoPause();
+  ap.seeked(3500, 0);
+  ap.tick(4010, -1, lines, 0);
+  ap.seeking(true);
+  ap.seeked(3960, 0);
+  ap.seeking(false); // learner presses Replay
+  ap.seeked(1000, 0);
+  assert.equal(ap.tick(1500, 0, lines, 0), null);
+  assert.equal(ap.tick(3900, 0, lines, 0), null);
+  assert.equal(ap.tick(4010, -1, lines, 0), 3960);
+});
+
+test("a seek across a line end never pauses", () => {
+  const ap = createAutoPause();
+  ap.seeked(3900, 0);
+  ap.seeking(false);
+  assert.equal(ap.tick(4300, -1, lines, 0), null); // timeupdate before seeked
+  ap.seeked(4300, -1);
+  assert.equal(ap.tick(4400, -1, lines, 0), null);
+});
+
+test("auto-pause off never pauses", () => {
+  const ap = createAutoPause();
+  ap.seeked(3900, 0);
+  assert.equal(ap.tick(4010, -1, lines, 0, false), null);
 });
 
 test("pickPrimary", () => {

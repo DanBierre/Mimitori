@@ -52,7 +52,42 @@ export function shouldAutoPause(prev, now, cue, offset) {
   return step > 0 && step < 1000 && prev < end && end <= now;
 }
 
-const japaneseCount = (cues) => cues.filter((c) => JAPANESE_REGEX.test(c.text)).length;
+// Pause-after-each-line, driven by the player:
+//   seeked(t, idx)   playback (re)starts at t, showing line idx
+//   seeking(own)     any seek; own = the tracker's own park-seek after a pause
+//   tick(t, idx, …)  each frame; returns the time to park at when it pauses
+// After a pause it ignores that same line once, so resuming carries on; any
+// seek the learner makes (replay, scrub, prev/next) clears that, so a replayed
+// line pauses again.
+export function createAutoPause() {
+  let prev = null;
+  let prevIdx = -1;
+  let pausedIdx = -1;
+  return {
+    seeked(t, idx) {
+      prev = t;
+      prevIdx = idx;
+    },
+    seeking(own) {
+      prev = null;
+      if (!own) pausedIdx = -1;
+    },
+    tick(t, idx, cues, offset, enabled = true) {
+      if (prevIdx !== pausedIdx && prev !== null) pausedIdx = -1;
+      const cue = cues[prevIdx];
+      if (enabled && prev !== null && prevIdx !== pausedIdx && shouldAutoPause(prev, t, cue, offset)) {
+        pausedIdx = prevIdx;
+        prev = null;
+        return Math.max(0, cue.end + offset - 40);
+      }
+      prev = t;
+      prevIdx = idx;
+      return null;
+    },
+  };
+}
+
+const japaneseCount =(cues) => cues.filter((c) => JAPANESE_REGEX.test(c.text)).length;
 
 // Two subtitle files: the more Japanese one becomes the main line.
 export function pickPrimary(a, b) {

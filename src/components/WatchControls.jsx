@@ -2,7 +2,7 @@ const SPEEDS = [0.5, 0.75, 1, 1.25];
 
 // Mouse clicks shouldn't leave focus on a control, or the next Space press
 // would click it again instead of playing/pausing. Keyboard focus still works.
-const noFocus = (e) => e.preventDefault();
+export const noFocus = (e) => e.preventDefault();
 
 function Btn({ children, className = "btn", ...props }) {
   return (

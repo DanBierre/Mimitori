@@ -3,18 +3,18 @@ import { getTokenizer, tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furig
 import { readSubtitleFile, isVideoFile } from "../lib/subtitles/loadFile";
 import {
   alignOffset,
+  createAutoPause,
   cueIndexAt,
   nearestCueIndex,
   nextCueIndex,
   pickPrimary,
-  shouldAutoPause,
 } from "../lib/subtitles/cues";
 import { writeSrt } from "../lib/subtitles/write";
 import { useStore } from "../lib/store";
 import TokenLine from "./TokenLine";
 import WordPanel from "./WordPanel";
 import WatchDrop from "./WatchDrop";
-import WatchControls, { SHORTCUTS } from "./WatchControls";
+import WatchControls, { SHORTCUTS, noFocus } from "./WatchControls";
 import Transcript from "./Transcript";
 import { conjugationParts } from "../lib/conjugation";
 import { captureFrame, putImage } from "../lib/images";
@@ -34,6 +34,9 @@ export default function WatchView({ active }) {
   const { showSecondLine, autoPause, speed } = state.settings.watch;
   const autoPauseRef = useRef(autoPause);
   autoPauseRef.current = autoPause;
+  // Lives across effect re-runs (e.g. a timing nudge) so a just-paused line stays handled.
+  const pauseTracker = useRef(null);
+  if (!pauseTracker.current) pauseTracker.current = createAutoPause();
   const [helpOpen, setHelpOpen] = useState(false);
 
   const videoRef = useRef(null);
@@ -63,6 +66,7 @@ export default function WatchView({ active }) {
   }, [active]);
 
   function loadPrimary(file) {
+    pauseTracker.current = createAutoPause();
     setPrimary(file);
     setOffset(0);
     setSyncTarget(null);
@@ -98,7 +102,9 @@ export default function WatchView({ active }) {
       loadPrimary(a);
       setSecond(b);
     } else if (hasJapanese(good[0].cues) || !primary) {
+      // A new main file is usually a new episode: the old second line won't match it.
       loadPrimary(good[0]);
+      setSecond(null);
     } else {
       setSecond(good[0]);
     }
@@ -135,40 +141,29 @@ export default function WatchView({ active }) {
   useEffect(() => {
     const v = videoRef.current;
     if (!v || !primary) return;
+    const ap = pauseTracker.current;
     let raf = 0;
-    let prev = v.currentTime * 1000;
-    let prevIdx = -1;
-    let pausedAt = -1; // the line we just auto-paused on, so resuming doesn't pause again
+    let parking = false; // our own seek after an auto-pause
     const tick = () => {
       const t = v.currentTime * 1000;
       const off = offsetRef.current;
       const idx = cueIndexAt(primary.cues, t, off);
-      if (prevIdx !== pausedAt) pausedAt = -1;
-      if (
-        autoPauseRef.current &&
-        !v.paused &&
-        prevIdx !== -1 &&
-        prevIdx !== pausedAt &&
-        shouldAutoPause(prev, t, primary.cues[prevIdx], off)
-      ) {
+      const park = ap.tick(t, idx, primary.cues, off, autoPauseRef.current && !v.paused);
+      if (park !== null) {
         // Stop just inside the line's end so it stays on screen to read.
         v.pause();
-        v.currentTime = Math.max(0, (primary.cues[prevIdx].end + off - 40) / 1000);
-        pausedAt = prevIdx;
-        prev = v.currentTime * 1000;
+        parking = true;
+        v.currentTime = park / 1000;
         return;
       }
-      prev = t;
-      prevIdx = idx;
       setCurrent(idx);
       setSecondCurrent(second ? cueIndexAt(second.cues, t, 0) : -1);
       if (!v.paused) raf = requestAnimationFrame(tick);
     };
     const restart = () => {
       cancelAnimationFrame(raf);
-      // A seek isn't playback: start the crossing check from where we landed.
-      prev = v.currentTime * 1000;
-      prevIdx = cueIndexAt(primary.cues, prev, offsetRef.current);
+      const t = v.currentTime * 1000;
+      ap.seeked(t, cueIndexAt(primary.cues, t, offsetRef.current));
       tick();
     };
     // timeupdate (~4×/s) keeps things moving when animation frames don't run,
@@ -180,7 +175,8 @@ export default function WatchView({ active }) {
     // Any seek (scrub, prev/next, replay) isn't playback: mark it so a short
     // jump across a line's end never counts as "the line finished".
     const onSeeking = () => {
-      prev = Infinity;
+      ap.seeking(parking);
+      parking = false;
     };
     const events = ["play", "seeked", "loadedmetadata"];
     events.forEach((e) => v.addEventListener(e, restart));
@@ -271,9 +267,10 @@ export default function WatchView({ active }) {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const el = e.target;
       if (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName)) return;
-      // A keyboard-focused control keeps Space for itself (words excepted, so
-      // Space after tapping a word carries on playing).
-      if (e.key === " " && (el.tagName === "A" || (el.tagName === "BUTTON" && !el.classList.contains("word")))) return;
+      // A control reached by keyboard keeps Space for itself. After a mouse
+      // click (no :focus-visible) Space means play/pause, as do word buttons.
+      const control = el.tagName === "A" || (el.tagName === "BUTTON" && !el.classList.contains("word"));
+      if (e.key === " " && control && el.matches(":focus-visible")) return;
       const k = keysRef.current;
       const actions = {
         " ": k.togglePlay,
@@ -349,6 +346,10 @@ export default function WatchView({ active }) {
               className="watch__video"
               src={video.url}
               controls
+              // The player's own fullscreen/PiP would hide the subtitle lines;
+              // Focus mode is the way to go big.
+              controlsList="nofullscreen"
+              disablePictureInPicture
               playsInline
               onError={() => setVideoError(true)}
             />
@@ -410,7 +411,7 @@ export default function WatchView({ active }) {
                 </div>
               ))}
             </dl>
-            <button className="btn btn--quiet" onClick={() => setHelpOpen(false)}>
+            <button className="btn btn--quiet" onMouseDown={noFocus} onClick={() => setHelpOpen(false)}>
               Close
             </button>
           </div>
@@ -432,7 +433,7 @@ export default function WatchView({ active }) {
             {readings === "error" && (
               <p className="note">
                 The reading engine didn’t load, so lines show without furigana.{" "}
-                <button className="btn btn--quiet" onClick={() => setRetry((n) => n + 1)}>
+                <button className="btn btn--quiet" onMouseDown={noFocus} onClick={() => setRetry((n) => n + 1)}>
                   Try again
                 </button>
               </p>
@@ -440,6 +441,7 @@ export default function WatchView({ active }) {
             {primary.skipped > 0 && <p className="note">Skipped {primary.skipped} lines we couldn't read.</p>}
             <button
               className="btn btn--quiet watch__transcript-toggle"
+              onMouseDown={noFocus}
               aria-expanded={transcriptOpen}
               onClick={() => setTranscriptOpen((o) => !o)}
             >
