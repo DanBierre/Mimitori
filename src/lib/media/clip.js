@@ -5,7 +5,10 @@
 const MIME = "audio/webm;codecs=opus";
 const LEAD_MS = 200; // start a bit early so the line isn't clipped
 const TAIL_MS = 300; // keep a bit after the line ends
-const MIN_BYTES = 1024;
+const MIN_BYTES = 1024; // anything smaller is an empty or silent capture
+const SEEK_TIMEOUT_MS = 2000;
+
+let busy = false; // one recording at a time; a second would clobber the saved state
 
 function waitFor(target, event) {
   return new Promise((resolve) => target.addEventListener(event, resolve, { once: true }));
@@ -16,7 +19,11 @@ export async function recordLine(video, startMs, endMs) {
   if (!capture || typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported(MIME)) {
     return null;
   }
+  if (busy) return null;
+  busy = true;
 
+  let stream;
+  let recorder;
   const saved = {
     time: video.currentTime,
     muted: video.muted,
@@ -28,13 +35,18 @@ export async function recordLine(video, startMs, endMs) {
     // A muted element can yield a silent captured track, so unmute for the replay.
     video.muted = false;
     video.pause();
-    const seeked = waitFor(video, "seeked");
-    video.currentTime = Math.max(0, startMs - LEAD_MS) / 1000;
-    await seeked;
+    const target = Math.max(0, startMs - LEAD_MS) / 1000;
+    // No seek happens (so no `seeked`) when we're already there; also never wait forever.
+    if (Math.abs(video.currentTime - target) >= 0.001 || video.seeking) {
+      const seeked = waitFor(video, "seeked");
+      video.currentTime = target;
+      await Promise.race([seeked, new Promise((r) => setTimeout(r, SEEK_TIMEOUT_MS))]);
+    }
 
-    const audioTracks = capture.call(video).getAudioTracks();
+    stream = capture.call(video);
+    const audioTracks = stream.getAudioTracks();
     if (audioTracks.length === 0) return null;
-    const recorder = new MediaRecorder(new MediaStream(audioTracks), { mimeType: MIME });
+    recorder = new MediaRecorder(new MediaStream(audioTracks), { mimeType: MIME });
     const chunks = [];
     recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
     const stopped = waitFor(recorder, "stop");
@@ -65,6 +77,9 @@ export async function recordLine(video, startMs, endMs) {
     const blob = new Blob(chunks, { type: MIME });
     return blob.size >= MIN_BYTES ? blob : null;
   } finally {
+    if (recorder && recorder.state !== "inactive") recorder.stop();
+    if (stream) stream.getTracks().forEach((t) => t.stop());
+    busy = false;
     video.pause();
     video.currentTime = saved.time;
     video.muted = saved.muted;
