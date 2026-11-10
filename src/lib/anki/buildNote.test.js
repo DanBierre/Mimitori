@@ -25,7 +25,7 @@ test("fills mapped roles", () => {
   const n = buildNote({ deck: "D", model: "M", mapping: lapis, word, context, media });
   assert.equal(n.deckName, "D");
   assert.equal(n.modelName, "M");
-  assert.deepEqual(n.tags, ["nihongo-reader"]);
+  assert.deepEqual(n.tags, ["mimitori"]);
   assert.deepEqual(n.options, { allowDuplicate: false, duplicateScope: "deck" });
   assert.equal(n.fields.Expression, "食べる");
   assert.equal(n.fields.ExpressionReading, "たべる");
@@ -36,8 +36,8 @@ test("fills mapped roles", () => {
   assert.equal(n.fields.MiscInfo, "ep01.mp4 · 0:09");
   assert.deepEqual(n.picture[0].fields, ["Picture"]);
   assert.deepEqual(n.audio[0].fields, ["SentenceAudio"]);
-  assert.equal(n.picture[0].filename, "nihongo-reader-食べる-5.jpg");
-  assert.equal(n.audio[0].filename, "nihongo-reader-食べる-5.webm");
+  assert.equal(n.picture[0].filename, "mimitori-食べる-5.jpg");
+  assert.equal(n.audio[0].filename, "mimitori-食べる-5.webm");
   assert.equal(n.picture[0].data, "AAA");
   assert.deepEqual(n.storeMedia, []);
 });
@@ -71,10 +71,10 @@ const kokugo = { base: "国語", surface: "国語", reading: "こくご", glosse
 test("dan's template", () => {
   const n = buildNote({ deck: "D", model: "M", mapping: dan, word: kokugo, context: { sentence: "あした国語だっけ", now: 1000 }, media });
   assert.equal(n.fields.Front, "あした<b>国語</b>だっけ");
-  assert.equal(n.fields.Back, '国語（こくご）＝Japanese language<br><br>[sound:nihongo-reader-国語-1000.webm]<br><br><img src="nihongo-reader-国語-1000.jpg">');
+  assert.equal(n.fields.Back, '国語（こくご）＝Japanese language<br><br>[sound:mimitori-国語-1000.webm]<br><br><img src="mimitori-国語-1000.jpg">');
   assert.deepEqual(n.storeMedia, [
-    { filename: "nihongo-reader-国語-1000.webm", data: "BBB" },
-    { filename: "nihongo-reader-国語-1000.jpg", data: "AAA" },
+    { filename: "mimitori-国語-1000.webm", data: "BBB" },
+    { filename: "mimitori-国語-1000.jpg", data: "AAA" },
   ]);
   assert.equal("picture" in n, false);
   assert.equal("audio" in n, false);

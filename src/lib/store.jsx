@@ -8,6 +8,7 @@ import { becameKnown, gradeCard, isDue, newCard } from "./srs";
 import { deleteImage } from "./images";
 export { ankiMode, wordState } from "./anki/settingsLogic";
 
+// Old app name kept on purpose: renaming the key would wipe saved words and settings.
 const STORAGE_KEY = "nihongo-reader:v1";
 
 const DEFAULT_STATE = {

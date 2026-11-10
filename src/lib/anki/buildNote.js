@@ -8,7 +8,7 @@ export function buildNote({ deck, model, mapping, word, context = {}, media = {}
   const now = context.now ?? Date.now();
   const files = {};
   for (const kind of ["picture", "audio"]) {
-    if (media[kind]) files[kind] = { ...media[kind], filename: `nihongo-reader-${word.base}-${now}.${media[kind].ext}` };
+    if (media[kind]) files[kind] = { ...media[kind], filename: `mimitori-${word.base}-${now}.${media[kind].ext}` };
   }
   const entries = Object.entries(mapping);
   const inTemplate = (slot) => entries.some(([, e]) => e.role === "template" && e.template?.includes(slot));
@@ -37,7 +37,7 @@ export function buildNote({ deck, model, mapping, word, context = {}, media = {}
     deckName: deck,
     modelName: model,
     fields,
-    tags: ["nihongo-reader"],
+    tags: ["mimitori"],
     options: { allowDuplicate: false, duplicateScope: "deck" },
     storeMedia,
   };

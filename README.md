@@ -1,4 +1,4 @@
-# Nihongo Reader
+# Mimitori
 
 A free, open source study app for Japanese learners. Read real Japanese or watch your own videos with Japanese subtitles, tap any word for its meaning, save it, and review it later. No account, no setup, and your files never leave your computer.
 

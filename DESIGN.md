@@ -1,5 +1,5 @@
 ---
-name: Nihongo Reader
+name: Mimitori
 description: A plain, polished subtitle player that happens to teach; the learning tools appear only when touched.
 colors:
   accent: "#2563eb"
@@ -141,7 +141,7 @@ components:
     padding: "3px"
 ---
 
-# Design System: Nihongo Reader
+# Design System: Mimitori
 
 ## Overview
 

@@ -26,7 +26,7 @@ export function downloadCsv(words) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "nihongo-reader-words.csv";
+  a.download = "mimitori-words.csv";
   document.body.appendChild(a);
   a.click();
   a.remove();

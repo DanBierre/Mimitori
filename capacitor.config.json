@@ -1,6 +1,6 @@
 {
-  "appId": "com.yourname.nihongoreader",
-  "appName": "Nihongo Reader",
+  "appId": "dev.danbierre.mimitori",
+  "appName": "Mimitori",
   "webDir": "dist",
   "ios": {
     "contentInset": "automatic"

@@ -27,7 +27,7 @@ Pasted or imported Japanese text is tokenized locally (kuromoji.js, dictionary i
 - Later: graded content library, OCR/camera, Android Anki plugin, kanji info, name dictionary, Yomitan dictionary import.
 
 ## Brand Commitments
-Working name "Nihongo Reader" (placeholder; not final). No logo or voice commitments exist.
+Name: **Mimitori** (耳取り, "catching it by ear"; a play on 聞き取り). Chosen by Dan on 11 November 2026, replacing the placeholder "Nihongo Reader". Domain: **mimitori.com** (registered on Cloudflare, 11 November 2026). No logo or voice commitments exist yet.
 - Look: minimal, like a regular subtitle reader (Netflix/YouTube player, Language Reactor), with learning tools tucked in. Chosen by Dan on 10 November 2026 over themed directions; no decorative themes.
 - Follows the device light/dark setting; Watch always sits on a dark stage.
 
