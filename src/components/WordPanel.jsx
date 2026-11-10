@@ -216,8 +216,8 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
               </button>
             ) : (
               <>
-                <p className="word-panel__note">This is a very common word.</p>
-                <button className="btn btn--primary" onClick={handleAdd} disabled={add === "adding" || add === "recording" || entry.status === "loading"}>
+                <p className="word-panel__note" role="status">This is a very common word.</p>
+                <button className="btn btn--primary" autoFocus onClick={handleAdd} disabled={add === "adding" || add === "recording" || entry.status === "loading"}>
                   Add anyway
                 </button>
               </>

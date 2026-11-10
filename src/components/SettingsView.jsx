@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ankiMode, useStore } from "../lib/store";
 import { anki, useAnki } from "../lib/anki/useAnki";
 import { guessFieldRoles, ROLES } from "../lib/anki/fieldRoles";
@@ -41,6 +41,17 @@ export default function SettingsView({ active }) {
   const [checking, setChecking] = useState(false);
   const [checkError, setCheckError] = useState("");
   const [failed, setFailed] = useState([]);
+
+  // Re-sync when the decks or tagging change (after the new settings have rendered).
+  const syncKey = JSON.stringify([cfg.readDecks, cfg.tagKnown]);
+  const firstSync = useRef(true);
+  useEffect(() => {
+    if (firstSync.current) {
+      firstSync.current = false;
+      return;
+    }
+    a.refreshKnown({ force: true });
+  }, [syncKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadFailed = () => listFailed().then(setFailed).catch(() => {});
   useEffect(() => {
@@ -216,11 +227,10 @@ export default function SettingsView({ active }) {
                   <input
                     type="checkbox"
                     checked={on}
-                    disabled={isAddTo}
+                    disabled={isAddTo || a.syncing}
                     onChange={(e) => {
                       const rest = cfg.readDecks.filter((x) => x !== d && x !== cfg.deck);
                       setAnkiSettings({ readDecks: e.target.checked ? [...rest, d] : rest });
-                      a.refreshKnown({ force: true });
                     }}
                   />
                   <span>{d}</span>
@@ -228,7 +238,7 @@ export default function SettingsView({ active }) {
               );
             })}
             <label className="settings__toggle">
-              <input type="checkbox" checked={cfg.tagKnown} onChange={(e) => setAnkiSettings({ tagKnown: e.target.checked })} />
+              <input type="checkbox" checked={cfg.tagKnown} disabled={a.syncing} onChange={(e) => setAnkiSettings({ tagKnown: e.target.checked })} />
               <span>Tag words I know in Anki</span>
             </label>
             <p className="note">
