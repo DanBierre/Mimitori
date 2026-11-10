@@ -58,3 +58,13 @@ test("sentenceWithFurigana", () => {
   ];
   assert.equal(sentenceWithFurigana(tokens, 0), "<b>食[た]べ</b>なかった");
 });
+
+test("sentenceWithFurigana spaces ruby across tokens", () => {
+  const tokens = [
+    { surface: "私", segments: [{ text: "私", ruby: "わたし" }] },
+    { surface: "は", segments: [{ text: "は" }] },
+    { surface: "食べ", segments: [{ text: "食", ruby: "た" }, { text: "べ" }] },
+  ];
+  assert.equal(sentenceWithFurigana(tokens, -1), "私[わたし]は 食[た]べ");
+  assert.equal(sentenceWithFurigana(tokens, 2), "私[わたし]は<b>食[た]べ</b>");
+});

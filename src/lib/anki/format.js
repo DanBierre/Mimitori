@@ -4,12 +4,17 @@ export function escapeHtml(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// Anki bracket syntax: base text runs back to the previous space, so every
-// ruby segment after the first gets a leading space.
+// Anki bracket syntax: base text runs back to the previous space (or `>`),
+// so a ruby segment needs a leading space unless output is empty or already
+// ends in a space or `>`.
+function addSegment(out, s) {
+  if (!s.ruby) return out + s.text;
+  const sep = out && !/[ >]$/.test(out) ? " " : "";
+  return `${out}${sep}${s.text}[${s.ruby}]`;
+}
+
 export function toBracketFurigana(segments) {
-  return segments
-    .map((s, i) => (s.ruby ? `${i ? " " : ""}${s.text}[${s.ruby}]` : s.text))
-    .join("");
+  return segments.reduce(addSegment, "");
 }
 
 export function wordFurigana(base, reading) {
@@ -17,14 +22,13 @@ export function wordFurigana(base, reading) {
 }
 
 export function sentenceWithFurigana(tokens, highlight) {
-  return tokens
-    .map((t, i) => {
-      const out = toBracketFurigana(
-        t.segments.map((s) => ({ ...s, text: escapeHtml(s.text) })),
-      );
-      return i === highlight ? `<b>${out}</b>` : out;
-    })
-    .join("");
+  let out = "";
+  tokens.forEach((t, i) => {
+    if (i === highlight) out += "<b>";
+    out = t.segments.reduce((o, s) => addSegment(o, { ...s, text: escapeHtml(s.text) }), out);
+    if (i === highlight) out += "</b>";
+  });
+  return out;
 }
 
 export function boldWord(sentence, surface) {
