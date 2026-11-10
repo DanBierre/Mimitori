@@ -1,0 +1,78 @@
+:root {
+  /* Felt mat and practice-sheet paper. The vermilion is the only colour:
+     it is reserved for the state of a word and the primary seal. */
+  --felt: #15120f;
+  --felt-raised: #1e1a16;
+  --felt-line: #34302a;
+  --paper: #f3f6f5;
+  --paper-shade: #e4eae8;
+  --guide: #9aa6a2;
+  --ink: #14110f;
+  --ink-soft: #4a4946;
+  --vermilion: #c8321e;
+  --vermilion-felt: #ee5f45;
+  --on-felt: #ece8e1;
+  --on-felt-soft: #a9a39a;
+
+  --font-mincho: "Shippori Mincho", "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif CJK JP", serif;
+  --font-ui: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--felt);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--felt);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: rgba(200, 50, 30, 0.22);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--vermilion);
+  outline-offset: 2px;
+}
+
+textarea,
+input {
+  caret-color: var(--vermilion);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--guide) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

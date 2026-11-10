@@ -1,0 +1,8 @@
+{
+  "appId": "com.yourname.nihongoreader",
+  "appName": "Nihongo Reader",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "automatic"
+  }
+}
