@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cleanExpression, wordFromNote, fetchDeckWords } from "./known.js";
+import { cleanExpression, wordFromNote, fetchDeckWords, mergeDeckWords, readAllDecks } from "./known.js";
 
 const DAN = {
   Front: { role: "sentence" },
@@ -53,7 +53,7 @@ test("fetchDeckWords splits known and inDeck", async () => {
     },
   };
   const out = await fetchDeckWords(anki, { deck: "日本語一般で", model: "M", mapping: DAN });
-  assert.deepEqual(out, { known: { 食べる: true }, inDeck: { 雨: true } });
+  assert.deepEqual(out, { known: { 食べる: true }, inDeck: { 雨: true }, notes: 3, words: 2 });
   const queries = calls.filter((c) => c[0] === "findNotes").map((c) => c[1].query);
   assert.deepEqual(queries, [
     '"deck:日本語一般で"',
@@ -113,5 +113,42 @@ test("fetchDeckWords uses one guessed mapping per model for mature and other not
     },
   };
   const out = await fetchDeckWords(anki, { deck: "D", model: "Other", mapping: DAN });
-  assert.deepEqual(out, { known: {}, inDeck: { 犬: true, 猫: true } });
+  assert.deepEqual(out, { known: {}, inDeck: { 犬: true, 猫: true }, notes: 3, words: 2 });
+});
+
+test("mergeDeckWords: mature in one deck and new in another is known once", () => {
+  const out = mergeDeckWords([
+    { known: { 何: true }, inDeck: {} },
+    { known: {}, inDeck: { 何: true, 猫: true } },
+  ]);
+  assert.deepEqual(out, { known: { 何: true }, inDeck: { 猫: true } });
+});
+
+test("fetchDeckWords reports progress per batch", async () => {
+  const ids = Array.from({ length: 1200 }, (_, i) => i + 1);
+  const anki = {
+    async invoke(action, params) {
+      if (action === "findNotes") return params.query.includes("ivl") ? [] : ids;
+      return params.notes.map((id) => ({ noteId: id, modelName: "M", fields: { Front: { value: "x", order: 0 } } }));
+    },
+  };
+  const seen = [];
+  await fetchDeckWords(anki, { deck: "D", model: "M", mapping: { Front: { role: "expression" } } }, (d, t) => seen.push([d, t]));
+  assert.deepEqual(seen, [[500, 1200], [1000, 1200], [1200, 1200]]);
+});
+
+test("readAllDecks skips a missing deck and keeps the others", async () => {
+  const note = { noteId: 1, modelName: "M", tags: ["t"], fields: { Front: { value: "猫", order: 0 } } };
+  const anki = {
+    async invoke(action, params) {
+      if (action === "deckNames") return ["Test", "Other"];
+      if (action === "findNotes") return params.query.includes("ivl") ? [] : params.query.includes("Gone") ? [] : [1];
+      return [note];
+    },
+  };
+  const a = { deck: "Test", model: "M", mapping: { Front: { role: "expression" } }, readDecks: ["Gone", "Other"] };
+  const out = await readAllDecks(anki, a);
+  assert.deepEqual(out.missing, ["Gone"]);
+  assert.deepEqual(out.deckNotes, ["Gone wasn't found in Anki"]);
+  assert.deepEqual(out.merged.inDeck, { 猫: true });
 });

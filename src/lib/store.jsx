@@ -21,7 +21,7 @@ const DEFAULT_STATE = {
     size: 26,
     commonKnown: true, // treat very common words as known
     watch: { autoPause: false, speed: 1, showSecondLine: true },
-    anki: { enabled: false, deck: "", model: "", mapping: {}, fieldList: [] },
+    anki: { enabled: false, deck: "", model: "", mapping: {}, fieldList: [], readDecks: [], tagKnown: false },
   },
   // Words read from Anki: mature ("known") and in the deck but not yet mature.
   anki: { known: {}, inDeck: {}, syncedAt: 0 },

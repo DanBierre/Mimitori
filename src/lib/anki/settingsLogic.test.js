@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { newCard } from "../srs.js";
-import { pickSampleQuery, hasWordField, wordState, ankiMode, buildMapping, flatFields, lowConfidence, templateParts } from "./settingsLogic.js";
+import { pickSampleQuery, hasWordField, wordState, ankiMode, buildMapping, flatFields, lowConfidence, templateParts, readDecks } from "./settingsLogic.js";
 
 const st = (anki) => ({ settings: { anki } });
 
@@ -93,4 +93,8 @@ test("wordState: a saved very common word stays saved", () => {
   const s = emptyState(true);
   s.words["何"] = { card: { ...newCard(), due: new Date(now.getTime() + 86400000) } };
   assert.equal(wordState(s, "何", now, new Set(["何"])), "saved");
+});
+
+test("readDecks puts the add-to deck first and drops duplicates", () => {
+  assert.deepEqual(readDecks({ deck: "Test", readDecks: ["日本語一般で", "Test", ""] }), ["Test", "日本語一般で"]);
 });

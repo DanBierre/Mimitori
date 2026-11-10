@@ -81,3 +81,6 @@ export function pickSampleQuery({ deckCount, deck, model }) {
     ? { query: `"deck:${deck}" "note:${model}"`, scope: "deck" }
     : { query: `"note:${model}"`, scope: "collection" };
 }
+
+// The add-to deck first, then the picked read decks, no duplicates or blanks.
+export const readDecks = (a) => [...new Set([a.deck, ...(a.readDecks ?? [])].filter(Boolean))];

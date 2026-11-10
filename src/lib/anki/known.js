@@ -1,5 +1,6 @@
 import { JAPANESE_REGEX } from "../furigana.js";
 import { guessFieldRoles } from "./fieldRoles.js";
+import { readDecks } from "./settingsLogic.js";
 
 export const cleanExpression = (v) =>
   v
@@ -33,19 +34,21 @@ export function wordFromNote(fields, mapping) {
   return "";
 }
 
-export async function fetchDeckWords(anki, { deck, model, mapping }) {
+// Notes of one deck with their word, tags and whether the card is mature.
+// Notes with no word are left out. Independent of the store.
+export async function readDeckNotes(anki, { deck, model, mapping }, onProgress) {
   const base = `"deck:${deck}"`;
   const ids = await anki.invoke("findNotes", { query: base });
   const matureIds = new Set(await anki.invoke("findNotes", { query: `${base} prop:ivl>=21` }));
   const infos = [];
   for (let i = 0; i < ids.length; i += 500) {
     infos.push(...(await anki.invoke("notesInfo", { notes: ids.slice(i, i + 500) })));
+    onProgress?.(Math.min(i + 500, ids.length), ids.length);
   }
   const flat = (n) => Object.fromEntries(Object.entries(n.fields).map(([k, f]) => [k, f.value]));
   const byModel = {};
   for (const n of infos) (byModel[n.modelName] ||= []).push(n);
-  const known = {};
-  const inDeck = {};
+  const out = [];
   for (const [modelName, notes] of Object.entries(byModel)) {
     let map = modelName === model ? mapping : null;
     if (!map) {
@@ -54,10 +57,60 @@ export async function fetchDeckWords(anki, { deck, model, mapping }) {
       map = guessFieldRoles(names, notes.slice(0, 20).map(flat));
     }
     for (const n of notes) {
-      const w = wordFromNote(flat(n), map);
-      if (w) (matureIds.has(n.noteId) ? known : inDeck)[w] = true;
+      const word = wordFromNote(flat(n), map);
+      if (word) out.push({ noteId: n.noteId, word, tags: n.tags ?? [], mature: matureIds.has(n.noteId) });
     }
+  }
+  return out;
+}
+
+export async function fetchDeckWords(anki, cfg, onProgress) {
+  let notes = 0;
+  const list = await readDeckNotes(anki, cfg, (done, total) => {
+    notes = total;
+    onProgress?.(done, total);
+  });
+  const known = {};
+  const inDeck = {};
+  for (const n of list) (n.mature ? known : inDeck)[n.word] = true;
+  for (const w of Object.keys(known)) delete inDeck[w];
+  return { known, inDeck, notes, words: list.length };
+}
+
+// Known in any deck is known; otherwise in any deck is inDeck.
+export function mergeDeckWords(results) {
+  const known = {};
+  const inDeck = {};
+  for (const r of results) {
+    Object.assign(known, r.known);
+    Object.assign(inDeck, r.inDeck);
   }
   for (const w of Object.keys(known)) delete inDeck[w];
   return { known, inDeck };
+}
+
+// Reads every deck in order. A deck missing from Anki is skipped (and returned in
+// `missing`) so it can't break the others. Only the add-to deck uses the stored
+// model/mapping; other decks guess their note-type roles.
+export async function readAllDecks(anki, a, onProgress) {
+  const names = await anki.invoke("deckNames");
+  const results = [];
+  const deckNotes = [];
+  const missing = [];
+  for (const deck of readDecks(a)) {
+    if (!names.includes(deck)) {
+      deckNotes.push(`${deck} wasn't found in Anki`);
+      missing.push(deck);
+      continue;
+    }
+    const own = deck === a.deck;
+    const r = await fetchDeckWords(
+      anki,
+      { deck, model: own ? a.model : "", mapping: own ? a.mapping : {} },
+      (done, total) => onProgress?.({ deck, done, total })
+    );
+    if (r.notes > 0 && r.words === 0) deckNotes.push(`Couldn't find the word field in ${deck}`);
+    results.push(r);
+  }
+  return { merged: mergeDeckWords(results), deckNotes, missing };
 }
