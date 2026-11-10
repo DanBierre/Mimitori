@@ -17,6 +17,8 @@ import WatchDrop from "./WatchDrop";
 import WatchControls, { SHORTCUTS, noFocus } from "./WatchControls";
 import WatchTips from "./WatchTips";
 import Transcript from "./Transcript";
+import MakeSubtitles from "./MakeSubtitles";
+import { useTranscribe } from "../lib/transcribe/useTranscribe";
 import { SAMPLE, sampleFiles } from "../lib/firstRun";
 import Icon from "./Icon";
 import { conjugationParts } from "../lib/conjugation";
@@ -27,6 +29,14 @@ import { isRecording } from "../lib/media/clip";
 const NO_LINES = "We couldn't read any lines from this file. Is it a .srt, .vtt or .ass file?";
 const BAD_VIDEO = "Your browser can't play this video. MP4 files work best. Chrome and Edge play the most formats.";
 const NO_SAMPLE = "The sample clip didn't load. Check your connection and try again.";
+
+const ERRORS = {
+  "cant-decode": "This browser can't read the sound in this file. Chrome or Edge work best, or convert it to MP4.",
+  "model-download": "Couldn't download the speech model. Check your connection and try again.",
+  storage: "Your browser is out of storage space for the speech model (needs about 600 MB).",
+  "no-audio": "This video has no sound track to listen to.",
+  unknown: "Something went wrong making subtitles. Try again.",
+};
 
 const hasJapanese = (cues) => cues.some((c) => JAPANESE_REGEX.test(c.text));
 
@@ -45,7 +55,7 @@ export default function WatchView({ active, onOpenSettings }) {
   const [helpOpen, setHelpOpen] = useState(false);
 
   const videoRef = useRef(null);
-  const [video, setVideo] = useState(null); // { url, name }
+  const [video, setVideo] = useState(null); // { url, name, file }
   const [videoError, setVideoError] = useState(false);
   const [primary, setPrimary] = useState(null); // { name, cues, skipped }
   const [second, setSecond] = useState(null);
@@ -55,6 +65,11 @@ export default function WatchView({ active, onOpenSettings }) {
   const [tokens, setTokens] = useState([]); // per primary cue: token[] | null
   const [readings, setReadings] = useState("idle"); // idle | loading | ready | error
   const [retry, setRetry] = useState(0);
+
+  const t = useTranscribe(video?.file ?? null);
+  const [card, setCard] = useState(false); // first-use download notice
+  const [wantEnglish, setWantEnglish] = useState(false);
+  const [pastEnd, setPastEnd] = useState(false); // playhead is past the last line made so far
 
   const [offset, setOffset] = useState(0);
   const offsetRef = useRef(0);
@@ -70,6 +85,26 @@ export default function WatchView({ active, onOpenSettings }) {
   useEffect(() => {
     if (!active) videoRef.current?.pause();
   }, [active]);
+
+  // Transcribed lines flow into the primary / second line as they arrive, but
+  // never over a subtitle file the learner loaded by hand. loadPrimary only for
+  // the first batch, so offset, selection and auto-pause survive later batches.
+  const syncedFile = useRef(null);
+  useEffect(() => {
+    const file = video?.file ?? null;
+    // First run after a new video still holds the old record; the reset lands next render.
+    if (syncedFile.current !== file) {
+      syncedFile.current = file;
+      return;
+    }
+    const { ja, en } = t.record;
+    if (!file || (primary && !primary.auto)) return;
+    if (ja.length && !primary) loadPrimary({ name: `${video.name} (auto)`, cues: ja, skipped: 0, auto: true });
+    else if (ja.length && primary.cues !== ja) setPrimary((p) => ({ ...p, cues: ja }));
+    if (en?.length && (!second || (second.auto && second.cues !== en))) {
+      setSecond({ name: `${video.name} (auto English)`, cues: en, skipped: 0, auto: true });
+    }
+  }, [t.record, video, primary, second]);
 
   function loadPrimary(file) {
     pauseTracker.current = createAutoPause();
@@ -104,9 +139,19 @@ export default function WatchView({ active, onOpenSettings }) {
 
     const vid = files.find(isVideoFile);
     if (vid) {
-      setVideo({ url: URL.createObjectURL(vid), name: vid.name });
+      setVideo({ url: URL.createObjectURL(vid), name: vid.name, file: vid });
       setVideoError(false);
+      setCard(false);
+      setWantEnglish(false);
+      // Lines made for the old video don't belong to this one.
+      if (primary?.auto) {
+        setPrimary(null);
+        setTokens([]);
+        setSelection(null);
+      }
+      if (second?.auto) setSecond(null);
     }
+    const hadPrimary = primary && !(vid && primary.auto);
 
     // Anything that isn't a video is tried as subtitles, so a mislabelled
     // file still gets a clear message instead of being ignored.
@@ -124,7 +169,7 @@ export default function WatchView({ active, onOpenSettings }) {
       const [a, b] = main === good[0].cues ? good : [good[1], good[0]];
       loadPrimary(a);
       setSecond(b);
-    } else if (hasJapanese(good[0].cues) || !primary) {
+    } else if (hasJapanese(good[0].cues) || !hadPrimary) {
       // A new main file is usually a new episode: the old second line won't match it.
       loadPrimary(good[0]);
       setSecond(null);
@@ -180,6 +225,7 @@ export default function WatchView({ active, onOpenSettings }) {
         return;
       }
       setCurrent(idx);
+      setPastEnd(primary.cues.length > 0 && t > primary.cues[primary.cues.length - 1].end + off);
       setSecondCurrent(second ? cueIndexAt(second.cues, t, 0) : -1);
       if (!v.paused) raf = requestAnimationFrame(tick);
     };
@@ -247,6 +293,11 @@ export default function WatchView({ active, onOpenSettings }) {
   function syncNow() {
     setOffset(alignOffset(primary.cues[syncTarget], nowMs()));
     setSyncTarget(null);
+  }
+
+  function makeSubtitles() {
+    if (t.needsModelOk) setCard(true);
+    else t.start({ english: wantEnglish });
   }
 
   function download() {
@@ -349,6 +400,9 @@ export default function WatchView({ active, onOpenSettings }) {
   );
 
   const ready = Boolean(video && primary);
+  const busy = t.status === "loading-model" || t.status === "running";
+  const canMake = Boolean(video) && !primary && !busy && !t.record.ja.length && !t.record.done;
+  const listening = t.status === "running" && t.task === "transcribe" && pastEnd;
   const cue = primary && current !== -1 ? primary.cues[current] : null;
   const lineTokens = current !== -1 ? tokens[current] : null;
   const secondCue = second && showSecondLine && secondCurrent !== -1 ? second.cues[secondCurrent] : null;
@@ -385,6 +439,7 @@ export default function WatchView({ active, onOpenSettings }) {
         <WatchDrop
           onFiles={pickFiles}
           onSample={loadSample}
+          onMakeSubtitles={canMake ? makeSubtitles : undefined}
           sampleLoading={sample === "loading"}
           hasVideo={Boolean(video)}
           hasSubs={Boolean(primary)}
@@ -413,9 +468,13 @@ export default function WatchView({ active, onOpenSettings }) {
             <div className="watch__lines" ref={linesRef} style={{ "--read-size": `${size}px` }}>
               <p className="watch__line" lang="ja" aria-live="polite">
                 {!cue ? (
-                  <span className="watch__gap" aria-hidden="true">
-                    ·
-                  </span>
+                  listening ? (
+                    <span className="watch__gap">Still listening…</span>
+                  ) : (
+                    <span className="watch__gap" aria-hidden="true">
+                      ·
+                    </span>
+                  )
                 ) : lineTokens ? (
                   <TokenLine
                     tokens={lineTokens}
@@ -498,8 +557,7 @@ export default function WatchView({ active, onOpenSettings }) {
             </div>
           )}
 
-          {ready && (
-            <div className="watch__notes">
+          <div className="watch__notes">
               {videoError && (
                 <p className="note note--error" role="alert">
                   {BAD_VIDEO}
@@ -519,11 +577,30 @@ export default function WatchView({ active, onOpenSettings }) {
                   </button>
                 </p>
               )}
-              {primary.skipped > 0 && <p className="note">Skipped {primary.skipped} lines we couldn't read.</p>}
+              {t.status === "error" && t.error && (
+                <p className="note note--error" role="alert">
+                  {ERRORS[t.error.code] ?? ERRORS.unknown}
+                </p>
+              )}
+              <MakeSubtitles
+                t={t}
+                card={card}
+                wantEnglish={wantEnglish}
+                onEnglish={(on) => {
+                  setWantEnglish(on);
+                  t.setEnglish(on);
+                }}
+                onConfirm={() => {
+                  setCard(false);
+                  t.start({ english: wantEnglish });
+                }}
+                onCancel={() => setCard(false)}
+                onDownload={primary ? download : undefined}
+              />
+              {primary?.skipped > 0 && <p className="note">Skipped {primary.skipped} lines we couldn't read.</p>}
               {sample === "on" && <p className="note">{SAMPLE.credit}</p>}
-              <WatchDrop compact onFiles={pickFiles} />
-            </div>
-          )}
+              {ready && <WatchDrop compact onFiles={pickFiles} />}
+          </div>
         </section>
       )}
 
@@ -533,7 +610,15 @@ export default function WatchView({ active, onOpenSettings }) {
             <strong>Transcript</strong>
             <span>{primary.cues.length} lines</span>
           </div>
-          <Transcript cues={primary.cues} current={current} onJump={seekToCue} newCounts={newCounts} />
+          <Transcript
+            cues={primary.cues}
+            current={current}
+            onJump={seekToCue}
+            newCounts={newCounts}
+            auto={Boolean(primary.auto)}
+            edited={t.record.edited}
+            onEdit={t.editLine}
+          />
         </aside>
       )}
     </div>

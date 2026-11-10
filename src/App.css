@@ -1154,6 +1154,78 @@ rt {
   white-space: nowrap;
 }
 
+.transcript li {
+  display: flex;
+  align-items: flex-start;
+}
+
+.transcript__line {
+  flex: 1;
+  min-width: 0;
+}
+
+.transcript__auto {
+  flex: none;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.transcript__fix {
+  flex: none;
+  width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.transcript__fix:hover {
+  color: var(--text);
+}
+
+.transcript__edit {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.make-subs {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 13px;
+  color: var(--stage-text-2);
+}
+
+.make-subs p {
+  margin: 0 0 8px;
+}
+
+.make-subs .link {
+  margin-left: 0;
+}
+
+.make-subs__check {
+  white-space: nowrap;
+}
+
+.make-subs__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 /* Phones: transcript toggles from the bar; labels shrink to icons. */
 @media (max-width: 1099px) {
   .ctl-btn--transcript {
