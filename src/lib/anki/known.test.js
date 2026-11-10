@@ -102,7 +102,10 @@ test("fetchDeckWords uses one guessed mapping per model for mature and other not
     modelName: "Basic",
     fields: { Front: f(`それは<b>${w}</b>だ`, 0), Back: f(`${w}（${r}）＝${e}<br><br>[sound:a.mp3]<br><br><img src="a.jpg">`, 1) },
   });
-  const notes = [mk(1, "雨", "あめ", "rain"), mk(2, "犬", "いぬ", "dog"), mk(3, "猫", "ねこ", "cat")];
+  // mature note: a mature-only guess reads Front as an expression (雨が降る);
+  // the whole-deck guess (Back = template) yields no word for it.
+  const mature = { noteId: 3, modelName: "Basic", fields: { Front: f("雨が降る", 0), Back: f("rain", 1) } };
+  const notes = [mk(1, "犬", "いぬ", "dog"), mk(2, "猫", "ねこ", "cat"), mature];
   const anki = {
     async invoke(action, params) {
       if (action === "findNotes") return params.query.includes("ivl") ? [3] : [1, 2, 3];
@@ -110,5 +113,5 @@ test("fetchDeckWords uses one guessed mapping per model for mature and other not
     },
   };
   const out = await fetchDeckWords(anki, { deck: "D", model: "Other", mapping: DAN });
-  assert.deepEqual(out, { known: { 猫: true }, inDeck: { 雨: true, 犬: true } });
+  assert.deepEqual(out, { known: {}, inDeck: { 犬: true, 猫: true } });
 });
