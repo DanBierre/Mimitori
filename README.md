@@ -30,6 +30,27 @@ Run the tests:
 npm test
 ```
 
+## Anki
+
+The app can send cards straight to Anki. It works on desktop only, and Anki needs to be open.
+
+1. Install the AnkiConnect add-on in Anki. Use the code `2055492159`, then restart Anki.
+2. In the app, open the gear, then **Settings**, then **Connect**. Choose **Yes** in the box Anki shows.
+3. Pick a deck and a note type, then press **Check fields**. The app learns your layout from your existing cards of that note type.
+4. Press **Looks right**. From then on, **Send** saves the word to Anki.
+
+Each card gets the word, reading, meaning, the sentence with the word in bold, and the second subtitle line. When you save from Watch, it also adds a screenshot and an audio clip of the line.
+
+If Anki is closed, cards wait in a queue and go in later.
+
+Words already in your deck count as known, so they lose their furigana.
+
+Not checked yet:
+
+- The hosted (https) version talking to Anki on your computer hasn't been tested. Chrome's private-network rules may block it. Running locally with `npm run dev` works.
+- Anki's own note type changes (an extra field for a picture or audio, say) weren't tried on a real collection.
+- Phones aren't supported for Anki yet.
+
 ## Translation (optional)
 
 The app works fully without translation. If you want sentence translation in the Read tab, deploy the small Cloudflare Worker in `/worker` with your own DeepL API key:

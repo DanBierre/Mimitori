@@ -20,6 +20,7 @@ Pasted or imported Japanese text is tokenized locally (kuromoji.js, dictionary i
 - Free and open source (MIT). No pricing, no accounts.
 - Existing: local furigana, offline JMdict word lookup, FSRS review, saved and known words, level-adaptive furigana, CSV and iOS Anki export, optional DeepL sentence translation.
 - Watch: play the learner's own video with their own subtitle files (.srt, .vtt, .ass), with furigana, tap-for-meaning, line replay, pause after each line, speed, transcript and timing fixes. Files never leave the device.
+- Anki auto-cards (desktop): send a word, sentence, second subtitle line, screenshot and audio clip to Anki via AnkiConnect, learning the learner's note layout. Cards queue when Anki is closed; words already in the chosen deck count as known.
 - Local-first: words, SRS state and known-words live on device. No accounts or sync in v1; UI should leave room for sign-in/sync later.
 - JMdict is CC-BY-SA: attribution required in-app. Do not copy WaniKani content.
 - DeepL free tier is limited; translation must be cached and later rate-limited per account. Translation is optional: the public build ships without a worker URL.
