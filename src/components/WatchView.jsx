@@ -29,7 +29,7 @@ const hasJapanese = (cues) => cues.some((c) => JAPANESE_REGEX.test(c.text));
 // The learner's own video + subtitle files, played locally. The current line
 // renders through TokenLine (furigana, tappable words) and words open the same
 // WordPanel as Read, so saved words land in Review.
-export default function WatchView({ active }) {
+export default function WatchView({ active, onOpenSettings }) {
   const { state, setWatchSettings } = useStore();
   const { size } = state.settings;
   const { showSecondLine, autoPause, speed } = state.settings.watch;
@@ -332,6 +332,23 @@ export default function WatchView({ active }) {
   const secondCue = second && showSecondLine && secondCurrent !== -1 ? second.cues[secondCurrent] : null;
   const selectedToken = selection ? tokens[selection.cue]?.[selection.token] : null;
 
+  // What the Anki card needs from the line the word came from.
+  function ankiContext() {
+    const c = primary.cues[selection.cue];
+    const sc = second ? second.cues[cueIndexAt(second.cues, c.start + offset, 0)] : null;
+    return {
+      sentence: c.text.replace(/\n/g, ""),
+      tokens: tokens[selection.cue],
+      tokenIndex: selection.token,
+      translation: sc ? sc.text.replace(/\n/g, " ") : "",
+      fileName: video.name,
+      timeMs: c.start,
+      video: videoRef.current,
+      cue: c,
+      offsetMs: offset,
+    };
+  }
+
   return (
     <div
       ref={rootRef}
@@ -393,6 +410,8 @@ export default function WatchView({ active }) {
                     token={selectedToken}
                     sentence={primary.cues[selection.cue].text.replace(/\n/g, "")}
                     grammar={conjugationParts(tokens[selection.cue], selection.token)}
+                    ankiContext={ankiContext()}
+                    onOpenSettings={onOpenSettings}
                     onSaved={(base) => captureFrame(videoRef.current).then((blob) => blob && putImage(base, blob))}
                     onClose={() => setSelection(null)}
                   />

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { anki, useAnki } from "./lib/anki/useAnki";
+import { flushQueue } from "./lib/anki/queue";
 import { StoreProvider, ankiMode, useDueWords, useStore } from "./lib/store";
-import { useAnki } from "./lib/anki/useAnki";
 import ReadView from "./components/ReadView";
 import WatchView from "./components/WatchView";
 import ReviewView from "./components/ReviewView";
@@ -21,7 +22,21 @@ function Shell() {
   const due = useDueWords();
   const { state } = useStore();
   const inAnkiMode = ankiMode(state);
-  useAnki(inAnkiMode && tab !== "settings"); // keeps known words fresh; Settings runs its own
+  const { queueCount, refreshQueue } = useAnki(inAnkiMode && tab !== "settings"); // keeps known words fresh; Settings runs its own
+
+  // Send waiting cards when the app gains focus and every 30 s while any wait.
+  useEffect(() => {
+    if (!inAnkiMode) return;
+    const flush = () => flushQueue(anki).then(refreshQueue).catch(() => {});
+    window.addEventListener("focus", flush);
+    window.addEventListener("anki-queue-changed", refreshQueue);
+    const timer = queueCount > 0 ? setInterval(flush, 30000) : null;
+    return () => {
+      window.removeEventListener("focus", flush);
+      window.removeEventListener("anki-queue-changed", refreshQueue);
+      clearInterval(timer);
+    };
+  }, [inAnkiMode, queueCount, refreshQueue]);
   const knownCount = new Set([...Object.keys(state.known), ...Object.keys(state.anki.known)]).size;
 
   return (
@@ -61,10 +76,10 @@ function Shell() {
       <main className="app__main">
         {/* Read and Watch stay mounted so pasted text and the video keep their place. */}
         <div hidden={tab !== "read"}>
-          <ReadView />
+          <ReadView onOpenSettings={() => setTab("settings")} />
         </div>
         <div hidden={tab !== "watch"}>
-          <WatchView active={tab === "watch"} />
+          <WatchView active={tab === "watch"} onOpenSettings={() => setTab("settings")} />
         </div>
         {tab === "settings" && <SettingsView active />}
         {tab === "review" && !inAnkiMode && <ReviewView onGoRead={() => setTab("read")} />}

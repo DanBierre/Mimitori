@@ -31,7 +31,12 @@ function sentenceAround(tokens, i) {
     .trim();
 }
 
-export default function ReadView() {
+function ankiContext(tokens, i) {
+  const { start, end } = sentenceSpan(tokens, i);
+  return { sentence: sentenceAround(tokens, i), tokens: tokens.slice(start, end), tokenIndex: i - start };
+}
+
+export default function ReadView({ onOpenSettings }) {
   const { state, setSettings } = useStore();
   const { furigana, size } = state.settings;
 
@@ -181,6 +186,8 @@ export default function ReadView() {
           token={selectedToken}
           sentence={sentenceAround(tokens, selected)}
           grammar={conjugationParts(tokens, selected)}
+          ankiContext={ankiContext(tokens, selected)}
+          onOpenSettings={onOpenSettings}
           onClose={() => setSelected(null)}
         />
       )}

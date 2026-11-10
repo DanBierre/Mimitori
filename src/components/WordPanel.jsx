@@ -1,14 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { lookupWord } from "../lib/dict";
-import { useStore, wordState } from "../lib/store";
+import { ankiMode, useStore, wordState } from "../lib/store";
+import { anki } from "../lib/anki/useAnki";
+import { addCardFromWord } from "../lib/anki/addCard";
+import { listQueue } from "../lib/anki/queue";
 import { formatInterval } from "../lib/srs";
 import { canSpeak, speak } from "../lib/speak";
 import Icon from "./Icon";
 
 // Detail for the tapped word: meaning, and the actions that move it along
 // the loop (save to review / I know this).
-export default function WordPanel({ token, sentence, grammar = [], onSaved, onClose }) {
-  const { state, saveWord, removeWord, knowWord, unknowWord } = useStore();
+const ADD_STATUS = {
+  adding: "Adding…",
+  recording: "Recording line…",
+  added: "Added",
+  noAudio: "Added without audio",
+  duplicate: "Already in your deck",
+  changed: "Your note type changed. Check the field matching.",
+};
+
+// In Anki mode, ankiContext = { sentence, tokens, tokenIndex, translation?, fileName?,
+// timeMs?, video?, cue?, offsetMs? } and the main button adds a card to Anki.
+export default function WordPanel({ token, sentence, grammar = [], ankiContext, onSaved, onClose, onOpenSettings }) {
+  const { state, saveWord, removeWord, knowWord, unknowWord, setAnkiWords } = useStore();
+  const [add, setAdd] = useState(null); // null | key of ADD_STATUS | "queued" | { error }
+  const [waiting, setWaiting] = useState(0);
+  const noAudio = useRef(false);
+  const useAnkiAdd = ankiMode(state) && Boolean(ankiContext);
   const [entry, setEntry] = useState({ status: "loading", data: null });
 
   useEffect(() => {
@@ -21,6 +39,10 @@ export default function WordPanel({ token, sentence, grammar = [], onSaved, onCl
       cancelled = true;
     };
   }, [token.base, token.surface, token.reading]);
+
+  useEffect(() => {
+    setAdd(null);
+  }, [token.base]);
 
   const mark = wordState(state, token.base);
   const saved = state.words[token.base];
@@ -37,6 +59,39 @@ export default function WordPanel({ token, sentence, grammar = [], onSaved, onCl
     });
     onSaved?.(token.base);
   }
+
+  async function handleAdd() {
+    const { video, cue, offsetMs, ...context } = ankiContext;
+    noAudio.current = false;
+    setAdd("adding");
+    const result = await addCardFromWord({
+      anki,
+      settings: state.settings.anki,
+      word: { base: token.base, surface: token.surface, reading, glosses: entry.data?.glosses || [] },
+      context,
+      video,
+      cue,
+      offsetMs,
+      maps: state.anki,
+      onProgress: (p) => {
+        if (p === "noAudio") noAudio.current = true;
+        else setAdd(p);
+      },
+    });
+    if (typeof result === "object") return setAdd(result);
+    if (result === "added" || result === "duplicate") {
+      setAnkiWords({ known: state.anki.known, inDeck: { ...state.anki.inDeck, [token.base]: true } });
+    }
+    if (result === "queued") {
+      const n = await listQueue().then((q) => q.length).catch(() => 1);
+      setWaiting(n);
+      window.dispatchEvent(new Event("anki-queue-changed"));
+    }
+    setAdd(result === "added" && noAudio.current ? "noAudio" : result);
+  }
+
+  const addStatus =
+    add === "queued" ? `Waiting for Anki (${waiting})` : typeof add === "object" && add ? add.error : ADD_STATUS[add];
 
   return (
     <aside className="word-panel" aria-label={`Word: ${token.base}`}>
@@ -91,10 +146,35 @@ export default function WordPanel({ token, sentence, grammar = [], onSaved, onCl
       )}
 
       <div className="word-panel__actions">
+        {add && (
+          <p className="word-panel__status" role="status">
+            {addStatus}
+            {add === "changed" && onOpenSettings && (
+              <>
+                {" "}
+                <button className="btn btn--quiet" onClick={onOpenSettings}>
+                  Settings
+                </button>
+              </>
+            )}
+          </p>
+        )}
+        {mark === "inAnki" && (
+          <>
+            {!add && <p className="word-panel__status">In your Anki deck</p>}
+            <button className="btn" onClick={() => knowWord(token.base)}>
+              I know this
+            </button>
+          </>
+        )}
         {mark === "new" && (
           <>
-            <button className="btn btn--primary" onClick={handleSave}>
-              Save to review
+            <button
+              className="btn btn--primary"
+              onClick={useAnkiAdd ? handleAdd : handleSave}
+              disabled={add === "adding" || add === "recording"}
+            >
+              {useAnkiAdd ? "Add to Anki" : "Save to review"}
             </button>
             <button className="btn" onClick={() => knowWord(token.base)}>
               I know this
