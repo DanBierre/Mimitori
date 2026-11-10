@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDueWords, useStore } from "../lib/store";
 import { previewIntervals, Rating } from "../lib/srs";
-import { GradeMark } from "./Marks";
 import SceneStill from "./SceneStill";
 
 const GRADES = [
@@ -81,9 +80,14 @@ export default function ReviewView({ onGoRead }) {
     const intervals = previewIntervals(word.card);
     return (
       <section className="sheet review" aria-label="Review">
-        <p className="review__progress">
-          {reviewed} done · {queue.length} left
-        </p>
+        <div className="review__progress">
+          <span>
+            {reviewed} done · {queue.length} left
+          </span>
+          <span className="review__bar" aria-hidden="true">
+            <span style={{ transform: `scaleX(${reviewed / (reviewed + queue.length)})` }} />
+          </span>
+        </div>
 
         <div className="review__face">
           <p className="review__term" lang="ja">
@@ -123,9 +127,10 @@ export default function ReviewView({ onGoRead }) {
         ) : (
           <div className="grades" role="group" aria-label="How well did you remember it?">
             {GRADES.map(([rating, label]) => (
-              <button key={rating} className="grade" onClick={() => answer(rating)}>
-                <GradeMark rating={rating} />
-                <span className="grade__label">{label}</span>
+              <button key={rating} className={`grade grade--${rating}`} onClick={() => answer(rating)}>
+                <span className="grade__label">
+                  {label} <kbd>{rating}</kbd>
+                </span>
                 <span className="grade__interval">{intervals[rating]}</span>
               </button>
             ))}

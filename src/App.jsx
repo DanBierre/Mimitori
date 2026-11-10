@@ -4,14 +4,14 @@ import ReadView from "./components/ReadView";
 import WatchView from "./components/WatchView";
 import ReviewView from "./components/ReviewView";
 import WordsView from "./components/WordsView";
-import { Seal } from "./components/Marks";
+import Icon from "./components/Icon";
 import "./App.css";
 
 const TABS = [
-  { id: "read", kanji: "読む", label: "Read" },
-  { id: "watch", kanji: "観る", label: "Watch" },
-  { id: "review", kanji: "復習", label: "Review" },
-  { id: "words", kanji: "単語", label: "Words" },
+  { id: "read", label: "Read", icon: "read" },
+  { id: "watch", label: "Watch", icon: "watch" },
+  { id: "review", label: "Review", icon: "review" },
+  { id: "words", label: "Words", icon: "words" },
 ];
 
 function Shell() {
@@ -23,23 +23,11 @@ function Shell() {
   return (
     <div className="app">
       <header className="app__header">
-        <Seal />
-        <h1 className="app__title">Nihongo Reader</h1>
+        <h1 className="app__title">
+          Nihongo Reader
+        </h1>
         <p className="app__known">{knownCount} known</p>
       </header>
-
-      <main className="app__main">
-        {/* Read stays mounted so pasted text and lookups survive tab switches. */}
-        <div hidden={tab !== "read"}>
-          <ReadView />
-        </div>
-        {/* Watch stays mounted too, so the video keeps its place. */}
-        <div hidden={tab !== "watch"}>
-          <WatchView active={tab === "watch"} />
-        </div>
-        {tab === "review" && <ReviewView onGoRead={() => setTab("read")} />}
-        {tab === "words" && <WordsView />}
-      </main>
 
       <nav className="rail" aria-label="Sections">
         {TABS.map((t) => (
@@ -49,14 +37,24 @@ function Shell() {
             aria-current={tab === t.id ? "page" : undefined}
             onClick={() => setTab(t.id)}
           >
-            <span className="rail__kanji" lang="ja">
-              {t.kanji}
-            </span>
+            <Icon name={t.icon} size={22} />
             <span className="rail__label">{t.label}</span>
             {t.id === "review" && due.length > 0 && <span className="rail__badge">{due.length}</span>}
           </button>
         ))}
       </nav>
+
+      <main className="app__main">
+        {/* Read and Watch stay mounted so pasted text and the video keep their place. */}
+        <div hidden={tab !== "read"}>
+          <ReadView />
+        </div>
+        <div hidden={tab !== "watch"}>
+          <WatchView active={tab === "watch"} />
+        </div>
+        {tab === "review" && <ReviewView onGoRead={() => setTab("read")} />}
+        {tab === "words" && <WordsView />}
+      </main>
     </div>
   );
 }

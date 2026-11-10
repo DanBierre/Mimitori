@@ -27,6 +27,8 @@ Pasted or imported Japanese text is tokenized locally (kuromoji.js, dictionary i
 
 ## Brand Commitments
 Working name "Nihongo Reader" (placeholder; not final). No logo or voice commitments exist.
+- Look: minimal, like a regular subtitle reader (Netflix/YouTube player, Language Reactor), with learning tools tucked in. Chosen by Dan on 10 November 2026 over themed directions; no decorative themes.
+- Follows the device light/dark setting; Watch always sits on a dark stage.
 
 ## Evidence on Hand
 Working prototype in src/ and worker/. No users, testimonials, benchmarks, or pricing data exist; none may be fabricated.

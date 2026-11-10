@@ -3,6 +3,7 @@ import { lookupWord } from "../lib/dict";
 import { useStore, wordState } from "../lib/store";
 import { formatInterval } from "../lib/srs";
 import { canSpeak, speak } from "../lib/speak";
+import Icon from "./Icon";
 
 // Detail for the tapped word: meaning, and the actions that move it along
 // the loop (save to review / I know this).
@@ -39,8 +40,8 @@ export default function WordPanel({ token, sentence, grammar = [], onSaved, onCl
 
   return (
     <aside className="word-panel" aria-label={`Word: ${token.base}`}>
-      <button className="word-panel__close" onClick={onClose} aria-label="Close word panel">
-        Close
+      <button className="word-panel__close icon-btn" onClick={onClose} aria-label="Close word card">
+        <Icon name="close" size={18} />
       </button>
 
       <div className="word-panel__head">
@@ -50,15 +51,17 @@ export default function WordPanel({ token, sentence, grammar = [], onSaved, onCl
           <span className="word-panel__form">as written: {token.surface}</span>
         )}
         {canSpeak() && (
-          <button className="btn btn--quiet word-panel__say" onClick={() => speak(token.base)}>
-            Say it
+          <button className="icon-btn word-panel__say" onClick={() => speak(token.base)} aria-label="Say it" title="Say it">
+            <Icon name="speak" size={18} />
           </button>
         )}
       </div>
 
       {grammar.length > 0 && (
-        <p className="word-panel__grammar" lang="ja">
-          {token.base} · <span lang="en">{grammar.join(" · ")}</span>
+        <p className="word-panel__grammar" aria-label={`${token.base}: ${grammar.join(", ")}`}>
+          {grammar.map((g) => (
+            <span key={g}>{g}</span>
+          ))}
         </p>
       )}
 

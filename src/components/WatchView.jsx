@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getTokenizer, tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furigana";
 import { readSubtitleFile, isVideoFile } from "../lib/subtitles/loadFile";
 import {
@@ -16,6 +16,7 @@ import WordPanel from "./WordPanel";
 import WatchDrop from "./WatchDrop";
 import WatchControls, { SHORTCUTS, noFocus } from "./WatchControls";
 import Transcript from "./Transcript";
+import Icon from "./Icon";
 import { conjugationParts } from "../lib/conjugation";
 import { captureFrame, putImage } from "../lib/images";
 import { wordState } from "../lib/store";
@@ -304,6 +305,19 @@ export default function WatchView({ active }) {
     setSelection({ cue: current, token: i });
   }
 
+  // The word card sits above the tapped word (desktop); keep it on screen.
+  const linesRef = useRef(null);
+  const [anchorX, setAnchorX] = useState(0);
+  useLayoutEffect(() => {
+    const box = linesRef.current;
+    const word = box?.querySelector(".word[aria-pressed='true']");
+    if (!box || !word) return;
+    const b = box.getBoundingClientRect();
+    const w = word.getBoundingClientRect();
+    const half = 170;
+    setAnchorX(Math.min(Math.max(w.left + w.width / 2 - b.left, half), Math.max(half, b.width - half)));
+  }, [selection, current]);
+
   // Not-yet-known words per line, for the transcript.
   const newCounts = useMemo(
     () => tokens.map((line) => (line ? line.filter((t) => t.isWord && wordState(state, t.base) !== "known").length : 0)),
@@ -315,32 +329,29 @@ export default function WatchView({ active }) {
   const lineTokens = current !== -1 ? tokens[current] : null;
   const secondCue = second && showSecondLine && secondCurrent !== -1 ? second.cues[secondCurrent] : null;
   const selectedToken = selection ? tokens[selection.cue]?.[selection.token] : null;
-  const panelOpen = Boolean(selectedToken);
 
   return (
     <div
       ref={rootRef}
-      className={`watch ${panelOpen ? "watch--panel-open" : ""} ${focus ? "watch--focus" : ""}`}
+      className={`watch ${ready ? "watch--ready" : ""} ${focus ? "watch--focus" : ""} ${transcriptOpen ? "watch--transcript-open" : ""}`}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
         handleFiles(e.dataTransfer.files);
       }}
     >
-      <section className="sheet watch__sheet" aria-label="Watch">
-        {!ready && (
-          <WatchDrop
-            onFiles={handleFiles}
-            hasVideo={Boolean(video)}
-            hasSubs={Boolean(primary)}
-            error={fileError || (videoError ? BAD_VIDEO : "")}
-          />
-        )}
+      {!ready && (
+        <WatchDrop
+          onFiles={handleFiles}
+          hasVideo={Boolean(video)}
+          hasSubs={Boolean(primary)}
+          error={fileError || (videoError ? BAD_VIDEO : "")}
+        />
+      )}
 
-        <div className="watch__body">
-        <div className="watch__main">
-        {video && (
-          <div className="watch__stage">
+      {video && (
+        <section className="watch__stage" aria-label="Player">
+          <div className="watch__frame">
             <video
               ref={videoRef}
               className="watch__video"
@@ -353,121 +364,129 @@ export default function WatchView({ active }) {
               playsInline
               onError={() => setVideoError(true)}
             />
-
-            {primary && (
-              <div className="watch__lines" style={{ "--read-size": `${size}px` }}>
-                <p className="watch__line" lang="ja" aria-live="polite">
-                  {!cue ? (
-                    " "
-                  ) : lineTokens ? (
-                    <TokenLine
-                      tokens={lineTokens}
-                      selected={selection?.cue === current ? selection.token : null}
-                      onSelect={selectWord}
-                    />
-                  ) : (
-                    cue.text
-                  )}
-                </p>
-                {second && showSecondLine && <p className="watch__second">{secondCue ? secondCue.text : " "}</p>}
-              </div>
-            )}
           </div>
-        )}
 
-        {ready && (
-          <WatchControls
-            onReplay={replay}
-            onPrev={() => step(-1)}
-            onNext={() => step(1)}
-            speed={speed}
-            onSpeed={(s) => setWatchSettings({ speed: s })}
-            autoPause={autoPause}
-            onAutoPause={(on) => setWatchSettings({ autoPause: on })}
-            offsetMs={offset}
-            onNudge={nudge}
-            onLineUp={startSync}
-            syncText={syncTarget !== null ? primary.cues[syncTarget].text.replace(/\n/g, "") : null}
-            onSyncNow={syncNow}
-            onSyncCancel={() => setSyncTarget(null)}
-            onDownload={download}
-            hasSecondLine={Boolean(second)}
-            showSecondLine={showSecondLine}
-            onToggleSecondLine={() => setWatchSettings({ showSecondLine: !showSecondLine })}
-            onHelp={() => setHelpOpen((o) => !o)}
-            onFocus={toggleFocus}
-          />
-        )}
+          {primary && (
+            <div className="watch__lines" ref={linesRef} style={{ "--read-size": `${size}px` }}>
+              <p className="watch__line" lang="ja" aria-live="polite">
+                {!cue ? (
+                  <span className="watch__gap" aria-hidden="true">
+                    ·
+                  </span>
+                ) : lineTokens ? (
+                  <TokenLine
+                    tokens={lineTokens}
+                    selected={selection?.cue === current ? selection.token : null}
+                    onSelect={selectWord}
+                  />
+                ) : (
+                  cue.text
+                )}
+              </p>
+              {second && showSecondLine && <p className="watch__second">{secondCue ? secondCue.text : ""}</p>}
 
-        {helpOpen && (
-          <div className="watch-help" role="region" aria-label="Keyboard shortcuts">
-            <dl>
-              {SHORTCUTS.map(([key, what]) => (
-                <div key={key}>
-                  <dt>
-                    <kbd>{key}</kbd>
-                  </dt>
-                  <dd>{what}</dd>
+              {selectedToken && (
+                <div className="watch__card" style={{ "--anchor-x": `${anchorX}px` }}>
+                  <WordPanel
+                    token={selectedToken}
+                    sentence={primary.cues[selection.cue].text.replace(/\n/g, "")}
+                    grammar={conjugationParts(tokens[selection.cue], selection.token)}
+                    onSaved={(base) => captureFrame(videoRef.current).then((blob) => blob && putImage(base, blob))}
+                    onClose={() => setSelection(null)}
+                  />
                 </div>
-              ))}
-            </dl>
-            <button className="btn btn--quiet" onMouseDown={noFocus} onClick={() => setHelpOpen(false)}>
-              Close
-            </button>
-          </div>
-        )}
+              )}
+            </div>
+          )}
 
-        {ready && (
-          <div className="watch__notes">
-            {videoError && (
-              <p className="note note--error" role="alert">
-                {BAD_VIDEO}
-              </p>
-            )}
-            {fileError && (
-              <p className="note note--error" role="alert">
-                {fileError}
-              </p>
-            )}
-            {readings === "loading" && <p className="note">Loading readings…</p>}
-            {readings === "error" && (
-              <p className="note">
-                The reading engine didn’t load, so lines show without furigana.{" "}
-                <button className="btn btn--quiet" onMouseDown={noFocus} onClick={() => setRetry((n) => n + 1)}>
-                  Try again
+          {ready && (
+            <WatchControls
+              onReplay={replay}
+              onPrev={() => step(-1)}
+              onNext={() => step(1)}
+              speed={speed}
+              onSpeed={(s) => setWatchSettings({ speed: s })}
+              autoPause={autoPause}
+              onAutoPause={(on) => setWatchSettings({ autoPause: on })}
+              offsetMs={offset}
+              onNudge={nudge}
+              onLineUp={startSync}
+              syncText={syncTarget !== null ? primary.cues[syncTarget].text.replace(/\n/g, "") : null}
+              onSyncNow={syncNow}
+              onSyncCancel={() => setSyncTarget(null)}
+              onDownload={download}
+              hasSecondLine={Boolean(second)}
+              showSecondLine={showSecondLine}
+              onToggleSecondLine={() => setWatchSettings({ showSecondLine: !showSecondLine })}
+              transcriptOpen={transcriptOpen}
+              onToggleTranscript={() => setTranscriptOpen((o) => !o)}
+              onHelp={() => setHelpOpen((o) => !o)}
+              onFocus={toggleFocus}
+            />
+          )}
+
+          {helpOpen && (
+            <div className="popover watch__help" role="region" aria-label="Keyboard shortcuts">
+              <div className="popover__head">
+                <strong>Keyboard shortcuts</strong>
+                <button
+                  className="icon-btn"
+                  onMouseDown={noFocus}
+                  onClick={() => setHelpOpen(false)}
+                  aria-label="Close shortcuts"
+                >
+                  <Icon name="close" size={18} />
                 </button>
-              </p>
-            )}
-            {primary.skipped > 0 && <p className="note">Skipped {primary.skipped} lines we couldn't read.</p>}
-            <button
-              className="btn btn--quiet watch__transcript-toggle"
-              onMouseDown={noFocus}
-              aria-expanded={transcriptOpen}
-              onClick={() => setTranscriptOpen((o) => !o)}
-            >
-              {transcriptOpen ? "Hide transcript" : "Transcript"}
-            </button>
-            <WatchDrop compact onFiles={handleFiles} />
-          </div>
-        )}
-        </div>
+              </div>
+              <dl className="shortcuts">
+                {SHORTCUTS.map(([key, what]) => (
+                  <div key={key}>
+                    <dt>
+                      <kbd>{key}</kbd>
+                    </dt>
+                    <dd>{what}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
 
-        {ready && (
-          <div className={`watch__side ${transcriptOpen ? "watch__side--open" : ""}`}>
-            <Transcript cues={primary.cues} current={current} onJump={seekToCue} newCounts={newCounts} />
-          </div>
-        )}
-        </div>
-      </section>
+          {ready && (
+            <div className="watch__notes">
+              {videoError && (
+                <p className="note note--error" role="alert">
+                  {BAD_VIDEO}
+                </p>
+              )}
+              {fileError && (
+                <p className="note note--error" role="alert">
+                  {fileError}
+                </p>
+              )}
+              {readings === "loading" && <p className="note">Loading readings…</p>}
+              {readings === "error" && (
+                <p className="note">
+                  The reading engine didn’t load, so lines show without furigana.{" "}
+                  <button className="link" onMouseDown={noFocus} onClick={() => setRetry((n) => n + 1)}>
+                    Try again
+                  </button>
+                </p>
+              )}
+              {primary.skipped > 0 && <p className="note">Skipped {primary.skipped} lines we couldn't read.</p>}
+              <WatchDrop compact onFiles={handleFiles} />
+            </div>
+          )}
+        </section>
+      )}
 
-      {selectedToken && (
-        <WordPanel
-          token={selectedToken}
-          sentence={primary.cues[selection.cue].text.replace(/\n/g, "")}
-          grammar={conjugationParts(tokens[selection.cue], selection.token)}
-          onSaved={(base) => captureFrame(videoRef.current).then((blob) => blob && putImage(base, blob))}
-          onClose={() => setSelection(null)}
-        />
+      {ready && (
+        <aside className="watch__side" aria-label="Transcript">
+          <div className="watch__side-head">
+            <strong>Transcript</strong>
+            <span>{primary.cues.length} lines</span>
+          </div>
+          <Transcript cues={primary.cues} current={current} onJump={seekToCue} newCounts={newCounts} />
+        </aside>
       )}
     </div>
   );
