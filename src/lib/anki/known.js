@@ -34,10 +34,13 @@ export function wordFromNote(fields, mapping) {
   return "";
 }
 
+// Anki search for one deck. Inside quotes \ " * _ still need a backslash.
+export const deckQuery = (deck) => `"deck:${deck.replace(/[\\"*_]/g, "\\$&")}"`;
+
 // Notes of one deck with their word, tags and whether the card is mature.
 // Notes with no word are left out. Independent of the store.
 export async function readDeckNotes(anki, { deck, model, mapping }, onProgress) {
-  const base = `"deck:${deck}"`;
+  const base = deckQuery(deck);
   const ids = await anki.invoke("findNotes", { query: base });
   const matureIds = new Set(await anki.invoke("findNotes", { query: `${base} prop:ivl>=21` }));
   const infos = [];
@@ -58,7 +61,7 @@ export async function readDeckNotes(anki, { deck, model, mapping }, onProgress) 
     }
     for (const n of notes) {
       const word = wordFromNote(flat(n), map);
-      if (word) out.push({ noteId: n.noteId, word, tags: n.tags ?? [], mature: matureIds.has(n.noteId) });
+      if (word) out.push({ noteId: n.noteId, word, tags: n.tags ?? [], cards: n.cards ?? [], mature: matureIds.has(n.noteId) });
     }
   }
   return out;

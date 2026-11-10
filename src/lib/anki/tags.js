@@ -1,4 +1,4 @@
-import { readDeckNotes } from "./known.js";
+import { readDeckNotes, deckQuery } from "./known.js";
 
 export const TAG = "mimitori-known";
 
@@ -9,8 +9,9 @@ export function planTags(notes, known) {
   const remove = [];
   for (const n of notes) {
     const tagged = hasTag(n);
-    if (known[n.word] && !tagged) add.push(n.noteId);
-    else if (!known[n.word] && tagged) remove.push(n.noteId);
+    const isKnown = Object.hasOwn(known, n.word) && known[n.word];
+    if (isKnown && !tagged) add.push(n.noteId);
+    else if (!isKnown && tagged) remove.push(n.noteId);
   }
   return { add, remove };
 }
@@ -23,7 +24,10 @@ export async function syncTags(anki, ankiSettings, known) {
     model: ankiSettings.model,
     mapping: ankiSettings.mapping,
   });
-  const { add, remove } = planTags(notes, known);
+  // Tags are per note, so skip notes with a card outside the add-to deck.
+  const inDeck = new Set(await anki.invoke("findCards", { query: deckQuery(ankiSettings.deck) }));
+  const own = notes.filter((n) => n.cards.length > 0 && n.cards.every((c) => inDeck.has(c)));
+  const { add, remove } = planTags(own, known);
   if (add.length) await anki.invoke("addTags", { notes: add, tags: TAG });
   if (remove.length) await anki.invoke("removeTags", { notes: remove, tags: TAG });
   return { added: add.length, removed: remove.length };
