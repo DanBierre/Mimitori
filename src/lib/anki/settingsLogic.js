@@ -70,3 +70,12 @@ export function wordState(state, base, now = new Date()) {
   if (state.anki.known[base]) return "known";
   return state.anki.inDeck[base] ? "inAnki" : "new";
 }
+
+// Where to learn a note type's layout from: its cards in the deck if there are
+// enough, otherwise its cards anywhere (the layout belongs to the type).
+export const MIN_DECK_SAMPLES = 5;
+export function pickSampleQuery({ deckCount, deck, model }) {
+  return deckCount >= MIN_DECK_SAMPLES
+    ? { query: `"deck:${deck}" "note:${model}"`, scope: "deck" }
+    : { query: `"note:${model}"`, scope: "collection" };
+}

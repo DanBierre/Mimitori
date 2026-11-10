@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { newCard } from "../srs.js";
-import { hasWordField, wordState, ankiMode, buildMapping, flatFields, lowConfidence, templateParts } from "./settingsLogic.js";
+import { pickSampleQuery, hasWordField, wordState, ankiMode, buildMapping, flatFields, lowConfidence, templateParts } from "./settingsLogic.js";
 
 const st = (anki) => ({ settings: { anki } });
 
@@ -68,4 +68,10 @@ test("wordState: app state beats Anki, Anki known beats inDeck", () => {
   assert.equal(wordState(base, "a", now), "known");
   assert.equal(wordState(base, "i", now), "inAnki");
   assert.equal(wordState(base, "z", now), "new");
+});
+
+test("pickSampleQuery uses the deck at 5+ notes, else the whole collection", () => {
+  assert.deepEqual(pickSampleQuery({ deckCount: 5, deck: "D", model: "M" }), { query: '"deck:D" "note:M"', scope: "deck" });
+  assert.deepEqual(pickSampleQuery({ deckCount: 4, deck: "D", model: "M" }), { query: '"note:M"', scope: "collection" });
+  assert.deepEqual(pickSampleQuery({ deckCount: 0, deck: "D", model: "M" }), { query: '"note:M"', scope: "collection" });
 });

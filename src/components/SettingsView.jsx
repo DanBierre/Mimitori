@@ -3,7 +3,7 @@ import { ankiMode, useStore } from "../lib/store";
 import { anki, useAnki } from "../lib/anki/useAnki";
 import { guessFieldRoles, ROLES } from "../lib/anki/fieldRoles";
 import { listFailed, retryFailed } from "../lib/anki/queue";
-import { ROLE_LABELS, buildMapping, flatFields, hasWordField, lowConfidence, templateParts } from "../lib/anki/settingsLogic";
+import { ROLE_LABELS, buildMapping, flatFields, hasWordField, lowConfidence, pickSampleQuery, templateParts } from "../lib/anki/settingsLogic";
 
 const STATUS_TEXT = {
   checking: "Checking Anki…",
@@ -57,11 +57,15 @@ export default function SettingsView({ active }) {
     setCheckError("");
     try {
       const fieldNames = await anki.invoke("modelFieldNames", { modelName: cfg.model });
-      const ids = await anki.invoke("findNotes", { query: `"deck:${cfg.deck}" "note:${cfg.model}"` });
+      const inDeck = await anki.invoke("findNotes", { query: `"deck:${cfg.deck}" "note:${cfg.model}"` });
+      const { query, scope } = pickSampleQuery({ deckCount: inDeck.length, deck: cfg.deck, model: cfg.model });
+      const ids = scope === "deck" ? inDeck : await anki.invoke("findNotes", { query });
       const infos = ids.length ? await anki.invoke("notesInfo", { notes: ids.slice(-20) }) : [];
       const guesses = guessFieldRoles(fieldNames, infos.map(flatFields));
       const roles = Object.fromEntries(fieldNames.map((f) => [f, guesses[f].role || "none"]));
-      setDraft({ fieldNames, guesses, roles, noSamples: infos.length === 0 });
+      const n = infos.length;
+      const source = n === 0 ? "" : scope === "deck" ? `Learned from ${n} cards in ${cfg.deck}.` : `Learned from your ${n} most recent ${cfg.model} cards.`;
+      setDraft({ fieldNames, guesses, roles, source });
     } catch (e) {
       setCheckError(e.message);
     } finally {
@@ -130,7 +134,7 @@ export default function SettingsView({ active }) {
 
         {draft && (
           <div className="settings__table-wrap">
-            {draft.noSamples && <p className="note">No notes of this type in that deck yet, so these are guesses from the field names.</p>}
+            <p className="note">{draft.source || "You have no cards of this type yet, so these are guesses from the field names."}</p>
             <table className="settings__table">
               <thead>
                 <tr><th>Field</th><th>Role</th><th>Example</th></tr>
