@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
-import { useStore, wordState } from "../lib/store";
+import { ankiMode, useStore, wordState } from "../lib/store";
+import { anki } from "../lib/anki/useAnki";
+import { addCardFromWord } from "../lib/anki/addCard";
+import { planBatch, sendBatch } from "../lib/anki/batch";
 import { downloadCsv } from "../lib/exportCsv";
 import { formatInterval } from "../lib/srs";
 import SceneStill from "./SceneStill";
@@ -12,10 +15,11 @@ const FILTERS = [
 ];
 
 export default function WordsView() {
-  const { state, removeWord, knowWord, unknowWord } = useStore();
+  const { state, removeWord, knowWord, unknowWord, markInAnki } = useStore();
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(null);
+  const [batch, setBatch] = useState(null); // null | { running, step, total } | { done: message }
 
   const rows = useMemo(() => {
     const now = new Date();
@@ -54,6 +58,38 @@ export default function WordsView() {
   );
 
   const savedWords = Object.values(state.words);
+  const toSend = planBatch(savedWords, state).send;
+
+  async function sendAll() {
+    const { send: words, skip } = planBatch(savedWords, state);
+    setBatch({ running: true, step: 0, total: words.length });
+    const r = await sendBatch({
+      words,
+      maps: state.anki,
+      onStep: (step, total) => setBatch({ running: true, step, total }),
+      send: async (word, maps) => {
+        const result = await addCardFromWord({
+          anki,
+          settings: state.settings.anki,
+          word: { base: word.base, surface: word.surface, reading: word.reading, glosses: word.glosses || [] },
+          context: { sentence: word.sentence },
+          maps,
+        });
+        if (result === "added" || result === "queued") markInAnki(word.base);
+        return result;
+      },
+    });
+    if (r.queued) window.dispatchEvent(new Event("anki-queue-changed"));
+    const skipped = skip.length + r.skipped;
+    setBatch({
+      done:
+        r.stopped === "changed"
+          ? "Your note type changed. Check the field matching."
+          : `Added ${r.added}. Skipped ${skipped} (already in Anki or very common).` +
+            (r.queued ? ` ${r.queued} will go in when Anki's open.` : "") +
+            (r.failed ? ` ${r.failed} couldn't be added.` : ""),
+    });
+  }
 
   return (
     <section className="sheet words" aria-label="Words">
@@ -145,6 +181,13 @@ export default function WordsView() {
         <button className="btn" onClick={() => downloadCsv(savedWords)} disabled={savedWords.length === 0}>
           Export to Anki (CSV)
         </button>
+        {ankiMode(state) && (
+          <button className="btn" onClick={sendAll} disabled={batch?.running || toSend.length === 0}>
+            Send all to Anki
+          </button>
+        )}
+        {batch?.running && <p className="note">Sending {batch.step} of {batch.total}…</p>}
+        {batch?.done && <p className="note">{batch.done}</p>}
         <p className="words__credit">
           Word meanings come from JMdict, © the Electronic Dictionary Research and Development Group,
           used under CC BY-SA 4.0.
