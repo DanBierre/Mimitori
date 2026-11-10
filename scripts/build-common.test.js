@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { commonForms } from "./build-common.mjs";
+import { commonForms, mergeExtras } from "./build-common.mjs";
 
 test("commonForms keeps nf01-nf04 and drops nf05 and untagged", () => {
   const xml = `<JMdict>
@@ -12,6 +12,10 @@ test("commonForms keeps nf01-nf04 and drops nf05 and untagged", () => {
 });
 
 test("commonForms lists kana when only the reading is tagged", () => {
-  const xml = `<entry><r_ele><reb>する</reb><re_pri>nf01</re_pri></r_ele></entry>`;
-  assert.deepEqual(commonForms(xml), ["する"]);
+  const xml = `<entry><r_ele><reb>の</reb><re_pri>nf01</re_pri></r_ele></entry>`;
+  assert.deepEqual(commonForms(xml), ["の"]);
+});
+
+test("mergeExtras ignores comments and blanks, sorts and de-duplicates", () => {
+  assert.deepEqual(mergeExtras(["何", "の"], "# note\n\nする\r\n  の \n"), ["の", "する", "何"].sort());
 });

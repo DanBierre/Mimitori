@@ -17,5 +17,11 @@ export async function loadCommon(fetchImpl = fetch) {
   }
 }
 
+// Test-only: forget what was loaded.
+export function resetCommon() {
+  common = new Set();
+  loaded = false;
+}
+
 export const commonSet = () => common;
 export const isVeryCommon = (base) => common.has(base);

@@ -6,6 +6,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 import { becameKnown, gradeCard, isDue, newCard } from "./srs";
 import { deleteImage } from "./images";
+import { loadCommon } from "./common";
 export { ankiMode, wordState } from "./anki/settingsLogic";
 
 // Old app name kept on purpose: renaming the key would wipe saved words and settings.
@@ -99,6 +100,8 @@ function reducer(state, action) {
       return { ...state, settings: { ...state.settings, anki: { ...state.settings.anki, ...action.patch } } };
     case "ankiWords":
       return { ...state, anki: { known: action.known, inDeck: action.inDeck, syncedAt: Date.now() } };
+    case "commonReady": // the common-words list arrived; new object so consumers re-render
+      return { ...state };
     case "markInAnki":
       return { ...state, anki: { ...state.anki, inDeck: { ...state.anki.inDeck, [action.base]: true } } };
     default:
@@ -112,6 +115,9 @@ export function StoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, undefined, load);
 
   useEffect(() => persist(state), [state]);
+  useEffect(() => {
+    loadCommon().then(() => dispatch({ type: "commonReady" }));
+  }, []);
 
   const api = useMemo(
     () => ({

@@ -3,6 +3,7 @@
 //
 //   node scripts/build-common.mjs <path-to-JMdict_e.gz or .xml>
 //
+// Also merges scripts/common-extra.txt (core words the nf bands miss).
 // Source: http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz
 // JMdict is © the Electronic Dictionary Research and Development Group, CC BY-SA 4.0.
 
@@ -21,6 +22,12 @@ export function commonForms(xmlText, maxBand = 4) {
   return [...out].sort();
 }
 
+// Merges the hand-kept extras (one form per line, # comments) into the list.
+export function mergeExtras(forms, extraText) {
+  const extras = extraText.split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
+  return [...new Set([...forms, ...extras])].sort();
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const input = process.argv[2];
   if (!input) {
@@ -30,8 +37,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   let buf = readFileSync(input);
   if (input.endsWith(".gz")) buf = gunzipSync(buf);
   const xml = buf.toString("utf8");
-  const entries = (xml.match(/<entry>[\s\S]*?<\/entry>/g) || []).filter((e) => /<(?:ke|re)_pri>nf0[1-4]</.test(e)).length;
-  const forms = commonForms(xml);
+  const maxBand = 4;
+  const entries = (xml.match(/<entry>[\s\S]*?<\/entry>/g) || []).filter((e) => new RegExp(`<(?:ke|re)_pri>nf0[1-${maxBand}]<`).test(e)).length;
+  const extraPath = resolve(dirname(fileURLToPath(import.meta.url)), "common-extra.txt");
+  const forms = mergeExtras(commonForms(xml, maxBand), readFileSync(extraPath, "utf8"));
   const out = resolve(dirname(fileURLToPath(import.meta.url)), "../public/dict/common.json");
   writeFileSync(out, JSON.stringify(forms));
   console.log(`${entries} entries, ${forms.length} forms -> ${out}`);
