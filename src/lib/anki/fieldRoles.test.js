@@ -107,3 +107,38 @@ test("short sentence ending in 。 is a sentence, not an expression", () => {
   ]);
   assert.equal(r.Front.role, "sentence");
 });
+
+test("template pairs words by sample index when a field is empty in one sample", () => {
+  const r = guessFieldRoles(["Front", "Back"], [
+    { Front: "美しい<b>眺</b><b>め</b>だった。", Back: "" },
+    { Front: "<b>雨</b>が降っている。", Back: "雨 (あめ)<br><br>英語：rain" },
+    { Front: "毎日<b>食</b><b>べ</b><b>る</b>。", Back: "食べる (たべる)<br><br>英語：to eat" },
+  ]);
+  assert.equal(r.Back.role, "template");
+  assert.equal(r.Back.template, "{expression} ({reading})<br><br>英語：{meaning}");
+});
+
+test("content-matched ExpressionAudio never becomes sentenceAudio", () => {
+  const r = guessFieldRoles(["Expression", "ExpressionAudio"], [
+    { Expression: "食べる", ExpressionAudio: "[sound:a.mp3]" },
+    { Expression: "雨", ExpressionAudio: "[sound:b.mp3]" },
+  ]);
+  assert.equal(r.ExpressionAudio.role, null);
+});
+
+test("real shape: template with sound and picture slots", () => {
+  const zw = "\u200b";
+  const names = ["Front", "Back", "Audio", "English defintion", "Screenshot"];
+  const blank = { Audio: "", "English defintion": "", Screenshot: "" };
+  const r = guessFieldRoles(names, [
+    { ...blank, Front: "あした<b>国語</b>だっけ", Back: `国語 （こくご）＝Japanese language (esp. as a school subject in Japan)${zw}<br><br>[sound:mpv_a.mp3]<br><br><img src="paste-a.jpg">` },
+    { ...blank, Front: "<b>神楽殿</b>の掃除だよ", Back: `神楽殿（かぐらでん）＝kagura hall (at a shrine); sacred dance stage<br><br>[sound:mpv_b.mp3]<br><br><img src="paste-b.jpg">` },
+    { ...blank, Front: "あっちは２<b>作目</b><br>今回は１作目のほう", Back: `作目（つくりめ）＝To look different from usual<br><br>[sound:mpv_c.mp3]<br><br><img src="paste-c.jpg">` },
+  ]);
+  assert.equal(r.Front.role, "sentence");
+  assert.equal(r.Back.role, "template");
+  assert.equal(r.Back.template, "{expression}（{reading}）＝{meaning}<br><br>{sentenceAudio}<br><br>{picture}");
+  assert.equal(r.Screenshot.role, null);
+  assert.equal(r.Audio.role, null);
+  assert.equal(r["English defintion"].role, null);
+});

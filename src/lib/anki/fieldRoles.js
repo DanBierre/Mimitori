@@ -45,7 +45,8 @@ function classify(value, fieldName) {
   if (BRACKET_REGEX.test(text)) return { role: text.length > 10 ? "sentenceFurigana" : "reading", format: "bracket" };
   if (KANA_ONLY_REGEX.test(text)) return { role: "reading", format: "kana" };
   if (JAPANESE_REGEX.test(text)) {
-    if (SENTENCE_END_REGEX.test(text) || text.length > 10) return { role: "sentence" };
+    const partlyBold = /<b>/i.test(value) && stripHtml(value.replace(/<b>[^<]*<\/b>/gi, "")) !== "";
+    if (partlyBold || SENTENCE_END_REGEX.test(text) || text.length > 10) return { role: "sentence" };
     if (KANJI_REGEX.test(text) && !/\s/.test(text)) return { role: "expression" };
     return null;
   }
@@ -78,7 +79,7 @@ function boldedWord(sentenceValue) {
 
 // Longest run of Latin text outside {placeholders} and HTML tags -> {meaning}.
 function replaceLongestLatin(str) {
-  const parts = str.split(/(\{[a-z]+\}|<[^>]*>)/);
+  const parts = str.split(/(\{[A-Za-z]+\}|<[^>]*>)/);
   let best = null;
   parts.forEach((p, i) => {
     if (i % 2) return;
@@ -92,7 +93,8 @@ function replaceLongestLatin(str) {
   return parts.join("");
 }
 
-function buildTemplate(value, word) {
+function buildTemplate(raw, word) {
+  const value = raw.replace(/\[sound:[^\]]*\]/g, "{sentenceAudio}").replace(/<img[^>]*>/gi, "{picture}");
   const at = word ? value.indexOf(word) : -1;
   if (at < 0) return null;
   const head = value.slice(0, at) + "{expression}";
@@ -101,20 +103,33 @@ function buildTemplate(value, word) {
   return replaceLongestLatin(head + tail);
 }
 
-function templateSignal(values, words) {
-  const counts = new Map();
-  values.forEach((v, i) => {
-    const t = words[i] && buildTemplate(v, words[i]);
-    if (t) counts.set(t, (counts.get(t) || 0) + 1);
+const squash = (t) => t.replace(/[\s​-‍﻿]/g, "");
+
+// Pairs each sample's word with that sample's value of the field (by sample index).
+// Agreement is judged ignoring whitespace; the output is the most common exact variant.
+function templateSignal(samples, field, words) {
+  const groups = new Map();
+  let total = 0;
+  samples.forEach((s, i) => {
+    if (!isFilled(s[field])) return;
+    total++;
+    const t = words[i] && buildTemplate(s[field], words[i]);
+    if (!t) return;
+    const g = groups.get(squash(t)) || new Map();
+    g.set(t, (g.get(t) || 0) + 1);
+    groups.set(squash(t), g);
   });
-  const [template, n] = [...counts].sort((a, b) => b[1] - a[1])[0] || [];
-  const ok = template && n / values.length >= STRONG && template.includes("{expression}") && /\{(reading|meaning)\}/.test(template);
-  return ok ? template : null;
+  const size = (g) => [...g.values()].reduce((a, b) => a + b, 0);
+  const best = [...groups.values()].sort((a, b) => size(b) - size(a))[0];
+  if (!best || size(best) / total < STRONG) return null;
+  const template = [...best].sort((a, b) => b[1] - a[1])[0][0];
+  return template.includes("{expression}") && /\{(reading|meaning)\}/.test(template) ? template : null;
 }
 
 // ---- Assignment -----------------------------------------------------------
 
-const nonEmpty = (samples, f) => samples.map((s) => s[f]).filter((v) => typeof v === "string" && stripHtml(v) + (/<img|\[sound:/.test(v) ? "x" : ""));
+const isFilled = (v) => typeof v === "string" && (stripHtml(v) !== "" || /<img|\[sound:/.test(v));
+const nonEmpty = (samples, f) => samples.map((s) => s[f]).filter(isFilled);
 
 function sampleText(values) {
   return values.length ? stripHtml(values[0]).slice(0, 40) : "";
@@ -125,32 +140,35 @@ export function guessFieldRoles(fieldNames, samples) {
   const content = Object.fromEntries(fieldNames.map((f) => [f, contentSignal(f, values[f])]));
 
   // Word per sample comes from the bolded text in the first sentence-like field.
-  const sentenceField = fieldNames.find((f) => content[f]?.role === "sentence");
+  const sentenceField = fieldNames.find((f) => content[f]?.role === "sentence" && values[f].some((v) => /<b>/i.test(v)));
   const words = sentenceField ? samples.map((s) => boldedWord(s[sentenceField] || "")) : [];
 
   const out = {};
   const candidates = [];
+  const claimed = new Set(); // roles used as slots in a template field
   for (const f of fieldNames) {
     out[f] = { role: null, confidence: 0, format: null, sample: sampleText(values[f]), from: null };
-    const template = sentenceField && f !== sentenceField && words.some(Boolean) ? templateSignal(values[f], words) : null;
+    const template = sentenceField && f !== sentenceField && words.some(Boolean) ? templateSignal(samples, f, words) : null;
     if (template) {
       const list = values[f].some((v) => v.includes("<li>"));
+      for (const m of template.matchAll(/\{(\w+)\}/g)) claimed.add(m[1]);
       out[f] = { ...out[f], role: "template", template, confidence: 0.9, format: list ? "list" : "plain", from: "content" };
       continue;
     }
     const byName = nameSignal(f);
     const byContent = content[f];
-    if (byContent) {
+    const audioName = ["wordaudio", "expressionaudio"].includes(normName(f));
+    if (byContent && !(audioName && byContent.role === "sentenceAudio")) {
       const agrees = byName?.role === byContent.role;
       candidates.push({ f, role: byContent.role, confidence: agrees ? 1 : 0.9, from: "content", readingFormat: byContent.format });
-    } else if (byName) {
+    } else if (byName && !byContent) {
       candidates.push({ f, role: byName.role, confidence: byName.confidence, from: "name" });
     }
   }
 
   const taken = new Set();
   for (const c of candidates.sort((a, b) => b.confidence - a.confidence)) {
-    if (taken.has(c.role)) continue;
+    if (taken.has(c.role) || (c.from === "name" && claimed.has(c.role))) continue;
     taken.add(c.role);
     const format = c.role === "reading" ? c.readingFormat || "kana"
       : c.role === "meaning" ? (values[c.f].some((v) => v.includes("<li>")) ? "list" : "plain")
