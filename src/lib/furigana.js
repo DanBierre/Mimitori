@@ -94,6 +94,14 @@ export async function tokenizeWithReadings(text) {
       if (hira !== surface) reading = hira;
     }
 
-    return { surface, reading, base, pos: token.pos, isWord, segments: furiganaSegments(surface, reading) };
+    return {
+      surface,
+      reading,
+      base,
+      pos: token.pos,
+      posDetail: token.pos_detail_1,
+      isWord,
+      segments: furiganaSegments(surface, reading),
+    };
   });
 }

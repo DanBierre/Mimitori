@@ -5,6 +5,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 import { becameKnown, gradeCard, isDue, newCard } from "./srs";
+import { deleteImage } from "./images";
 
 const STORAGE_KEY = "nihongo-reader:v1";
 
@@ -98,8 +99,15 @@ export function StoreProvider({ children }) {
     () => ({
       state,
       saveWord: (entry) => dispatch({ type: "save", entry }),
-      removeWord: (base) => dispatch({ type: "remove", base }),
-      knowWord: (base) => dispatch({ type: "know", base }),
+      // Scene stills live in IndexedDB; drop them when the word leaves the list.
+      removeWord: (base) => {
+        dispatch({ type: "remove", base });
+        deleteImage(base);
+      },
+      knowWord: (base) => {
+        dispatch({ type: "know", base });
+        deleteImage(base);
+      },
       unknowWord: (base) => dispatch({ type: "unknow", base }),
       grade: (base, rating) => dispatch({ type: "grade", base, rating }),
       setSettings: (patch) => dispatch({ type: "settings", patch }),

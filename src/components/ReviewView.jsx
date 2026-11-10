@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useDueWords, useStore } from "../lib/store";
 import { previewIntervals, Rating } from "../lib/srs";
 import { GradeMark } from "./Marks";
+import SceneStill from "./SceneStill";
 
 const GRADES = [
   [Rating.Again, "Again"],
@@ -88,6 +89,7 @@ export default function ReviewView({ onGoRead }) {
           <p className="review__term" lang="ja">
             {word.base}
           </p>
+          <SceneStill base={word.base} />
           {!revealed && word.sentence && (
             <p className="review__sentence" lang="ja">
               <SentenceWithWord sentence={word.sentence} surface={word.surface} base={word.base} />

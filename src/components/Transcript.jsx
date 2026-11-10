@@ -9,7 +9,7 @@ function clock(ms) {
 
 // Every line of the main subtitles. The current one is highlighted and kept in
 // view (scrolling only this list, never the page); tapping a line jumps there.
-export default function Transcript({ cues, current, onJump }) {
+export default function Transcript({ cues, current, onJump, newCounts = [] }) {
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -37,6 +37,7 @@ export default function Transcript({ cues, current, onJump }) {
             <span className="transcript__text" lang="ja">
               {cue.text.replace(/\n/g, " ")}
             </span>
+            {newCounts[i] > 0 && <span className="transcript__new">{newCounts[i]} new</span>}
           </button>
         </li>
       ))}

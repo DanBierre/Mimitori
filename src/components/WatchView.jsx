@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getTokenizer, tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furigana";
 import { readSubtitleFile, isVideoFile } from "../lib/subtitles/loadFile";
 import {
@@ -16,6 +16,9 @@ import WordPanel from "./WordPanel";
 import WatchDrop from "./WatchDrop";
 import WatchControls, { SHORTCUTS } from "./WatchControls";
 import Transcript from "./Transcript";
+import { conjugationParts } from "../lib/conjugation";
+import { captureFrame, putImage } from "../lib/images";
+import { wordState } from "../lib/store";
 
 const NO_LINES = "We couldn't read any lines from this file. Is it a .srt, .vtt or .ass file?";
 const BAD_VIDEO = "Your browser can't play this video. MP4 files work best. Chrome and Edge play the most formats.";
@@ -304,6 +307,12 @@ export default function WatchView({ active }) {
     setSelection({ cue: current, token: i });
   }
 
+  // Not-yet-known words per line, for the transcript.
+  const newCounts = useMemo(
+    () => tokens.map((line) => (line ? line.filter((t) => t.isWord && wordState(state, t.base) !== "known").length : 0)),
+    [tokens, state]
+  );
+
   const ready = Boolean(video && primary);
   const cue = primary && current !== -1 ? primary.cues[current] : null;
   const lineTokens = current !== -1 ? tokens[current] : null;
@@ -443,7 +452,7 @@ export default function WatchView({ active }) {
 
         {ready && (
           <div className={`watch__side ${transcriptOpen ? "watch__side--open" : ""}`}>
-            <Transcript cues={primary.cues} current={current} onJump={seekToCue} />
+            <Transcript cues={primary.cues} current={current} onJump={seekToCue} newCounts={newCounts} />
           </div>
         )}
         </div>
@@ -453,6 +462,8 @@ export default function WatchView({ active }) {
         <WordPanel
           token={selectedToken}
           sentence={primary.cues[selection.cue].text.replace(/\n/g, "")}
+          grammar={conjugationParts(tokens[selection.cue], selection.token)}
+          onSaved={(base) => captureFrame(videoRef.current).then((blob) => blob && putImage(base, blob))}
           onClose={() => setSelection(null)}
         />
       )}

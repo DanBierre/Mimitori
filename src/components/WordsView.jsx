@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useStore, wordState } from "../lib/store";
 import { downloadCsv } from "../lib/exportCsv";
 import { formatInterval } from "../lib/srs";
+import SceneStill from "./SceneStill";
 
 const FILTERS = [
   ["all", "All"],
@@ -110,6 +111,7 @@ export default function WordsView() {
               </button>
               {open === r.base && (
                 <div className="words__detail">
+                  <SceneStill base={r.base} />
                   {r.sentence && (
                     <p className="words__sentence" lang="ja">
                       {r.sentence}

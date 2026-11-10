@@ -3,6 +3,8 @@ import { tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furigana";
 import { translateText, translationEnabled } from "../lib/translate";
 import { useStore } from "../lib/store";
 import TokenLine from "./TokenLine";
+import { conjugationParts } from "../lib/conjugation";
+import { canSpeak, speak } from "../lib/speak";
 import WordPanel from "./WordPanel";
 
 const SAMPLE =
@@ -160,9 +162,16 @@ export default function ReadView() {
             </div>
             )}
 
-            <button className="btn btn--quiet read__edit" onClick={backToEdit}>
-              Edit text
-            </button>
+            <div className="read__after">
+              <button className="btn btn--quiet read__edit" onClick={backToEdit}>
+                Edit text
+              </button>
+              {canSpeak() && (
+                <button className="btn btn--quiet read__edit" onClick={() => speak(input)}>
+                  Say it
+                </button>
+              )}
+            </div>
           </>
         )}
       </section>
@@ -171,6 +180,7 @@ export default function ReadView() {
         <WordPanel
           token={selectedToken}
           sentence={sentenceAround(tokens, selected)}
+          grammar={conjugationParts(tokens, selected)}
           onClose={() => setSelected(null)}
         />
       )}

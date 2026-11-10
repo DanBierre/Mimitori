@@ -28,6 +28,10 @@ export default function TokenLine({ tokens, selected, onSelect }) {
         className={`word mk mk--${mark}`}
         aria-pressed={selected === i}
         onClick={() => onSelect(selected === i ? null : i)}
+        // Yomitan-style: hold Shift and move the mouse over words to look them up.
+        onPointerMove={(e) => {
+          if (e.shiftKey && e.pointerType === "mouse" && selected !== i) onSelect(i);
+        }}
       >
         {inner}
       </button>

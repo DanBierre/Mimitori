@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { lookupWord } from "../lib/dict";
 import { useStore, wordState } from "../lib/store";
 import { formatInterval } from "../lib/srs";
+import { canSpeak, speak } from "../lib/speak";
 
 // Detail for the tapped word: meaning, and the actions that move it along
 // the loop (save to review / I know this).
-export default function WordPanel({ token, sentence, onClose }) {
+export default function WordPanel({ token, sentence, grammar = [], onSaved, onClose }) {
   const { state, saveWord, removeWord, knowWord, unknowWord } = useStore();
   const [entry, setEntry] = useState({ status: "loading", data: null });
 
@@ -33,6 +34,7 @@ export default function WordPanel({ token, sentence, onClose }) {
       pos: entry.data?.pos || [],
       sentence,
     });
+    onSaved?.(token.base);
   }
 
   return (
@@ -47,7 +49,18 @@ export default function WordPanel({ token, sentence, onClose }) {
         {token.base !== token.surface && (
           <span className="word-panel__form">as written: {token.surface}</span>
         )}
+        {canSpeak() && (
+          <button className="btn btn--quiet word-panel__say" onClick={() => speak(token.base)}>
+            Say it
+          </button>
+        )}
       </div>
+
+      {grammar.length > 0 && (
+        <p className="word-panel__grammar" lang="ja">
+          {token.base} · <span lang="en">{grammar.join(" · ")}</span>
+        </p>
+      )}
 
       {entry.status === "loading" && <p className="word-panel__note">Looking up…</p>}
 
