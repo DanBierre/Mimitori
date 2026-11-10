@@ -15,7 +15,9 @@ import TokenLine from "./TokenLine";
 import WordPanel from "./WordPanel";
 import WatchDrop from "./WatchDrop";
 import WatchControls, { SHORTCUTS, noFocus } from "./WatchControls";
+import WatchTips from "./WatchTips";
 import Transcript from "./Transcript";
+import { SAMPLE, sampleFiles } from "../lib/firstRun";
 import Icon from "./Icon";
 import { conjugationParts } from "../lib/conjugation";
 import { captureFrame, putImage } from "../lib/images";
@@ -24,6 +26,7 @@ import { isRecording } from "../lib/media/clip";
 
 const NO_LINES = "We couldn't read any lines from this file. Is it a .srt, .vtt or .ass file?";
 const BAD_VIDEO = "Your browser can't play this video. MP4 files work best. Chrome and Edge play the most formats.";
+const NO_SAMPLE = "The sample clip didn't load. Check your connection and try again.";
 
 const hasJapanese = (cues) => cues.some((c) => JAPANESE_REGEX.test(c.text));
 
@@ -47,6 +50,7 @@ export default function WatchView({ active, onOpenSettings }) {
   const [primary, setPrimary] = useState(null); // { name, cues, skipped }
   const [second, setSecond] = useState(null);
   const [fileError, setFileError] = useState("");
+  const [sample, setSample] = useState("off"); // off | loading | on
 
   const [tokens, setTokens] = useState([]); // per primary cue: token[] | null
   const [readings, setReadings] = useState("idle"); // idle | loading | ready | error
@@ -74,6 +78,23 @@ export default function WatchView({ active, onOpenSettings }) {
     setSyncTarget(null);
     setSelection(null);
     setTokens([]);
+  }
+
+  // The learner's own files: the sample credit no longer applies.
+  function pickFiles(list) {
+    setSample("off");
+    return handleFiles(list);
+  }
+
+  async function loadSample() {
+    setSample("loading");
+    try {
+      await handleFiles(await sampleFiles());
+      setSample("on");
+    } catch {
+      setSample("off");
+      setFileError(NO_SAMPLE);
+    }
   }
 
   async function handleFiles(list) {
@@ -357,12 +378,14 @@ export default function WatchView({ active, onOpenSettings }) {
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
-        handleFiles(e.dataTransfer.files);
+        pickFiles(e.dataTransfer.files);
       }}
     >
       {!ready && (
         <WatchDrop
-          onFiles={handleFiles}
+          onFiles={pickFiles}
+          onSample={loadSample}
+          sampleLoading={sample === "loading"}
           hasVideo={Boolean(video)}
           hasSubs={Boolean(primary)}
           error={fileError || (videoError ? BAD_VIDEO : "")}
@@ -447,6 +470,8 @@ export default function WatchView({ active, onOpenSettings }) {
             />
           )}
 
+          {ready && !helpOpen && <WatchTips />}
+
           {helpOpen && (
             <div className="popover watch__help" role="region" aria-label="Keyboard shortcuts">
               <div className="popover__head">
@@ -495,7 +520,8 @@ export default function WatchView({ active, onOpenSettings }) {
                 </p>
               )}
               {primary.skipped > 0 && <p className="note">Skipped {primary.skipped} lines we couldn't read.</p>}
-              <WatchDrop compact onFiles={handleFiles} />
+              {sample === "on" && <p className="note">{SAMPLE.credit}</p>}
+              <WatchDrop compact onFiles={pickFiles} />
             </div>
           )}
         </section>

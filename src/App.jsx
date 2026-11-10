@@ -8,6 +8,7 @@ import ReviewView from "./components/ReviewView";
 import WordsView from "./components/WordsView";
 import SettingsView from "./components/SettingsView";
 import Icon from "./components/Icon";
+import { createFlags } from "./lib/firstRun";
 import "./App.css";
 
 const TABS = [
@@ -17,8 +18,12 @@ const TABS = [
   { id: "words", label: "Words", icon: "words" },
 ];
 
+const flags = createFlags();
+
 function Shell() {
-  const [tab, setTab] = useState("read");
+  // First visit lands on Watch, where the sample clip is one tap away. After that, Read as before.
+  const [tab, setTab] = useState(() => (flags.has("visited") ? "read" : "watch"));
+  useEffect(() => flags.set("visited"), []);
   const due = useDueWords();
   const { state } = useStore();
   const inAnkiMode = ankiMode(state);

@@ -1864,3 +1864,37 @@ rt {
   padding: 6px 0;
   border-bottom: 1px solid var(--line);
 }
+
+/* First run: sample button next to "Choose files", and the one-time tips (they reuse the shortcuts popover spot). */
+.watch-drop__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.watch__tips-body {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.watch__tips-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.watch__tips-count {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+/* Tips sit in the page flow under the controls, so they never cover the line they're talking about. */
+.popover.watch__tips {
+  position: static;
+  width: auto;
+  margin: 10px 12px 0;
+}
