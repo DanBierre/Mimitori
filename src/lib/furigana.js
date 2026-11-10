@@ -31,6 +31,33 @@ function katakanaToHiragana(str) {
   );
 }
 
+// Kanji runs get readings; 々 〆 ヵ ヶ behave like kanji inside words (人々, 三ヶ月).
+const KANJI_RUN = /[一-龯々〆ヵヶ]+/g;
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Splits a word so the reading sits over the kanji only:
+// 食べ + たべ -> [{ text: "食", ruby: "た" }, { text: "べ" }].
+// Kana in the word is matched against the reading to find where each kanji
+// run's reading starts and ends. If that fails, the whole word gets the reading.
+export function furiganaSegments(surface, reading) {
+  if (!reading) return [{ text: surface }];
+  const runs = [];
+  let last = 0;
+  for (const m of surface.matchAll(KANJI_RUN)) {
+    if (m.index > last) runs.push({ kanji: false, text: surface.slice(last, m.index) });
+    runs.push({ kanji: true, text: m[0] });
+    last = m.index + m[0].length;
+  }
+  if (last < surface.length) runs.push({ kanji: false, text: surface.slice(last) });
+
+  const pattern = runs.map((r) => (r.kanji ? "(.+?)" : escapeRegex(katakanaToHiragana(r.text)))).join("");
+  const match = katakanaToHiragana(reading).match(new RegExp(`^${pattern}$`));
+  if (!match) return [{ text: surface, ruby: reading }];
+
+  let group = 1;
+  return runs.map((r) => (r.kanji ? { text: r.text, ruby: match[group++] } : { text: r.text }));
+}
+
 // Parts of speech worth offering for lookup/saving. Particles, auxiliaries,
 // symbols and fillers are skipped.
 const CONTENT_POS = new Set(["名詞", "動詞", "形容詞", "副詞", "連体詞", "感動詞", "接続詞"]);
@@ -63,6 +90,6 @@ export async function tokenizeWithReadings(text) {
       if (hira !== surface) reading = hira;
     }
 
-    return { surface, reading, base, pos: token.pos, isWord };
+    return { surface, reading, base, pos: token.pos, isWord, segments: furiganaSegments(surface, reading) };
   });
 }

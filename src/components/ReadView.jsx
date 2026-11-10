@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furigana";
 import { translateText, translationEnabled } from "../lib/translate";
-import { useStore, wordState } from "../lib/store";
+import { useStore } from "../lib/store";
+import TokenLine from "./TokenLine";
 import WordPanel from "./WordPanel";
 
 const SAMPLE =
@@ -146,32 +147,7 @@ export default function ReadView() {
             </div>
 
             <p className="read__text" lang="ja" style={{ "--read-size": `${size}px` }}>
-              {tokens.map((token, i) => {
-                const mark = token.isWord ? wordState(state, token.base) : "plain";
-                const showRuby =
-                  token.reading &&
-                  furigana !== "off" &&
-                  !(furigana === "unknown" && mark === "known");
-                const inner = showRuby ? (
-                  <ruby>
-                    {token.surface}
-                    <rt>{token.reading}</rt>
-                  </ruby>
-                ) : (
-                  token.surface
-                );
-                if (!token.isWord) return <span key={i}>{inner}</span>;
-                return (
-                  <button
-                    key={i}
-                    className={`word mk mk--${mark}`}
-                    aria-pressed={selected === i}
-                    onClick={() => setSelected(selected === i ? null : i)}
-                  >
-                    {inner}
-                  </button>
-                );
-              })}
+              <TokenLine tokens={tokens} selected={selected} onSelect={setSelected} />
             </p>
 
             {translationEnabled && (
