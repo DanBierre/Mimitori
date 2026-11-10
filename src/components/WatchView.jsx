@@ -239,7 +239,9 @@ export default function WatchView({ active }) {
   // Focus mode: real fullscreen of the whole tab (so the word card still shows),
   // or a full-window layout where element fullscreen isn't allowed (iPhone).
   const rootRef = useRef(null);
-  const [transcriptOpen, setTranscriptOpen] = useState(false);
+  // Phones show the transcript under the player by default (it fills the
+  // space below the controls); wider screens show it beside the video anyway.
+  const [transcriptOpen, setTranscriptOpen] = useState(() => window.matchMedia?.("(max-width: 719px)").matches ?? false);
   const [focus, setFocus] = useState(false);
   useEffect(() => {
     const sync = () => setFocus(document.fullscreenElement === rootRef.current);

@@ -709,6 +709,12 @@ rt {
   background: #000;
 }
 
+/* The player's own fullscreen is turned off (it would hide the lines); hide
+   its greyed-out button too. Focus mode is the way to go big. */
+.watch__video::-webkit-media-controls-fullscreen-button {
+  display: none;
+}
+
 .watch__lines {
   position: relative;
   padding: 16px 20px 4px;
