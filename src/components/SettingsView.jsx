@@ -34,7 +34,7 @@ function RoleSelect({ field, value, isTemplate, onChange }) {
 }
 
 export default function SettingsView({ active }) {
-  const { state, setAnkiSettings, setSettings } = useStore();
+  const { state, setAnkiSettings, setSettings, setDeckNotes } = useStore();
   const cfg = state.settings.anki;
   const a = useAnki(active);
   const [draft, setDraft] = useState(null); // { fieldNames, guesses, roles }
@@ -214,7 +214,7 @@ export default function SettingsView({ active }) {
         {a.progress && (
           <p className="note" role="status">Reading {a.progress.deck}… {a.progress.done} of {a.progress.total}</p>
         )}
-        {a.deckNotes.map((n) => <p key={n} className="note">{n}</p>)}
+        {(state.anki.deckNotes || []).map((n) => <p key={n} className="note">{n}</p>)}
 
         {ready && connected && (
           <>
@@ -230,6 +230,7 @@ export default function SettingsView({ active }) {
                     disabled={isAddTo || a.syncing}
                     onChange={(e) => {
                       const rest = cfg.readDecks.filter((x) => x !== d && x !== cfg.deck);
+                      setDeckNotes([]);
                       setAnkiSettings({ readDecks: e.target.checked ? [...rest, d] : rest });
                     }}
                   />

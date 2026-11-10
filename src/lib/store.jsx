@@ -24,7 +24,7 @@ const DEFAULT_STATE = {
     anki: { enabled: false, deck: "", model: "", mapping: {}, fieldList: [], readDecks: [], tagKnown: false },
   },
   // Words read from Anki: mature ("known") and in the deck but not yet mature.
-  anki: { known: {}, inDeck: {}, syncedAt: 0 },
+  anki: { known: {}, inDeck: {}, syncedAt: 0, deckNotes: [] },
 };
 
 function load() {
@@ -99,7 +99,9 @@ function reducer(state, action) {
     case "ankiSettings":
       return { ...state, settings: { ...state.settings, anki: { ...state.settings.anki, ...action.patch } } };
     case "ankiWords":
-      return { ...state, anki: { known: action.known, inDeck: action.inDeck, syncedAt: Date.now() } };
+      return { ...state, anki: { ...state.anki, known: action.known, inDeck: action.inDeck, syncedAt: Date.now() } };
+    case "ankiNotes":
+      return { ...state, anki: { ...state.anki, deckNotes: action.notes } };
     case "commonReady": // the common-words list arrived; new object so consumers re-render
       return { ...state };
     case "markInAnki":
@@ -138,6 +140,7 @@ export function StoreProvider({ children }) {
       setWatchSettings: (patch) => dispatch({ type: "watch", patch }),
       setAnkiSettings: (patch) => dispatch({ type: "ankiSettings", patch }),
       markInAnki: (base) => dispatch({ type: "markInAnki", base }),
+      setDeckNotes: (notes) => dispatch({ type: "ankiNotes", notes }),
       setAnkiWords: ({ known, inDeck }) => dispatch({ type: "ankiWords", known, inDeck }),
     }),
     [state]

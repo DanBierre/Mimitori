@@ -51,7 +51,7 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
 
   const mark = wordState(state, token.base);
   // "known" only because it's very common: Anki add stays reachable, behind a notice.
-  const commonOnly = addToAnki && mark === "known" && !state.known[token.base] && !state.anki.known[token.base] && isVeryCommon(token.base);
+  const commonOnly = mark === "known" && !state.known[token.base] && !state.anki.known[token.base] && isVeryCommon(token.base);
   const saved = state.words[token.base];
   const reading = entry.data?.reading || token.reading || "";
 
@@ -210,7 +210,11 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
         {commonOnly && (
           <>
             <p className="word-panel__status">Treated as known. Furigana is hidden for it.</p>
-            {!sure ? (
+            {!addToAnki ? (
+              <button className="btn btn--primary" onClick={handleSave}>
+                Save anyway
+              </button>
+            ) : !sure ? (
               <button className="btn btn--primary" onClick={() => setSure(true)}>
                 Add to Anki
               </button>

@@ -14,6 +14,8 @@ const FILTERS = [
   ["known", "Known"],
 ];
 
+let batchRunning = false; // survives a tab switch, so a second Send all can't start mid-run
+
 export default function WordsView() {
   const { state, removeWord, knowWord, unknowWord, markInAnki } = useStore();
   const [filter, setFilter] = useState("all");
@@ -61,6 +63,17 @@ export default function WordsView() {
   const toSend = planBatch(savedWords, state).send;
 
   async function sendAll() {
+    if (batchRunning) return;
+    batchRunning = true;
+    setBatch({ running: true, step: 0, total: 0 });
+    try {
+      await runBatch();
+    } finally {
+      batchRunning = false;
+    }
+  }
+
+  async function runBatch() {
     const { send: words, skip } = planBatch(savedWords, state);
     setBatch({ running: true, step: 0, total: words.length });
     const r = await sendBatch({
@@ -85,7 +98,7 @@ export default function WordsView() {
       done:
         r.stopped === "changed"
           ? "Your note type changed. Check the field matching."
-          : `Added ${r.added}. Skipped ${skipped} (already in Anki or very common).` +
+          : `Added ${r.added + r.queued}. Skipped ${skipped} (already in Anki or very common).` +
             (r.queued ? ` ${r.queued} will go in when Anki's open.` : "") +
             (r.failed ? ` ${r.failed} couldn't be added.` : ""),
     });
@@ -182,7 +195,7 @@ export default function WordsView() {
           Export to Anki (CSV)
         </button>
         {ankiMode(state) && (
-          <button className="btn" onClick={sendAll} disabled={batch?.running || toSend.length === 0}>
+          <button className="btn" onClick={sendAll} disabled={batch?.running || batchRunning || toSend.length === 0}>
             Send all to Anki
           </button>
         )}

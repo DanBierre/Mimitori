@@ -1,4 +1,4 @@
-import { readDeckNotes, deckQuery } from "./known.js";
+import { readDeckNotes, deckOnlyQuery } from "./known.js";
 
 export const TAG = "mimitori-known";
 
@@ -24,8 +24,8 @@ export async function syncTags(anki, ankiSettings, known) {
     model: ankiSettings.model,
     mapping: ankiSettings.mapping,
   });
-  // Tags are per note, so skip notes with a card outside the add-to deck.
-  const inDeck = new Set(await anki.invoke("findCards", { query: deckQuery(ankiSettings.deck) }));
+  // Tags are per note, so skip notes with a card outside the add-to deck (subdecks count as outside).
+  const inDeck = new Set(await anki.invoke("findCards", { query: deckOnlyQuery(ankiSettings.deck) }));
   const own = notes.filter((n) => n.cards.length > 0 && n.cards.every((c) => inDeck.has(c)));
   const { add, remove } = planTags(own, known);
   if (add.length) await anki.invoke("addTags", { notes: add, tags: TAG });

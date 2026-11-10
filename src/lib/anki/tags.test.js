@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { deckQuery } from "./known.js";
+import { deckQuery, deckOnlyQuery, mergeDeckNotes } from "./known.js";
 import { planTags, syncTags, TAG } from "./tags.js";
 
 test("planTags adds to known words without the tag and removes from words no longer known", () => {
@@ -31,6 +31,7 @@ function fake(extra) {
   const returned = new Set();
   const notes = { 1: note(1, "犬", []), 2: note(2, "猫", [TAG]), 3: note(3, "鳥", []) };
   if (extra) notes[4] = { ...note(4, "鼠", []), cards: [4, 99] };
+  if (extra) notes[5] = { ...note(5, "象", []), cards: [5] }; // only in Test::Child
   return {
     calls,
     returned,
@@ -38,11 +39,11 @@ function fake(extra) {
       calls.push({ action, params });
       if (action === "findNotes") {
         if (!params.query.startsWith('"deck:Test"')) return [99];
-        const ids = params.query.includes("prop:") ? [] : extra ? [1, 2, 3, 4] : [1, 2, 3];
+        const ids = params.query.includes("prop:") ? [] : extra ? [1, 2, 3, 4, 5] : [1, 2, 3];
         ids.forEach((i) => returned.add(i));
         return ids;
       }
-      if (action === "findCards") return params.query === '"deck:Test"' ? [1, 2, 3, 4] : [99];
+      if (action === "findCards") return params.query === '"deck:Test" -"deck:Test::*"' ? [1, 2, 3, 4] : [99];
       if (action === "notesInfo") return params.notes.map((i) => notes[i]);
       return null;
     },
@@ -56,7 +57,7 @@ test("syncTags only reads and tags the add-to deck", async () => {
   const r = await syncTags(a, settings, { 犬: true });
   assert.deepEqual(r, { added: 1, removed: 1 });
   for (const c of a.calls.filter((c) => c.action === "findNotes" || c.action === "findCards"))
-    assert.ok(['"deck:Test"', '"deck:Test" prop:ivl>=21'].includes(c.params.query));
+    assert.ok(['"deck:Test"', '"deck:Test" prop:ivl>=21', '"deck:Test" -"deck:Test::*"'].includes(c.params.query));
   assert.ok(!JSON.stringify(a.calls).includes("日本語一般で"));
   const writes = a.calls.filter((c) => c.action === "addTags" || c.action === "removeTags");
   assert.equal(writes.length, 2);
@@ -89,6 +90,18 @@ test("syncTags leaves notes with a card outside the add-to deck alone", async ()
   const tagged = a.calls.filter((c) => c.action === "addTags" || c.action === "removeTags").flatMap((c) => c.params.notes);
   assert.ok(tagged.includes(1));
   assert.ok(!tagged.includes(4));
+  assert.ok(!tagged.includes(5)); // subdeck-only note is never touched
+  assert.equal(a.calls.find((c) => c.action === "findCards").params.query, '"deck:Test" -"deck:Test::*"');
+});
+
+test("deckOnlyQuery escapes the name but keeps ::* a wildcard", () => {
+  assert.equal(deckOnlyQuery("A_B"), '"deck:A\\_B" -"deck:A\\_B::*"');
+});
+
+test("mergeDeckNotes keeps missing-deck notes and replaces the rest", () => {
+  const gone = "X wasn't found in Anki";
+  assert.deepEqual(mergeDeckNotes([gone, "Couldn't find the word field in Y"], ["Couldn't find the word field in Z"]), [gone, "Couldn't find the word field in Z"]);
+  assert.deepEqual(mergeDeckNotes([gone], [gone]), [gone]);
 });
 
 test("planTags ignores prototype names", () => {

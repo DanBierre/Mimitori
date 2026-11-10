@@ -37,6 +37,14 @@ export function wordFromNote(fields, mapping) {
 // Anki search for one deck. Inside quotes \ " * _ still need a backslash.
 export const deckQuery = (deck) => `"deck:${deck.replace(/[\\"*_]/g, "\\$&")}"`;
 
+// Like deckQuery, minus subdecks (the trailing ::* stays a real wildcard).
+export const deckOnlyQuery = (deck) => `${deckQuery(deck)} -${deckQuery(deck).slice(0, -1)}::*"`;
+
+// Deck notes kept for display: "wasn't found" notes stay until the learner changes the decks.
+export const mergeDeckNotes = (prev, next) => [
+  ...new Set([...prev.filter((n) => n.endsWith("wasn't found in Anki")), ...next]),
+];
+
 // Notes of one deck with their word, tags and whether the card is mature.
 // Notes with no word are left out. Independent of the store.
 export async function readDeckNotes(anki, { deck, model, mapping }, onProgress) {
