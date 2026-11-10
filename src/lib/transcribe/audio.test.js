@@ -45,3 +45,8 @@ test("pickCut finds a planted gap", () => {
 test("pickCut on short audio returns its length", () => {
   assert.equal(pickCut(new Float32Array(160000), 16000, 30, 3), 160000);
 });
+
+test("resample keeps a long DC offset exact", () => {
+  const out = resample(new Float32Array(600 * 48000).fill(0.1), 48000);
+  for (let i = 0; i < out.length; i++) assert.ok(Math.abs(out[i] - 0.1) < 1e-6);
+});

@@ -13,7 +13,7 @@ export function resample(samples, fromRate, toRate = 16000) {
   if (fromRate === toRate) return samples;
   const n = samples.length;
   const w = Math.max(1, Math.round(fromRate / toRate));
-  const pre = new Float32Array(n + 1); // prefix sums
+  const pre = new Float64Array(n + 1); // prefix sums
   for (let i = 0; i < n; i++) pre[i + 1] = pre[i] + samples[i];
   const half = Math.floor(w / 2);
   const smooth = (i) => {
@@ -48,8 +48,10 @@ export function pickCut(samples, rate, targetS, searchS) {
   const step = Math.max(1, Math.round(rate / 100));
   const lo = Math.max(0, Math.round((targetS - searchS) * rate));
   const hi = Math.round(targetS * rate) - block;
+  if (hi < lo) return Math.round(targetS * rate);
   let best = lo;
   let bestRms = Infinity;
+  // Scans in 10 ms steps.
   for (let s = lo; s <= hi; s += step) {
     const r = rms(samples, s, s + block);
     if (r < bestRms) { bestRms = r; best = s; }
