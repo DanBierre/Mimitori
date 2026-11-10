@@ -4,10 +4,11 @@
 // fetch() directly instead of going through chrome.runtime.sendMessage,
 // since there's no extension messaging layer in a normal web app.
 
-// TODO: replace with your deployed worker URL from `wrangler deploy`
-// (same worker as the extension — see /worker in this project, ported
-// unchanged from the extension's worker/ folder)
+// Optional. Set VITE_TRANSLATE_WORKER_URL to your own deployed worker (see
+// /worker). Without it the app hides translation and everything else works.
 const BACKEND_URL = import.meta.env.VITE_TRANSLATE_WORKER_URL || "";
+
+export const translationEnabled = Boolean(BACKEND_URL) && !BACKEND_URL.includes("your-worker-subdomain");
 
 // Same text is never sent twice in a session (the free DeepL tier is limited).
 const cache = new Map();
@@ -20,11 +21,7 @@ export async function translateText(text) {
 }
 
 async function requestTranslation(text) {
-  if (!BACKEND_URL || BACKEND_URL.includes("your-worker-subdomain")) {
-    throw new Error(
-      "VITE_TRANSLATE_WORKER_URL not set — deploy the worker (see /worker/README) and add it to .env"
-    );
-  }
+  if (!translationEnabled) throw new Error("Translation isn't set up.");
 
   const res = await fetch(BACKEND_URL, {
     method: "POST",

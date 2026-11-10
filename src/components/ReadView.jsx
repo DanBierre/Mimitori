@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furigana";
-import { translateText } from "../lib/translate";
+import { translateText, translationEnabled } from "../lib/translate";
 import { useStore, wordState } from "../lib/store";
 import WordPanel from "./WordPanel";
 
@@ -52,11 +52,12 @@ export default function ReadView() {
     setError("");
     setSelected(null);
     setTokens(null);
-    setTranslation({ status: "loading", text: "", error: "" });
-
-    translateText(text)
-      .then((t) => setTranslation({ status: "ready", text: t, error: "" }))
-      .catch((e) => setTranslation({ status: "error", text: "", error: e.message }));
+    if (translationEnabled) {
+      setTranslation({ status: "loading", text: "", error: "" });
+      translateText(text)
+        .then((t) => setTranslation({ status: "ready", text: t, error: "" }))
+        .catch((e) => setTranslation({ status: "error", text: "", error: e.message }));
+    }
 
     try {
       setTokens(await tokenizeWithReadings(text));
@@ -173,6 +174,7 @@ export default function ReadView() {
               })}
             </p>
 
+            {translationEnabled && (
             <div className="read__translation">
               {translation.status === "loading" && <p className="note">Translating…</p>}
               {translation.status === "ready" && <p className="read__translation-text">{translation.text}</p>}
@@ -180,6 +182,7 @@ export default function ReadView() {
                 <p className="note">Translation isn’t available right now. Readings and word lookup still work.</p>
               )}
             </div>
+            )}
 
             <button className="btn btn--quiet read__edit" onClick={backToEdit}>
               Edit text

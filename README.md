@@ -1,66 +1,63 @@
 # Nihongo Reader
 
-Cross-platform Japanese reading-assist app (iOS + Android via Capacitor),
-built from the same core as the original "Japanese Text Highlighter"
-Chrome extension: local furigana generation (kuromoji.js) + translation
-via a Cloudflare Worker backend holding the DeepL key.
+A free, open source study app for Japanese learners. Read real Japanese or watch your own videos with Japanese subtitles, tap any word for its meaning, save it, and review it later. No account, no setup, and your files never leave your computer.
 
-## What's ported from the extension, unchanged
+<!-- screenshot -->
 
-- `public/kuromoji.js` + `public/dict/` — the tokenizer and dictionary
-  data, byte-for-byte from the extension's `lib/` and `dict/`.
-- `worker/` — the Cloudflare Worker backend, copied as-is. Same
-  deployment steps apply (see `worker/wrangler.toml`).
-- `src/lib/furigana.js` — the extension's `buildFurigana()` logic,
-  ported to return structured token data instead of an HTML string
-  (so React can render it as real `<ruby>` elements).
-- `src/lib/translate.js` — the extension's translation-request logic,
-  now a direct `fetch()` instead of a `chrome.runtime.sendMessage` call.
+## What it does
 
-## What's new
+- **Read:** paste Japanese and get furigana over the kanji. Tap a word for its meaning and save it.
+- **Watch:** drop in a video and its subtitle file (`.srt`, `.vtt` or `.ass`). The current line shows with furigana and tappable words. You can replay a line, pause after each one, slow things down, and fix subtitles that are out of sync.
+- **Review:** saved words come back as flashcards with spaced repetition (FSRS), so they actually stick.
+- **Words:** see everything you've saved, mark words as known, and export to Anki as CSV.
 
-- `src/components/ReaderView.jsx` — the actual reading UI: paste box,
-  tokenized reading display, translation, per-word "save to Anki" chips.
-- `src/lib/ankiExport.js` — sends a looked-up word to Anki:
-  - **iOS**: uses AnkiMobile's `x-callback-url` scheme directly — no
-    native code needed, works from the web view as-is.
-  - **Android**: currently a stub. AnkiDroid's Instant-Add API needs
-    actual native code (it's a permissioned local API, not callable
-    from JS directly), so this needs a small Capacitor plugin before
-    it'll work. See the comment in the file for what's needed next.
+Furigana can show on every word, only on words you don't know yet, or not at all.
 
-## Setup
+## Run it locally
+
+You need Node.js 20 or later.
 
 ```bash
 npm install
-cp .env.example .env   # then fill in your deployed worker URL
-npm run dev             # runs as a normal web app in the browser first
+npm run dev
 ```
 
-To build and run as an actual iOS/Android app:
+Then open http://localhost:5173.
+
+Run the tests:
 
 ```bash
-npm run build
-npx cap add ios       # first time only
-npx cap add android   # first time only
-npm run cap:sync
-npm run cap:ios       # opens Xcode
-npm run cap:android   # opens Android Studio
+npm test
 ```
 
-## Deploying the translation backend
+## Translation (optional)
 
-The worker is unchanged from the extension — same steps as before:
-deploy with `wrangler deploy` from inside `/worker`, then put the
-resulting URL into `.env` as `VITE_TRANSLATE_WORKER_URL`.
+The app works fully without translation. If you want sentence translation in the Read tab, deploy the small Cloudflare Worker in `/worker` with your own DeepL API key:
 
-## Next steps (not built yet)
+1. Run `wrangler deploy` from inside `/worker`.
+2. Set the key with `wrangler secret put DEEPL_API_KEY`.
+3. Copy `.env.example` to `.env` and set `VITE_TRANSLATE_WORKER_URL` to your worker's URL.
 
-- Android Anki export (the Capacitor plugin mentioned above)
-- Vocab deck / review screen (currently every "save" just fires off
-  to Anki directly — no local history or SRS review inside the app itself)
-- Per-word dictionary meanings (right now the translation is
-  sentence-level only, from DeepL — word-level definitions would need
-  a proper dictionary lookup, e.g. JMdict, alongside kuromoji's tokens)
-- Reading history
-- OCR/camera input, for text that can't be pasted (e.g. game screenshots)
+If the URL isn't set, the translation area doesn't show up at all.
+
+## Privacy
+
+Everything runs in your browser. Videos and subtitle files are played straight from your computer and never uploaded. Saved words live in your browser's storage. There's no tracking.
+
+## Phone apps
+
+The repo includes a Capacitor setup for iOS and Android builds (`npm run cap:sync`, `npm run cap:ios`, `npm run cap:android`). They aren't the focus right now, so expect rough edges.
+
+## Contributing
+
+Issues and pull requests are welcome. Keep changes small and focused, run `npm test` before you open a PR, and say what you tested in the browser.
+
+## Credits
+
+- **JMdict** dictionary data © the Electronic Dictionary Research and Development Group, used under the [Creative Commons Attribution-ShareAlike 4.0 licence](https://www.edrdg.org/edrdg/licence.html).
+- **kuromoji.js** by Takuya Asano, Apache License 2.0. It ships the **IPADIC** dictionary, which has its own permissive licence.
+- Spaced repetition by **ts-fsrs** (MIT).
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).

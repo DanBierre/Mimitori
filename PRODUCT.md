@@ -17,12 +17,13 @@ Reading-first SRS: the card queue is built from words the learner actually met i
 Pasted or imported Japanese text is tokenized locally (kuromoji.js, dictionary in public/dict). Sentence translation goes through a Cloudflare Worker holding the DeepL key (worker/). Delivered as a React + Vite web app wrapped with Capacitor for iOS/Android; phone-first, must work well on desktop. Anki export (AnkiMobile URL scheme on iOS) remains an optional escape hatch.
 
 ## Capabilities and Constraints
-- Existing: local furigana, DeepL sentence translation, per-word Anki chips, iOS Anki export.
-- To build: offline JMdict per-word lookup (base form for conjugations), built-in FSRS spaced-repetition review (ts-fsrs), saved-words list, known-word tracking, level-adaptive furigana (hide for known words).
+- Free and open source (MIT). No pricing, no accounts.
+- Existing: local furigana, offline JMdict word lookup, FSRS review, saved and known words, level-adaptive furigana, CSV and iOS Anki export, optional DeepL sentence translation.
+- Watch: play the learner's own video with their own subtitle files (.srt, .vtt, .ass), with furigana, tap-for-meaning, line replay, pause after each line, speed, transcript and timing fixes. Files never leave the device.
 - Local-first: words, SRS state and known-words live on device. No accounts or sync in v1; UI should leave room for sign-in/sync later.
 - JMdict is CC-BY-SA: attribution required in-app. Do not copy WaniKani content.
-- DeepL free tier is limited; translation must be cached and later rate-limited per account. The worker is currently open (CORS *) and must be locked down before public launch.
-- Undecided: pricing (idea: free local core, ~$3-5/mo for sync + AI), graded content library, OCR/camera, Android Anki plugin (deprioritized by built-in SRS).
+- DeepL free tier is limited; translation must be cached and later rate-limited per account. Translation is optional: the public build ships without a worker URL.
+- Later: graded content library, OCR/camera, Android Anki plugin, kanji info, name dictionary, Yomitan dictionary import.
 
 ## Brand Commitments
 Working name "Nihongo Reader" (placeholder; not final). No logo or voice commitments exist.
