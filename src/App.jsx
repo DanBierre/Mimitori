@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { StoreProvider, useDueWords, useStore } from "./lib/store";
+import { StoreProvider, ankiMode, useDueWords, useStore } from "./lib/store";
+import { useAnki } from "./lib/anki/useAnki";
 import ReadView from "./components/ReadView";
 import WatchView from "./components/WatchView";
 import ReviewView from "./components/ReviewView";
 import WordsView from "./components/WordsView";
+import SettingsView from "./components/SettingsView";
 import Icon from "./components/Icon";
 import "./App.css";
 
@@ -18,7 +20,9 @@ function Shell() {
   const [tab, setTab] = useState("read");
   const due = useDueWords();
   const { state } = useStore();
-  const knownCount = Object.keys(state.known).length;
+  const inAnkiMode = ankiMode(state);
+  useAnki(inAnkiMode && tab !== "settings"); // keeps known words fresh; Settings runs its own
+  const knownCount = Object.keys(state.known).length + Object.keys(state.anki.known).length;
 
   return (
     <div className="app">
@@ -26,11 +30,21 @@ function Shell() {
         <h1 className="app__title">
           Nihongo Reader
         </h1>
-        <p className="app__known">{knownCount} known</p>
+        <div className="app__side">
+          <p className="app__known">{knownCount} known</p>
+          <button
+            className="icon-btn"
+            aria-label="Settings"
+            aria-current={tab === "settings" ? "page" : undefined}
+            onClick={() => setTab("settings")}
+          >
+            <Icon name="settings" size={20} />
+          </button>
+        </div>
       </header>
 
       <nav className="rail" aria-label="Sections">
-        {TABS.map((t) => (
+        {TABS.filter((t) => !(inAnkiMode && t.id === "review")).map((t) => (
           <button
             key={t.id}
             className="rail__tab"
@@ -52,7 +66,8 @@ function Shell() {
         <div hidden={tab !== "watch"}>
           <WatchView active={tab === "watch"} />
         </div>
-        {tab === "review" && <ReviewView onGoRead={() => setTab("read")} />}
+        {tab === "settings" && <SettingsView active />}
+        {tab === "review" && !inAnkiMode && <ReviewView onGoRead={() => setTab("read")} />}
         {tab === "words" && <WordsView />}
       </main>
     </div>

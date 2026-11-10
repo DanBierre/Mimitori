@@ -6,6 +6,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 import { becameKnown, gradeCard, isDue, newCard } from "./srs";
 import { deleteImage } from "./images";
+export { ankiMode } from "./anki/settingsLogic";
 
 const STORAGE_KEY = "nihongo-reader:v1";
 
@@ -13,7 +14,14 @@ const DEFAULT_STATE = {
   words: {}, // keyed by dictionary form
   known: {}, // dictionary form -> true
   // furigana: all | unknown | off
-  settings: { furigana: "unknown", size: 26, watch: { autoPause: false, speed: 1, showSecondLine: true } },
+  settings: {
+    furigana: "unknown",
+    size: 26,
+    watch: { autoPause: false, speed: 1, showSecondLine: true },
+    anki: { enabled: false, deck: "", model: "", mapping: {}, fieldList: [] },
+  },
+  // Words read from Anki: mature ("known") and in the deck but not yet mature.
+  anki: { known: {}, inDeck: {}, syncedAt: 0 },
 };
 
 function load() {
@@ -28,7 +36,9 @@ function load() {
         ...DEFAULT_STATE.settings,
         ...(parsed.settings || {}),
         watch: { ...DEFAULT_STATE.settings.watch, ...(parsed.settings?.watch || {}) },
+        anki: { ...DEFAULT_STATE.settings.anki, ...(parsed.settings?.anki || {}) },
       },
+      anki: { ...DEFAULT_STATE.anki, ...(parsed.anki || {}) },
     };
   } catch {
     return DEFAULT_STATE;
@@ -83,6 +93,10 @@ function reducer(state, action) {
       return { ...state, settings: { ...state.settings, ...action.patch } };
     case "watch":
       return { ...state, settings: { ...state.settings, watch: { ...state.settings.watch, ...action.patch } } };
+    case "ankiSettings":
+      return { ...state, settings: { ...state.settings, anki: { ...state.settings.anki, ...action.patch } } };
+    case "ankiWords":
+      return { ...state, anki: { known: action.known, inDeck: action.inDeck, syncedAt: Date.now() } };
     default:
       return state;
   }
@@ -112,6 +126,8 @@ export function StoreProvider({ children }) {
       grade: (base, rating) => dispatch({ type: "grade", base, rating }),
       setSettings: (patch) => dispatch({ type: "settings", patch }),
       setWatchSettings: (patch) => dispatch({ type: "watch", patch }),
+      setAnkiSettings: (patch) => dispatch({ type: "ankiSettings", patch }),
+      setAnkiWords: ({ known, inDeck }) => dispatch({ type: "ankiWords", known, inDeck }),
     }),
     [state]
   );
@@ -125,11 +141,11 @@ export function useStore() {
   return ctx;
 }
 
-// "known" | "due" | "saved" | "new" for a dictionary form.
+// "known" | "due" | "saved" | "inAnki" | "new" for a dictionary form.
 export function wordState(state, base, now = new Date()) {
-  if (state.known[base]) return "known";
+  if (state.known[base] || state.anki.known[base]) return "known";
   const word = state.words[base];
-  if (!word) return "new";
+  if (!word) return state.anki.inDeck[base] ? "inAnki" : "new";
   return isDue(word.card, now) ? "due" : "saved";
 }
 
