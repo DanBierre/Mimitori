@@ -69,7 +69,6 @@ export function reduce(state, action) {
     case "start": {
       let record = state.record;
       if (action.task === "translate") record = { ...record, en: [], enDone: false };
-      else if (action.fromS === 0) record = emptyRecord(); // a fresh run, not a resume
       return {
         ...state,
         status: "loading-model",

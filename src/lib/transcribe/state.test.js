@@ -36,7 +36,7 @@ test("edit replaces text and marks the line edited", () => {
 test("edits survive a resumed run", () => {
   const record = { ...emptyRecord(), ja: [cue(0, 1, "mine")], edited: [0], doneS: 30, totalS: 100 };
   let s = reduce(initialState, { type: "load", record });
-  s = reduce(s, { type: "start", jobId: 1, task: "transcribe" });
+  s = reduce(s, { type: "start", jobId: 1, task: "transcribe", fromS: 0 });
   s = msg(s, { type: "cues", jobId: 1, cues: [cue(31, 32, "later")], doneS: 60, totalS: 100 });
   assert.equal(s.record.ja[0].text, "mine");
   assert.deepEqual(s.record.edited, [0]);
@@ -58,4 +58,33 @@ test("error message sets status error with its code", () => {
   const s = msg(started(), { type: "error", jobId: 1, code: "no-audio", message: "nope" });
   assert.equal(s.status, "error");
   assert.equal(s.error.code, "no-audio");
+});
+
+test("translate start resets en and enDone", () => {
+  const record = { ...emptyRecord(), ja: [cue(0, 1, "a")], en: [cue(0, 1, "old")], enDone: true, done: true };
+  let s = reduce(initialState, { type: "load", record });
+  s = reduce(s, { type: "start", jobId: 2, task: "translate" });
+  assert.deepEqual(s.record.en, []);
+  assert.equal(s.record.enDone, false);
+  assert.equal(s.record.ja, record.ja);
+});
+
+test("done sets done for transcribe and enDone for translate", () => {
+  let s = msg(started("transcribe", 1), { type: "done", jobId: 1 });
+  assert.equal(s.status, "done");
+  assert.equal(s.record.done, true);
+  s = reduce(s, { type: "start", jobId: 2, task: "translate" });
+  s = msg(s, { type: "done", jobId: 2 });
+  assert.equal(s.record.enDone, true);
+  assert.deepEqual(s.record.en, []);
+});
+
+test("stopped sets status and doneS for transcribe only", () => {
+  let s = msg(started("transcribe", 1), { type: "stopped", jobId: 1, doneS: 45 });
+  assert.equal(s.status, "stopped");
+  assert.equal(s.record.doneS, 45);
+  s = reduce(s, { type: "start", jobId: 2, task: "translate" });
+  s = msg(s, { type: "stopped", jobId: 2, doneS: 10 });
+  assert.equal(s.status, "stopped");
+  assert.equal(s.record.doneS, 45);
 });

@@ -31,6 +31,7 @@ export function useTranscribe(file) {
   keyRef.current = key;
   const lastSaved = useRef(initialState.record); // the record already on disk (or empty)
   const loaded = useRef(false);
+  const stoppedJob = useRef(0); // last jobId the user stopped
 
   const getStore = () => (store.current ??= openTranscripts());
 
@@ -68,11 +69,17 @@ export function useTranscribe(file) {
   }, [state.record]);
 
   const startJob = useCallback(async (task, fromS) => {
+    if (!loaded.current) return; // the saved record must land first, or a late load would replace a live one
     const jobId = ++jobCounter.current;
     const jobKey = keyRef.current;
     dispatch({ type: "start", jobId, task, fromS });
     const gpu = await detectGpu();
     if (keyRef.current !== jobKey || jobCounter.current !== jobId) return;
+    if (stoppedJob.current === jobId) {
+      // Stopped while checking the GPU: the worker never started, so close the job here.
+      dispatch({ type: "worker", msg: { type: "stopped", jobId, doneS: stateRef.current.record.doneS } });
+      return;
+    }
     if (!worker.current) {
       const w = new Worker(new URL("./transcribe.worker.js", import.meta.url), { type: "module" });
       w.onmessage = (e) => {
@@ -82,10 +89,20 @@ export function useTranscribe(file) {
           flags.current.set("model-ready");
           setNeedsModelOk(false);
         } else if (msg.type === "done" && msg.jobId === jobCounter.current && english.current) {
-          // Only the Japanese pass chains; english is cleared once the translate job starts.
+          // Only the Japanese pass chains: the task check stops the translate job's own done from looping.
           if (stateRef.current.task === "transcribe") startJob("translate", 0);
         }
       };
+      // A worker that fails to load or throws outside the job's try/catch would leave us loading forever.
+      const crashed = (e) => {
+        if (worker.current !== w) return;
+        w.terminate();
+        worker.current = null;
+        const message = e?.message || "The transcription worker stopped unexpectedly.";
+        dispatch({ type: "worker", msg: { type: "error", jobId: jobCounter.current, code: "unknown", message } });
+      };
+      w.onerror = crashed;
+      w.onmessageerror = crashed;
       worker.current = w;
     }
     worker.current.postMessage({ type: "start", jobId, file: fileRef.current, fromS, task, gpu });
@@ -94,13 +111,14 @@ export function useTranscribe(file) {
   const start = useCallback(
     ({ english: wantEnglish } = {}) => {
       english.current = !!wantEnglish;
-      return startJob("transcribe", 0);
+      return startJob("transcribe", stateRef.current.record.doneS);
     },
     [startJob],
   );
   const carryOn = useCallback(() => startJob("transcribe", stateRef.current.record.doneS), [startJob]);
   const stop = useCallback(() => {
     english.current = false; // stopping also cancels the English follow-up
+    stoppedJob.current = jobCounter.current;
     worker.current?.postMessage({ type: "stop", jobId: jobCounter.current });
   }, []);
   const editLine = useCallback((index, text) => dispatch({ type: "edit", index, text }), []);
