@@ -1,6 +1,8 @@
 // settingsLogic.js
 // Pure helpers behind the Settings screen and the store (unit-tested).
 
+import { isDue } from "../srs.js";
+
 export const ROLE_LABELS = {
   expression: "Word",
   reading: "Reading",
@@ -55,3 +57,16 @@ export function buildMapping(fieldNames, guesses, roles) {
 }
 
 export const lowConfidence = (g) => !g || g.confidence < 0.7;
+
+// The learner can't save a mapping that has no way to find the word.
+export const hasWordField = (mapping) =>
+  Object.values(mapping).some((m) => m.role === "expression" || m.role === "template");
+
+// "known" | "due" | "saved" | "inAnki" | "new". The app's own state wins over Anki's.
+export function wordState(state, base, now = new Date()) {
+  if (state.known[base]) return "known";
+  const word = state.words[base];
+  if (word) return isDue(word.card, now) ? "due" : "saved";
+  if (state.anki.known[base]) return "known";
+  return state.anki.inDeck[base] ? "inAnki" : "new";
+}

@@ -3,7 +3,7 @@ import { ankiMode, useStore } from "../lib/store";
 import { anki, useAnki } from "../lib/anki/useAnki";
 import { guessFieldRoles, ROLES } from "../lib/anki/fieldRoles";
 import { listFailed, retryFailed } from "../lib/anki/queue";
-import { ROLE_LABELS, buildMapping, flatFields, lowConfidence, templateParts } from "../lib/anki/settingsLogic";
+import { ROLE_LABELS, buildMapping, flatFields, hasWordField, lowConfidence, templateParts } from "../lib/anki/settingsLogic";
 
 const STATUS_TEXT = {
   checking: "Checking Anki…",
@@ -71,6 +71,11 @@ export default function SettingsView({ active }) {
 
   function looksRight() {
     const mapping = buildMapping(draft.fieldNames, draft.guesses, draft.roles);
+    if (!hasWordField(mapping)) {
+      setCheckError("Pick which field holds the word (or the layout) first.");
+      return;
+    }
+    setCheckError("");
     setAnkiSettings({ mapping, fieldList: draft.fieldNames });
     setDraft(null);
   }
@@ -139,7 +144,7 @@ export default function SettingsView({ active }) {
                     <tr key={f}>
                       <td>
                         {f}
-                        {lowConfidence(g) && role === g.role && <span className="settings__flag">Check this</span>}
+                        {(lowConfidence(g) || !g.role) && role === g.role && <span className="settings__flag">Check this</span>}
                       </td>
                       <td>
                         <RoleSelect field={f} value={role} isTemplate={isTemplate} onChange={(v) => setDraft({ ...draft, roles: { ...draft.roles, [f]: v } })} />

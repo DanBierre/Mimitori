@@ -21,6 +21,7 @@ export function useAnki(active = true) {
   const [models, setModels] = useState([]);
   const [queueCount, setQueueCount] = useState(0);
   const [syncing, setSyncing] = useState(false);
+  const inMode = ankiMode(state); // turning Anki mode on triggers a sync
   const live = useRef(state);
   live.current = state;
 
@@ -82,6 +83,7 @@ export function useAnki(active = true) {
   useEffect(() => {
     if (!active) return;
     check();
+    refreshKnown();
     const onFocus = () => {
       check();
       refreshKnown();
@@ -89,7 +91,7 @@ export function useAnki(active = true) {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, check]);
+  }, [active, check, inMode]);
 
   return { status, error, decks, models, queueCount, syncing, connect, check, refreshKnown, refreshQueue };
 }

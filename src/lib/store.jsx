@@ -6,7 +6,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 import { becameKnown, gradeCard, isDue, newCard } from "./srs";
 import { deleteImage } from "./images";
-export { ankiMode } from "./anki/settingsLogic";
+export { ankiMode, wordState } from "./anki/settingsLogic";
 
 const STORAGE_KEY = "nihongo-reader:v1";
 
@@ -139,14 +139,6 @@ export function useStore() {
   const ctx = useContext(StoreContext);
   if (!ctx) throw new Error("useStore must be used inside StoreProvider");
   return ctx;
-}
-
-// "known" | "due" | "saved" | "inAnki" | "new" for a dictionary form.
-export function wordState(state, base, now = new Date()) {
-  if (state.known[base] || state.anki.known[base]) return "known";
-  const word = state.words[base];
-  if (!word) return state.anki.inDeck[base] ? "inAnki" : "new";
-  return isDue(word.card, now) ? "due" : "saved";
 }
 
 export function useDueWords() {

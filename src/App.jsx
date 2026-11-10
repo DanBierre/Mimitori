@@ -22,7 +22,7 @@ function Shell() {
   const { state } = useStore();
   const inAnkiMode = ankiMode(state);
   useAnki(inAnkiMode && tab !== "settings"); // keeps known words fresh; Settings runs its own
-  const knownCount = Object.keys(state.known).length + Object.keys(state.anki.known).length;
+  const knownCount = new Set([...Object.keys(state.known), ...Object.keys(state.anki.known)]).size;
 
   return (
     <div className="app">

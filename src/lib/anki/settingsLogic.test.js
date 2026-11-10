@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ankiMode, buildMapping, flatFields, lowConfidence, templateParts } from "./settingsLogic.js";
+import { newCard } from "../srs.js";
+import { hasWordField, wordState, ankiMode, buildMapping, flatFields, lowConfidence, templateParts } from "./settingsLogic.js";
 
 const st = (anki) => ({ settings: { anki } });
 
@@ -43,4 +44,28 @@ test("lowConfidence flags under 0.7 and missing guesses", () => {
   assert.equal(lowConfidence({ confidence: 0.69 }), true);
   assert.equal(lowConfidence({ confidence: 0.7 }), false);
   assert.equal(lowConfidence(undefined), true);
+});
+
+test("hasWordField needs expression or template", () => {
+  assert.equal(hasWordField({ A: { role: "meaning" } }), false);
+  assert.equal(hasWordField({ A: { role: "expression" } }), true);
+  assert.equal(hasWordField({ A: { role: "template" } }), true);
+  assert.equal(hasWordField({}), false);
+});
+
+test("wordState: app state beats Anki, Anki known beats inDeck", () => {
+  const now = new Date();
+  const due = { ...newCard(), due: new Date(now.getTime() - 1000) };
+  const later = { ...newCard(), due: new Date(now.getTime() + 86400000) };
+  const base = {
+    known: { k: true },
+    words: { d: { card: due }, s: { card: later } },
+    anki: { known: { k: true, d: true, s: true, a: true }, inDeck: { i: true, a: true } },
+  };
+  assert.equal(wordState(base, "k", now), "known");
+  assert.equal(wordState(base, "d", now), "due");
+  assert.equal(wordState(base, "s", now), "saved");
+  assert.equal(wordState(base, "a", now), "known");
+  assert.equal(wordState(base, "i", now), "inAnki");
+  assert.equal(wordState(base, "z", now), "new");
 });
