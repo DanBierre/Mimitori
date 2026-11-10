@@ -2,7 +2,7 @@
 
 A free, open source study app for Japanese learners. Read real Japanese or watch your own videos with Japanese subtitles, tap any word for its meaning, save it, and review it later. No account, no setup, and your files never leave your computer.
 
-<!-- screenshot -->
+![The Watch tab: a video with the current line in furigana underneath, its English line, and the word card for 食べる open](docs/screenshot.jpg)
 
 ## What it does
 
