@@ -21,6 +21,10 @@ export function getTokenizer() {
         else resolve(tokenizer);
       });
     });
+    // A failed load (offline, blocked) shouldn't stick: the next call retries.
+    tokenizerPromise.catch(() => {
+      tokenizerPromise = null;
+    });
   }
   return tokenizerPromise;
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { StoreProvider, useDueWords, useStore } from "./lib/store";
 import ReadView from "./components/ReadView";
+import WatchView from "./components/WatchView";
 import ReviewView from "./components/ReviewView";
 import WordsView from "./components/WordsView";
 import { Seal } from "./components/Marks";
@@ -8,6 +9,7 @@ import "./App.css";
 
 const TABS = [
   { id: "read", kanji: "読む", label: "Read" },
+  { id: "watch", kanji: "観る", label: "Watch" },
   { id: "review", kanji: "復習", label: "Review" },
   { id: "words", kanji: "単語", label: "Words" },
 ];
@@ -30,6 +32,10 @@ function Shell() {
         {/* Read stays mounted so pasted text and lookups survive tab switches. */}
         <div hidden={tab !== "read"}>
           <ReadView />
+        </div>
+        {/* Watch stays mounted too, so the video keeps its place. */}
+        <div hidden={tab !== "watch"}>
+          <WatchView active={tab === "watch"} />
         </div>
         {tab === "review" && <ReviewView onGoRead={() => setTab("read")} />}
         {tab === "words" && <WordsView />}

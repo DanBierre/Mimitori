@@ -11,7 +11,8 @@ const STORAGE_KEY = "nihongo-reader:v1";
 const DEFAULT_STATE = {
   words: {}, // keyed by dictionary form
   known: {}, // dictionary form -> true
-  settings: { furigana: "unknown", size: 26 }, // furigana: all | unknown | off
+  // furigana: all | unknown | off
+  settings: { furigana: "unknown", size: 26, watch: { autoPause: false, speed: 1, showSecondLine: true } },
 };
 
 function load() {
@@ -22,7 +23,11 @@ function load() {
     return {
       words: parsed.words || {},
       known: parsed.known || {},
-      settings: { ...DEFAULT_STATE.settings, ...(parsed.settings || {}) },
+      settings: {
+        ...DEFAULT_STATE.settings,
+        ...(parsed.settings || {}),
+        watch: { ...DEFAULT_STATE.settings.watch, ...(parsed.settings?.watch || {}) },
+      },
     };
   } catch {
     return DEFAULT_STATE;
@@ -75,6 +80,8 @@ function reducer(state, action) {
     }
     case "settings":
       return { ...state, settings: { ...state.settings, ...action.patch } };
+    case "watch":
+      return { ...state, settings: { ...state.settings, watch: { ...state.settings.watch, ...action.patch } } };
     default:
       return state;
   }
@@ -96,6 +103,7 @@ export function StoreProvider({ children }) {
       unknowWord: (base) => dispatch({ type: "unknow", base }),
       grade: (base, rating) => dispatch({ type: "grade", base, rating }),
       setSettings: (patch) => dispatch({ type: "settings", patch }),
+      setWatchSettings: (patch) => dispatch({ type: "watch", patch }),
     }),
     [state]
   );

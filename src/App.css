@@ -933,3 +933,143 @@
     grid-template-areas: "term reading meaning state";
   }
 }
+
+/* ---------- Watch ---------- */
+
+.watch__sheet {
+  max-width: 980px;
+}
+
+.watch-drop {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  padding: 22px 18px;
+  border: 1.5px dashed var(--guide);
+  border-radius: 3px;
+  transition: border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+
+.watch-drop--over {
+  border-color: var(--vermilion);
+  background: var(--paper-shade);
+}
+
+.watch-drop__prompt {
+  margin: 0;
+  font-family: var(--font-mincho);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.watch-drop__hint {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.watch-drop a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+.watch__stage {
+  margin-top: 16px;
+}
+
+.watch-drop + .watch__stage {
+  margin-top: 20px;
+}
+
+.watch__video {
+  display: block;
+  width: 100%;
+  max-height: 62dvh;
+  background: #000;
+  border-radius: 2px;
+}
+
+.watch__lines {
+  --read-size: 26px;
+  padding: 14px 4px 4px;
+  text-align: center;
+}
+
+.watch__line {
+  min-height: calc(var(--read-size) * 2.5);
+  margin: 0;
+  font-family: var(--font-mincho);
+  font-size: var(--read-size);
+  line-height: 2.5;
+  letter-spacing: 0.03em;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  line-break: strict;
+}
+
+.watch__line ruby {
+  ruby-position: over;
+}
+
+.watch__line rt {
+  font-size: 0.44em;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+}
+
+.watch__second {
+  margin: 2px 0 0;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  white-space: pre-line;
+}
+
+.watch__notes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin-top: 8px;
+}
+
+.watch__notes .note {
+  margin: 0;
+}
+
+.watch--panel-open .watch__sheet {
+  margin-bottom: 52dvh;
+}
+
+@media (min-width: 960px) {
+  .watch {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 0;
+    gap: 0;
+    max-width: 1280px;
+    margin-inline: auto;
+    transition: grid-template-columns 320ms var(--ease-out), gap 320ms var(--ease-out);
+  }
+
+  .watch--panel-open {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 24px;
+  }
+
+  .watch .sheet {
+    margin-inline: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .watch--panel-open .watch__sheet {
+    margin-bottom: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .watch,
+  .watch-drop {
+    transition: none;
+  }
+}
