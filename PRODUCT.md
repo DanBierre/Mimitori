@@ -14,11 +14,11 @@ An all-in-one, low-cost study tool that closes the loop other apps leave open: r
 Reading-first SRS: the card queue is built from words the learner actually met in text they cared about, with furigana and difficulty that adapt to words they already know. WaniKani is a fixed curriculum; Anki has no content or reading; immersion tools (Migaku, LingQ) are expensive.
 
 ## Operating Context
-Pasted or imported Japanese text is tokenized locally (kuromoji.js, dictionary in public/dict). Sentence translation goes through a Cloudflare Worker holding the DeepL key (worker/). Delivered as a React + Vite web app wrapped with Capacitor for iOS/Android; phone-first, must work well on desktop. Anki export (AnkiMobile URL scheme on iOS) remains an optional escape hatch.
+Pasted or imported Japanese text is tokenized locally (kuromoji.js, dictionary in public/dict). Sentence translation goes through a Cloudflare Worker holding the DeepL key (worker/). Delivered as a React + Vite web app wrapped with Capacitor for iOS/Android; phone-first, must work well on desktop. CSV export is the Anki escape hatch for now; phone Anki export isn't available right now.
 
 ## Capabilities and Constraints
 - Free and open source (MIT). No pricing, no accounts.
-- Existing: local furigana, offline JMdict word lookup, FSRS review, saved and known words, level-adaptive furigana, CSV and iOS Anki export, optional DeepL sentence translation.
+- Existing: local furigana, offline JMdict word lookup, FSRS review, saved and known words, level-adaptive furigana, CSV export (phone Anki export not available right now), optional DeepL sentence translation.
 - Watch: play the learner's own video with their own subtitle files (.srt, .vtt, .ass), with furigana, tap-for-meaning, line replay, pause after each line, speed, transcript and timing fixes. Files never leave the device.
 - Anki auto-cards (desktop): send a word, sentence, second subtitle line, screenshot and audio clip to Anki via AnkiConnect, learning the learner's note layout. Cards queue when Anki is closed; words already in the chosen deck count as known.
 - Local-first: words, SRS state and known-words live on device. No accounts or sync in v1; UI should leave room for sign-in/sync later.

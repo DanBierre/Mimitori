@@ -45,10 +45,13 @@ If Anki is closed, cards wait in a queue and go in later.
 
 Words already in your deck count as known, so they lose their furigana.
 
+If you rename a field in Anki, the app pauses saving and asks you to re-check the fields in Settings.
+
 Not checked yet:
 
 - The hosted (https) version talking to Anki on your computer hasn't been tested. Chrome's private-network rules may block it. Running locally with `npm run dev` works.
-- Anki's own note type changes (an extra field for a picture or audio, say) weren't tried on a real collection.
+- If you rename a field in your note type, saving pauses and asks you to check the field matching again. Automated tests cover this, but it wasn't tried on a real Anki collection.
+- The waiting list for when Anki is closed while you save is covered by automated tests too, but wasn't tried live.
 - Phones aren't supported for Anki yet.
 
 ## Translation (optional)
