@@ -10,6 +10,7 @@ A free, open source study app for Japanese learners. Read real Japanese or watch
 
 - **Read:** paste Japanese and get furigana over the kanji. Tap a word for its meaning and save it.
 - **Watch:** drop in a video and its subtitle file (`.srt`, `.vtt` or `.ass`). The current line shows with furigana and tappable words. You can replay a line, pause after each one, slow things down, and fix subtitles that are out of sync.
+- **Make subtitles:** if a video has no subtitle file, the Watch tab can make Japanese subtitles on your own computer. Nothing is uploaded. It needs a one-off 564 MB model download and works best in Chrome or Edge.
 - **Review:** saved words come back as flashcards with spaced repetition (FSRS), so they actually stick.
 - **Words:** see everything you've saved, mark words as known, and export to Anki as CSV.
 
@@ -83,6 +84,9 @@ Issues and pull requests are welcome. Keep changes small and focused, run `npm t
 - **JMdict** dictionary data © the Electronic Dictionary Research and Development Group, used under the [Creative Commons Attribution-ShareAlike 4.0 licence](https://www.edrdg.org/edrdg/licence.html).
 - **kuromoji.js** by Takuya Asano, Apache License 2.0. It ships the **IPADIC** dictionary, which has its own permissive licence.
 - Spaced repetition by **ts-fsrs** (MIT).
+- **transformers.js** by Hugging Face (Apache-2.0) and **ONNX Runtime Web** (MIT) run the speech model in your browser.
+- **Mediabunny** (MPL-2.0, used unmodified) reads the audio from your video.
+- **Whisper large-v3 turbo** by OpenAI (MIT) makes the subtitles. It's downloaded from Hugging Face when you use it, not bundled.
 - The ear in the logo is based on the ear icon from **Tabler Icons** (MIT). Logo sources and the script that renders the icons live in `brand/`.
 
 ## Licence
