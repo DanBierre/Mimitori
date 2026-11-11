@@ -4,3 +4,4 @@ dist/
 ios/
 android/
 .DS_Store
+fixtures/book/*.png

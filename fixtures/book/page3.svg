@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200"><rect width="800" height="1200" fill="#fff"/><style>.p{fill:none;stroke:#222;stroke-width:3}.f{fill:none;stroke:#222;stroke-width:4;stroke-linecap:round}.b{fill:#fff;stroke:#222;stroke-width:3}.v{font:700 38px "Yu Gothic","Noto Sans JP",sans-serif;writing-mode:vertical-rl;text-anchor:middle;fill:#111}.h{font:700 38px "Yu Gothic","Noto Sans JP",sans-serif;text-anchor:middle;fill:#111}</style>
+<rect class="p" x="40" y="40" width="720" height="500"/><rect class="p" x="40" y="580" width="720" height="580"/>
+<circle class="f" cx="400" cy="400" r="70"/><path class="f" d="M375 390h14M411 390h14M380 425q20 20 40 0M330 330q70 -60 140 0"/>
+<path class="f" d="M70 1100q150 -200 300 -60t330 -120"/><circle class="f" cx="600" cy="800" r="60"/><path class="f" d="M600 860v120M600 890l-50 40M600 890l50 -40"/>
+<ellipse class="b" cx="400" cy="170" rx="200" ry="75"/><text class="h" x="400" y="184">ＯＫ、また明日！</text>
+</svg>

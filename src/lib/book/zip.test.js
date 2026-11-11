@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import zlib from "node:zlib";
+import { readFileSync } from "node:fs";
 import { listEntries, readEntry } from "./zip.js";
 
 const enc = new TextEncoder();
@@ -128,4 +129,13 @@ test("throws not-zip on random bytes", async () => {
 test("throws encrypted when flag bit 0 is set", async () => {
   const z = makeZip([{ name: "a.png", data: A, method: 0 }], "", 1);
   await assert.rejects(listEntries(new Blob([z])), { code: "encrypted" });
+});
+
+test("reads the real fixture CBZ", async () => {
+  const blob = new Blob([readFileSync(new URL("../../../fixtures/sample-book.cbz", import.meta.url))]);
+  const es = await listEntries(blob);
+  assert.equal(es.length, 3);
+  assert.ok(es.every((e) => e.name.endsWith(".png")));
+  const head = await readEntry(blob, es[0]);
+  assert.deepEqual([...head.slice(0, 4)], [0x89, 0x50, 0x4e, 0x47]);
 });

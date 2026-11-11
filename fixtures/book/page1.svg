@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200"><rect width="800" height="1200" fill="#fff"/><style>.p{fill:none;stroke:#222;stroke-width:3}.f{fill:none;stroke:#222;stroke-width:4;stroke-linecap:round}.b{fill:#fff;stroke:#222;stroke-width:3}.v{font:700 38px "Yu Gothic","Noto Sans JP",sans-serif;writing-mode:vertical-rl;text-anchor:middle;fill:#111}.h{font:700 38px "Yu Gothic","Noto Sans JP",sans-serif;text-anchor:middle;fill:#111}</style>
+<rect class="p" x="40" y="40" width="720" height="520"/><rect class="p" x="40" y="590" width="720" height="570"/>
+<circle class="f" cx="200" cy="300" r="55"/><path class="f" d="M200 355v150M200 400l-60 50M200 400l60 40M200 505l-40 45M200 505l40 45"/><path class="f" d="M180 290h12M212 290h12M185 325q15 12 30 0"/>
+<path class="b" d="M575 420l-35 40 20-45z"/><ellipse class="b" cx="600" cy="270" rx="70" ry="190"/><text class="v" x="600" y="270">本当に来たのか…</text>
+<circle class="f" cx="220" cy="860" r="60"/><path class="f" d="M220 920v170M220 960l-70 50M220 960l70 -40M160 840q20 -40 60 -30q40 -10 60 30"/><path class="f" d="M200 850h12M232 850h12M205 885q15 8 30 0"/>
+<ellipse class="b" cx="560" cy="860" rx="70" ry="270"/><text class="v" x="560" y="860">遅いよ、待ってたんだから</text>
+</svg>

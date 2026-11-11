@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200"><rect width="800" height="1200" fill="#fff"/><style>.p{fill:none;stroke:#222;stroke-width:3}.f{fill:none;stroke:#222;stroke-width:4;stroke-linecap:round}.b{fill:#fff;stroke:#222;stroke-width:3}.v{font:700 38px "Yu Gothic","Noto Sans JP",sans-serif;writing-mode:vertical-rl;text-anchor:middle;fill:#111}.h{font:700 38px "Yu Gothic","Noto Sans JP",sans-serif;text-anchor:middle;fill:#111}</style>
+<rect class="p" x="40" y="40" width="720" height="1120"/><path class="p" d="M40 700L760 560"/>
+<circle class="f" cx="250" cy="900" r="70"/><path class="f" d="M250 970v160M250 1010l-80 60M250 1010l80 -50"/><path class="f" d="M225 885h14M265 885h14M230 925q20 15 40 0"/>
+<path class="f" d="M520 300q40 -80 120 -40M560 360q50 -40 110 -10"/><circle class="f" cx="640" cy="140" r="50"/><path class="f" d="M590 140h-60M690 140h60M640 90v-40M640 190v40"/>
+<ellipse class="b" cx="540" cy="900" rx="70" ry="215"/><text class="v" x="540" y="900">今日はいい天気だね</text>
+</svg>
