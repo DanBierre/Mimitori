@@ -424,6 +424,9 @@
 
 .watch__stage--amb {
   isolation: isolate;
+  /* isolate traps the word card's z-index inside the stage; lift the stage above the meta row below it */
+  position: relative;
+  z-index: 2;
   transition: --amb-l 1.2s var(--ease-out), --amb-r 1.2s var(--ease-out);
 }
 
