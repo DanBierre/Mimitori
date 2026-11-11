@@ -7,9 +7,12 @@ const ACCEPT = "video/*,.mkv,.srt,.vtt,.ass,.ssa";
 // Where the learner brings their own files. The drop itself is handled by
 // WatchView (the whole tab is a drop target); this only highlights and offers
 // a file picker.
-export default function WatchDrop({ onFiles, onSample, onMakeSubtitles, sampleLoading, hasVideo, hasSubs, error, compact }) {
+export default function WatchDrop({ onFiles, onSample, onMakeSubtitles, sampleLoading, hasVideo, hasSubs, error, compact, stage, pickerRef, onChoose }) {
   const inputRef = useRef(null);
   const [over, setOver] = useState(false);
+
+  // Lets Carry on (in Recent) open the same file picker.
+  if (pickerRef && !compact) pickerRef.current = () => inputRef.current?.click();
 
   const input = (
     <input
@@ -45,7 +48,7 @@ export default function WatchDrop({ onFiles, onSample, onMakeSubtitles, sampleLo
 
   return (
     <div
-      className={`watch-drop ${over ? "watch-drop--over" : ""}`}
+      className={`watch-drop ${stage ? "watch-drop--stage" : ""} ${over ? "watch-drop--over" : ""}`}
       onDragOver={() => setOver(true)}
       onDragLeave={() => setOver(false)}
       onDrop={() => setOver(false)}
@@ -56,7 +59,14 @@ export default function WatchDrop({ onFiles, onSample, onMakeSubtitles, sampleLo
       <h2 className="watch-drop__prompt">{prompt}</h2>
       <p className="watch-drop__hint">Add an English subtitle file too if you want it under each line.</p>
       <div className="watch-drop__actions">
-        <button className="btn btn--primary" onMouseDown={noFocus} onClick={() => inputRef.current.click()}>
+        <button
+          className="btn btn--primary"
+          onMouseDown={noFocus}
+          onClick={() => {
+            onChoose?.();
+            inputRef.current.click();
+          }}
+        >
           Choose files
         </button>
         {onMakeSubtitles && hasVideo && !hasSubs && (

@@ -2382,3 +2382,289 @@ rt.rt--known {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%2385858f' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 }
+
+/* ---------- Big screens: a calm 1400px column ---------- */
+
+/* Content holds to 1400px, centred; the nav hairline stays full width and its
+   content lines up with the same column. */
+@media (min-width: 1464px) {
+  .app__main {
+    max-width: 1464px;
+    margin-inline: auto;
+  }
+
+  .app__header {
+    padding-inline: calc((100% - 1400px) / 2);
+  }
+}
+
+/* A notch up in type on big monitors (the cue already follows the learner's size setting). */
+@media (min-width: 1600px) {
+  body {
+    font-size: 17px;
+  }
+}
+
+/* ---------- Empty Watch: a player-shaped drop stage, Recent and Today ---------- */
+
+@media (min-width: 720px) {
+  /* The drop target is the dark stage itself, shaped like the loaded player. */
+  .watch-empty__stage {
+    --ink-on: #0b0b10;
+    --ink-hover: color-mix(in srgb, var(--ink-d) 85%, #fff);
+    --danger: #ff7a66;
+    --line-strong: rgb(255 255 255 / 0.28);
+    --surface-2: rgb(255 255 255 / 0.08);
+  }
+
+  .watch-drop--stage {
+    align-content: center;
+    box-sizing: border-box;
+    aspect-ratio: 16 / 9;
+    max-height: max(400px, calc(100dvh - 330px));
+    max-width: none;
+    margin: 0;
+    padding: 24px;
+    border: 1px dashed rgb(255 255 255 / 0.18);
+    border-radius: 4px 4px 0 0;
+    background: var(--stage);
+  }
+
+  .watch-drop--stage.watch-drop--over {
+    border-color: var(--ink);
+    background: color-mix(in srgb, var(--ink) 6%, var(--stage));
+  }
+
+  .watch-drop--stage .watch-drop__icon {
+    color: var(--stage-text-2);
+  }
+
+  .watch-empty__stage .ticks {
+    cursor: default;
+  }
+
+  .ticks--rest .ticks__track::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: rgb(255 255 255 / 0.12);
+  }
+
+  .ticks--rest i {
+    height: 8px;
+    background: rgb(255 255 255 / 0.14);
+  }
+
+  .watch__ghost {
+    margin: 0;
+    padding: 6px 20px 22px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 2.15;
+    letter-spacing: 0.01em;
+    color: var(--stage-text);
+    opacity: 0.16;
+    user-select: none;
+  }
+
+  .watch__main--empty .watch__stage {
+    overflow: hidden;
+  }
+}
+
+/* Recent: a ruled list under the stage, no box. */
+.recents {
+  margin-top: 28px;
+}
+
+.recents__title {
+  margin: 0 0 6px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.recents__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.recents__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 4px 18px;
+  min-height: 48px;
+  padding: 0 6px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.recents__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.recents__pct {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+
+.recents__stop {
+  grid-column: 3;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-3);
+}
+
+.recents__row--sample .recents__stop {
+  grid-column: 2 / 4;
+  justify-self: end;
+}
+
+.recents__go {
+  grid-column: 4;
+}
+
+@media (pointer: coarse) {
+  .recents__go {
+    min-height: 44px;
+  }
+}
+
+/* Today: the right column while nothing is loaded. */
+.today__review {
+  margin: 4px 6px 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.today__known {
+  display: grid;
+  gap: 6px;
+  margin: 28px 6px 0;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.today__fig {
+  font-size: 56px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.today__saved {
+  margin: 20px 6px 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.today__num {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.today__week {
+  margin: 32px 6px 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.today__week-title {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.today__days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.today__day {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-3);
+}
+
+.today__bar {
+  display: flex;
+  align-items: flex-end;
+  height: 40px;
+}
+
+.today__bar i {
+  display: block;
+  width: 3px;
+  border-radius: 1px;
+  background: var(--line-strong);
+  transition: height 260ms var(--ease-out);
+}
+
+.today__day--now {
+  color: var(--text);
+}
+
+.today__day--now .today__bar i {
+  background: var(--text);
+}
+
+.today__day--now .today__label {
+  text-decoration: underline 1px var(--text);
+  text-underline-offset: 3px;
+}
+
+.today__day .today__count {
+  order: -1;
+}
+
+.today .watch__foot,
+.watch__today .watch__foot {
+  margin-top: auto;
+}
+
+@media (min-width: 1100px) {
+  .watch--empty {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    column-gap: 24px;
+    align-items: start;
+    max-width: 1400px;
+    margin-inline: auto;
+  }
+
+  .watch--empty .watch__top {
+    grid-column: 1 / -1;
+  }
+
+  .watch--empty .watch__side {
+    min-height: calc(100dvh - 162px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .today__bar i,
+  .watch-drop {
+    transition: none;
+  }
+}

@@ -19,11 +19,14 @@ import WordPanel from "./WordPanel";
 import WatchDrop from "./WatchDrop";
 import WatchControls, { SHORTCUTS, noFocus } from "./WatchControls";
 import WatchTips from "./WatchTips";
+import WatchRecents from "./WatchRecents";
+import WatchToday from "./WatchToday";
 import Transcript from "./Transcript";
 import MakeSubtitles from "./MakeSubtitles";
 import { transcriptKey } from "../lib/transcribe/state";
 import { useTranscribe } from "../lib/transcribe/useTranscribe";
 import { SAMPLE, sampleFiles } from "../lib/firstRun";
+import { loadRecents, resumeAt, saveRecents, upsertRecent } from "../lib/recents";
 import Icon from "./Icon";
 import { conjugationParts } from "../lib/conjugation";
 import { captureFrame, putImage } from "../lib/images";
@@ -41,6 +44,23 @@ const ERRORS = {
   "no-audio": "This video has no sound track to listen to.",
   unknown: "Something went wrong making subtitles. Try again.",
 };
+
+const DIFFERENT = "That's a different file, so it starts from the beginning.";
+const RESTING_TICKS = [6, 17, 24, 38, 52, 61, 77, 90];
+
+// True from 720px up (tablet and desktop), where the empty Watch is a player-shaped stage.
+function useWide() {
+  const q = "(min-width: 720px)";
+  const [wide, setWide] = useState(() => window.matchMedia?.(q).matches ?? true);
+  useEffect(() => {
+    const mq = window.matchMedia?.(q);
+    if (!mq) return;
+    const on = () => setWide(mq.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return wide;
+}
 
 const hasJapanese = (cues) => cues.some((c) => JAPANESE_REGEX.test(c.text));
 
@@ -69,6 +89,23 @@ export default function WatchView({ active, onOpenSettings }) {
   const [tokens, setTokens] = useState([]); // per primary cue: token[] | null
   const [readings, setReadings] = useState("idle"); // idle | loading | ready | error
   const [retry, setRetry] = useState(0);
+
+  const wide = useWide();
+  const [recents, setRecents] = useState(loadRecents);
+  const pickerRef = useRef(null);
+  const pending = useRef(null); // a Carry on row waiting for the learner to pick its file
+  const resumeTo = useRef(null); // seconds to seek to once the picked video has loaded
+  const lastPos = useRef(null); // latest { key, name, positionS, durationS } for flushing
+  const lastSave = useRef(0);
+  const [notice, setNotice] = useState("");
+
+  function remember(patch) {
+    setRecents((list) => {
+      const next = upsertRecent(list, patch);
+      saveRecents(next);
+      return next;
+    });
+  }
 
   const t = useTranscribe(video?.file ?? null);
   const [card, setCard] = useState(false); // first-use download notice
@@ -125,6 +162,7 @@ export default function WatchView({ active, onOpenSettings }) {
     setSelection(null);
     setCard(false);
     setFileError("");
+    setNotice("");
     setSample("off");
   }
 
@@ -135,6 +173,7 @@ export default function WatchView({ active, onOpenSettings }) {
   }
 
   async function loadSample() {
+    pending.current = null;
     setSample("loading");
     try {
       await handleFiles(await sampleFiles());
@@ -152,6 +191,11 @@ export default function WatchView({ active, onOpenSettings }) {
 
     const vid = files.find(isVideoFile);
     if (vid) {
+      const row = pending.current;
+      pending.current = null;
+      const at = row ? resumeAt(row, transcriptKey(vid)) : null;
+      resumeTo.current = at;
+      setNotice(row && at === null && row.key !== transcriptKey(vid) ? DIFFERENT : "");
       setVideo({ url: URL.createObjectURL(vid), name: vid.name, file: vid });
       setVideoError(false);
       setCard(false);
@@ -273,6 +317,44 @@ export default function WatchView({ active, onOpenSettings }) {
       v.removeEventListener("seeking", onSeeking);
     };
   }, [video, primary, second, offset]);
+
+  // Remember where the learner got to (every ~5 s, on pause, and when the video goes away).
+  // The sample clip is a new File every time, so it is never listed.
+  const sampleRef = useRef(sample);
+  sampleRef.current = sample;
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || !video) return;
+    const key = transcriptKey(video.file);
+    const snap = () => {
+      if (sampleRef.current !== "off" || !Number.isFinite(v.duration)) return;
+      lastPos.current = { key, name: video.name, positionS: Math.floor(v.currentTime), durationS: Math.round(v.duration) };
+    };
+    const flush = () => {
+      if (lastPos.current?.key === key) remember(lastPos.current);
+    };
+    const onTime = () => {
+      snap();
+      if (Date.now() - lastSave.current > 5000) {
+        lastSave.current = Date.now();
+        flush();
+      }
+    };
+    const onPause = () => {
+      snap();
+      flush();
+    };
+    v.addEventListener("timeupdate", onTime);
+    v.addEventListener("pause", onPause);
+    window.addEventListener("beforeunload", flush);
+    return () => {
+      v.removeEventListener("timeupdate", onTime);
+      v.removeEventListener("pause", onPause);
+      window.removeEventListener("beforeunload", flush);
+      flush();
+      lastPos.current = null;
+    };
+  }, [video]);
 
   // Speed applies to every new video too.
   useEffect(() => {
@@ -434,7 +516,15 @@ export default function WatchView({ active, onOpenSettings }) {
   const week = addedThisWeek(state);
   const showReview = !ankiMode(state);
 
+  // Coverage joins the recents row once the readings are ready.
+  useEffect(() => {
+    if (video && readings === "ready" && coverage !== null && sample === "off") {
+      remember({ key: transcriptKey(video.file), name: video.name, coverage });
+    }
+  }, [video, readings, coverage]);
+
   const ready = Boolean(video && primary);
+  const empty = !video && wide; // the player-shaped drop stage, with Recent and Today around it
   const busy = t.status === "loading-model" || t.status === "running";
   const canMake = Boolean(video) && t.loaded && !primary && !busy && !t.record.ja.length && !t.record.done;
   const listening = t.status === "running" && t.task === "transcribe" && pastEnd;
@@ -463,10 +553,11 @@ export default function WatchView({ active, onOpenSettings }) {
   return (
     <div
       ref={rootRef}
-      className={`watch ${ready ? "watch--ready" : ""} ${focus ? "watch--focus" : ""} ${transcriptOpen ? "watch--transcript-open" : ""}`}
+      className={`watch ${ready ? "watch--ready" : ""} ${empty ? "watch--empty" : ""} ${focus ? "watch--focus" : ""} ${transcriptOpen ? "watch--transcript-open" : ""}`}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
+        pending.current = null;
         pickFiles(e.dataTransfer.files);
       }}
     >
@@ -481,7 +572,47 @@ export default function WatchView({ active, onOpenSettings }) {
         </header>
       )}
 
-      {!ready && (
+      {empty && (
+        <div className="watch__main watch__main--empty">
+          <section className="watch__stage watch-empty__stage" aria-label="Player">
+            <WatchDrop
+              stage
+              pickerRef={pickerRef}
+              onChoose={() => (pending.current = null)}
+              onFiles={pickFiles}
+              onSample={loadSample}
+              onMakeSubtitles={undefined}
+              sampleLoading={sample === "loading"}
+              hasVideo={false}
+              hasSubs={Boolean(primary)}
+              error={fileError}
+            />
+            <div className="ticks ticks--rest" aria-hidden="true">
+              <div className="ticks__track">
+                {RESTING_TICKS.map((x) => (
+                  <i key={x} style={{ left: `${x}%` }} />
+                ))}
+              </div>
+            </div>
+            <p className="watch__ghost" lang="ja" aria-hidden="true">
+              字幕はここに出ます
+            </p>
+          </section>
+          <WatchRecents
+            recents={recents}
+            onSample={loadSample}
+            sampleLoading={sample === "loading"}
+            onCarryOn={(row) => {
+              pending.current = row;
+              pickerRef.current?.();
+            }}
+          />
+        </div>
+      )}
+
+      {empty && <WatchToday />}
+
+      {!ready && !empty && (
         <WatchDrop
           onFiles={pickFiles}
           onSample={loadSample}
@@ -513,6 +644,12 @@ export default function WatchView({ active, onOpenSettings }) {
               disablePictureInPicture
               playsInline
               onError={() => setVideoError(true)}
+              onLoadedMetadata={(e) => {
+                if (resumeTo.current !== null) {
+                  e.currentTarget.currentTime = resumeTo.current;
+                  resumeTo.current = null;
+                }
+              }}
             />
           </div>
 
@@ -644,6 +781,7 @@ export default function WatchView({ active, onOpenSettings }) {
                   {fileError}
                 </p>
               )}
+              {notice && <p className="note">{notice}</p>}
               {readings === "loading" && <p className="note">Loading readings…</p>}
               {readings === "error" && (
                 <p className="note">
