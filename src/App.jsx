@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { anki, useAnki } from "./lib/anki/useAnki";
 import { flushQueue } from "./lib/anki/queue";
-import { StoreProvider, ankiMode, useDueWords, useStore } from "./lib/store";
+import { StoreProvider, ankiMode, useReviewToday, useStore } from "./lib/store";
 import ReadView from "./components/ReadView";
 import WatchView from "./components/WatchView";
 import ReviewView from "./components/ReviewView";
@@ -24,7 +24,7 @@ function Shell() {
   // First visit lands on Watch, where the sample clip is one tap away. After that, Read as before.
   const [tab, setTab] = useState(() => (flags.has("visited") ? "read" : "watch"));
   useEffect(() => flags.set("visited"), []);
-  const due = useDueWords();
+  const today = useReviewToday();
   const { state } = useStore();
   const inAnkiMode = ankiMode(state);
   const { queueCount, refreshQueue } = useAnki(inAnkiMode && tab !== "settings"); // keeps known words fresh; Settings runs its own
@@ -42,7 +42,6 @@ function Shell() {
       clearInterval(timer);
     };
   }, [inAnkiMode, queueCount, refreshQueue]);
-  const knownCount = new Set([...Object.keys(state.known), ...Object.keys(state.anki.known)]).size;
 
   return (
     <div className="app">
@@ -51,8 +50,28 @@ function Shell() {
           <img className="app__logo" src="/favicon.svg" alt="" width="24" height="24" />
           mimitori
         </h1>
+        <nav className="rail" aria-label="Sections">
+          {TABS.filter((t) => !(inAnkiMode && t.id === "review")).map((t) => (
+            <button
+              key={t.id}
+              className="rail__tab"
+              aria-current={tab === t.id ? "page" : undefined}
+              onClick={() => setTab(t.id)}
+            >
+              <span className="rail__icon" aria-hidden="true">
+                <Icon name={t.icon} size={22} />
+              </span>
+              <span className="rail__label">{t.label}</span>
+              {t.id === "review" && today.queue.length > 0 && (
+                <span className="rail__due">
+                  {today.queue.length}
+                  <span className="sr-only"> to review</span>
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
         <div className="app__side">
-          <p className="app__known">{knownCount} known</p>
           <button
             className="icon-btn"
             aria-label="Settings"
@@ -64,21 +83,6 @@ function Shell() {
         </div>
       </header>
 
-      <nav className="rail" aria-label="Sections">
-        {TABS.filter((t) => !(inAnkiMode && t.id === "review")).map((t) => (
-          <button
-            key={t.id}
-            className="rail__tab"
-            aria-current={tab === t.id ? "page" : undefined}
-            onClick={() => setTab(t.id)}
-          >
-            <Icon name={t.icon} size={22} />
-            <span className="rail__label">{t.label}</span>
-            {t.id === "review" && due.length > 0 && <span className="rail__badge">{due.length}</span>}
-          </button>
-        ))}
-      </nav>
-
       <main className="app__main">
         {/* Read and Watch stay mounted so pasted text and the video keep their place. */}
         <div hidden={tab !== "read"}>
@@ -89,7 +93,7 @@ function Shell() {
         </div>
         {tab === "settings" && <SettingsView active />}
         {tab === "review" && !inAnkiMode && <ReviewView onGoRead={() => setTab("read")} />}
-        {tab === "words" && <WordsView />}
+        {tab === "words" && <WordsView onGoWatch={() => setTab("watch")} onGoRead={() => setTab("read")} />}
       </main>
     </div>
   );

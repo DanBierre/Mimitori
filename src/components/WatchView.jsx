@@ -10,8 +10,9 @@ import {
   pickPrimary,
 } from "../lib/subtitles/cues";
 import { writeSrt } from "../lib/subtitles/write";
-import { ankiMode, useDueWords, useStore } from "../lib/store";
+import { ankiMode, knownTotal, useReviewToday, useStore } from "../lib/store";
 import { addedThisWeek, greeting } from "../lib/greeting";
+import { reviewNote } from "../lib/srs";
 import Ticks from "./Ticks";
 import TokenLine from "./TokenLine";
 import WordPanel from "./WordPanel";
@@ -428,8 +429,8 @@ export default function WatchView({ active, onOpenSettings }) {
     return { newCounts: counts, coverage: all ? Math.round((known / all) * 100) : null, newWords: fresh.size };
   }, [tokens, state]);
 
-  const due = useDueWords();
-  const knownCount = new Set([...Object.keys(state.known), ...Object.keys(state.anki.known)]).size;
+  const today = useReviewToday();
+  const knownCount = knownTotal(state);
   const week = addedThisWeek(state);
   const showReview = !ankiMode(state);
 
@@ -690,7 +691,7 @@ export default function WatchView({ active, onOpenSettings }) {
           />
           <div className="watch__foot">
             {showReview && (
-              <p>{due.length > 0 ? `${due.length} to review today.` : "Nothing to review today."}</p>
+              <p>{reviewNote(today.queue.length, today.waiting)}</p>
             )}
             <p>No account. Everything stays on this computer.</p>
           </div>

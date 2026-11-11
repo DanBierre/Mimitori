@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ankiMode, useStore, wordState } from "../lib/store";
+import { ankiMode, knownTotal, useStore, wordState } from "../lib/store";
 import { anki } from "../lib/anki/useAnki";
 import { addCardFromWord } from "../lib/anki/addCard";
 import { planBatch, sendBatch } from "../lib/anki/batch";
@@ -16,7 +16,7 @@ const FILTERS = [
 
 let batchRunning = false; // survives a tab switch, so a second Send all can't start mid-run
 
-export default function WordsView() {
+export default function WordsView({ onGoWatch, onGoRead }) {
   const { state, removeWord, knowWord, unknowWord, markInAnki } = useStore();
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
@@ -106,6 +106,7 @@ export default function WordsView() {
 
   return (
     <section className="sheet words" aria-label="Words">
+      <p className="words__count">{knownTotal(state)} words known · {savedWords.length} learning</p>
       <div className="words__bar">
         <div className="segmented" role="group" aria-label="Filter words">
           {FILTERS.map(([value, label]) => (
@@ -127,15 +128,32 @@ export default function WordsView() {
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search words"
         />
+        <div className="words__actions-bar">
+          <button className="btn" onClick={() => downloadCsv(savedWords)} disabled={savedWords.length === 0}>
+            Export to Anki (CSV)
+          </button>
+          {ankiMode(state) && (
+            <button className="btn" onClick={sendAll} disabled={batch?.running || batchRunning || toSend.length === 0}>
+              Send all to Anki
+            </button>
+          )}
+        </div>
       </div>
 
       {rows.length === 0 ? (
-        <p className="note words__empty">
-          Your words show up here as you save them from the reading sheet. Words you mark as known
-          are tracked too, so furigana can stay out of your way.
-        </p>
+        <div className="words__empty">
+          <h2 className="words__empty-title">Your words live here</h2>
+          <p>
+            They appear when you tap a word in Read or Watch and press Save or Add to Anki. Words you mark
+            as known are tracked too, so furigana stays out of your way.
+          </p>
+          <div className="words__empty-actions">
+            <button className="btn btn--primary" onClick={onGoWatch}>Open Watch</button>
+            <button className="btn btn--quiet" onClick={onGoRead}>Open Read</button>
+          </div>
+        </div>
       ) : visible.length === 0 ? (
-        <p className="note words__empty">No words match.</p>
+        <p className="note words__nomatch">No words match.</p>
       ) : (
         <ul className="words__list">
           {visible.map((r) => (
@@ -190,22 +208,15 @@ export default function WordsView() {
         </ul>
       )}
 
-      <footer className="words__foot">
-        <button className="btn" onClick={() => downloadCsv(savedWords)} disabled={savedWords.length === 0}>
-          Export to Anki (CSV)
-        </button>
-        {ankiMode(state) && (
-          <button className="btn" onClick={sendAll} disabled={batch?.running || batchRunning || toSend.length === 0}>
-            Send all to Anki
-          </button>
-        )}
-        {batch?.running && <p className="note">Sending {batch.step} of {batch.total}…</p>}
-        {batch?.done && <p className="note">{batch.done}</p>}
-        <p className="words__credit">
-          Word meanings come from JMdict, © the Electronic Dictionary Research and Development Group,
-          used under CC BY-SA 4.0.
+      {(batch?.running || batch?.done) && (
+        <p className="note" role="status">
+          {batch.running ? `Sending ${batch.step} of ${batch.total}…` : batch.done}
         </p>
-      </footer>
+      )}
+      <p className="words__credit">
+        Word meanings come from JMdict, © the Electronic Dictionary Research and Development Group,
+        used under CC BY-SA 4.0.
+      </p>
     </section>
   );
 }

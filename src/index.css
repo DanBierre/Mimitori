@@ -38,8 +38,8 @@
   --stage-text-2: #a8a8b2;
 
   --font: "Noto Sans JP", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
-  --radius: 10px;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --radius: 4px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --tabbar-h: 64px;
 
   color-scheme: light;

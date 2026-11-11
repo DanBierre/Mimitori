@@ -4,7 +4,7 @@
 // accounts are a later layer.
 
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useReducer } from "react";
-import { becameKnown, gradeCard, isDue, newCard } from "./srs";
+import { becameKnown, dailyQueue, gradeCard, newCard } from "./srs";
 import { deleteImage } from "./images";
 import { loadCommon } from "./common";
 import { applyInk } from "./ink";
@@ -159,12 +159,12 @@ export function useStore() {
   return ctx;
 }
 
-export function useDueWords() {
+// Today's review: capped at 20 (see dailyQueue); the rest stay due and wait.
+export function useReviewToday() {
   const { state } = useStore();
-  return useMemo(() => {
-    const now = new Date();
-    return Object.values(state.words)
-      .filter((w) => isDue(w.card, now))
-      .sort((a, b) => new Date(a.card.due) - new Date(b.card.due));
-  }, [state.words]);
+  return useMemo(() => dailyQueue(Object.values(state.words)), [state.words]);
+}
+
+export function knownTotal(state) {
+  return new Set([...Object.keys(state.known), ...Object.keys(state.anki.known)]).size;
 }

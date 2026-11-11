@@ -103,8 +103,8 @@ export default function SettingsView({ active }) {
     <section className="settings">
       <h2 className="settings__title">Settings</h2>
 
-      <div className="card">
-        <h3 className="card__title">Make it yours</h3>
+      <div className="settings__section">
+        <h3 className="settings__heading">Make it yours</h3>
         <div className="settings__row" role="radiogroup" aria-labelledby="ink-label">
           <span id="ink-label" className="settings__label">Your ink</span>
           <div className="inks__dots">
@@ -139,8 +139,8 @@ export default function SettingsView({ active }) {
         <p className="note">Your ink colours saved words and progress. Your name only appears in the greeting on Watch.</p>
       </div>
 
-      <div className="card">
-        <h3 className="card__title">Anki</h3>
+      <div className="settings__section">
+        <h3 className="settings__heading">Anki</h3>
         <p className={`note ${a.status === "ok" ? "" : "note--error"}`} role="status">{STATUS_TEXT[a.status]}</p>
         {a.error && <p className="note note--error">{a.error}</p>}
         {!connected && a.status !== "checking" && (
@@ -222,8 +222,8 @@ export default function SettingsView({ active }) {
         )}
       </div>
 
-      <div className="card">
-        <h3 className="card__title">Saving and known words</h3>
+      <div className="settings__section">
+        <h3 className="settings__heading">Saving and known words</h3>
         <label className="settings__toggle">
           <input
             type="checkbox"

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useDueWords, useStore } from "../lib/store";
+import { useReviewToday, useStore } from "../lib/store";
 import { previewIntervals, Rating } from "../lib/srs";
 import SceneStill from "./SceneStill";
 
@@ -26,7 +26,7 @@ function SentenceWithWord({ sentence, surface, base }) {
 
 export default function ReviewView({ onGoRead }) {
   const { state, grade } = useStore();
-  const due = useDueWords();
+  const { queue: due, waiting } = useReviewToday();
 
   const [phase, setPhase] = useState("idle"); // idle | running | done
   const [queue, setQueue] = useState([]);
@@ -158,16 +158,21 @@ export default function ReviewView({ onGoRead }) {
         <>
           <p className="review__big">
             <span className="review__count">{due.length}</span>
-            <span className="review__unit">due</span>
+            <span className="review__unit">to review today.</span>
           </p>
+          {waiting > 0 && <p className="review__sub">The other {waiting} can wait.</p>}
           <button className="btn btn--primary btn--wide" onClick={begin}>
             Review {due.length} {due.length === 1 ? "word" : "words"}
           </button>
         </>
       ) : totalWords > 0 ? (
         <>
-          <p className="review__big">All caught up</p>
-          <p className="review__sub">Nothing is due. {totalWords} saved {totalWords === 1 ? "word" : "words"} are scheduled.</p>
+          <p className="review__big">Nothing to review today.</p>
+          <p className="review__sub">
+            {waiting > 0
+              ? `The other ${waiting} can wait.`
+              : `${totalWords} saved ${totalWords === 1 ? "word is" : "words are"} scheduled.`}
+          </p>
           <button className="btn" onClick={onGoRead}>
             Read more
           </button>

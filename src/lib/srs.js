@@ -57,3 +57,25 @@ export function formatInterval(ms) {
 export function becameKnown(card) {
   return card.state === State.Review && card.scheduled_days >= KNOWN_AFTER_DAYS;
 }
+
+// At most this many cards are presented per day; extra due cards stay due and wait.
+export const DAILY_CAP = 20;
+
+const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+// words: saved words ({ card }). Cards already reviewed today count toward the cap;
+// ones you marked Again today are due again and always stay in the queue.
+export function dailyQueue(words, now = new Date(), cap = DAILY_CAP) {
+  const due = words.filter((w) => isDue(w.card, now)).sort((a, b) => new Date(a.card.due) - new Date(b.card.due));
+  const today = (w) => w.card.last_review && sameDay(new Date(w.card.last_review), now);
+  const doneToday = words.filter((w) => !isDue(w.card, now) && today(w)).length;
+  const again = due.filter(today);
+  const room = Math.max(0, cap - doneToday - again.length);
+  const queue = [...again, ...due.filter((w) => !today(w)).slice(0, room)];
+  return { queue, waiting: due.length - queue.length };
+}
+
+export function reviewNote(shown, waiting) {
+  const head = shown === 0 ? "Nothing to review today." : `${shown} to review today.`;
+  return waiting > 0 ? `${head} The other ${waiting} can wait.` : head;
+}
