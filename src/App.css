@@ -3533,3 +3533,9 @@ rt.rt--known {
     display: none;
   }
 }
+
+.settings__hint {
+  margin-top: -4px;
+  font-size: 13px;
+  color: var(--text-3);
+}

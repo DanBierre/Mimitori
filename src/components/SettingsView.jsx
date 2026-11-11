@@ -211,6 +211,7 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
                 {a.models.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
+            <p className="note settings__hint">The note type is the card layout in Anki, like “Basic” or your Japanese template.</p>
             <div className="settings__row">
               <button className="btn" disabled={!cfg.deck || !cfg.model || checking} onClick={checkFields}>
                 {checking ? "Checking…" : "Check fields"}
@@ -336,9 +337,13 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
         </label>
         <p className="note">About 2,000 everyday words like 何, する and いる. They won't get furigana or be suggested for Anki.</p>
 
-        <p className="note">
-          {a.queueCount} {a.queueCount === 1 ? "card is" : "cards are"} waiting for Anki.
-        </p>
+        {(ankiMode(state) || a.queueCount > 0) && (
+          <p className="note">
+            {a.queueCount === 0
+              ? "Nothing waiting for Anki."
+              : `${a.queueCount} ${a.queueCount === 1 ? "card is" : "cards are"} waiting for Anki. They go in when Anki's open.`}
+          </p>
+        )}
 
         {failed.length > 0 && (
           <>

@@ -40,11 +40,16 @@ function LineEditor({ text, onSave, onCancel }) {
 export default function Transcript({ cues, current, onJump, newCounts = [], auto = false, edited = [], onEdit }) {
   const listRef = useRef(null);
   const [editing, setEditing] = useState(-1);
+  // When the learner scrolls the list themselves, stop following for a few seconds so it doesn't snap back.
+  const browsedAt = useRef(0);
+  const browsing = () => {
+    browsedAt.current = Date.now();
+  };
 
   useEffect(() => {
     const list = listRef.current;
     const item = list?.children[current];
-    if (!item) return;
+    if (!item || Date.now() - browsedAt.current < 6000) return;
     const top = item.offsetTop;
     const bottom = top + item.offsetHeight;
     if (top < list.scrollTop || bottom > list.scrollTop + list.clientHeight) {
@@ -53,7 +58,7 @@ export default function Transcript({ cues, current, onJump, newCounts = [], auto
   }, [current]);
 
   return (
-    <ol className="transcript" ref={listRef} aria-label="Transcript">
+    <ol className="transcript" ref={listRef} aria-label="Transcript" onWheel={browsing} onTouchMove={browsing}>
       {cues.map((cue, i) => (
         <li key={i}>
           {auto && editing === i ? (
