@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-pdfjs-assets.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/copy-pdfjs-assets.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "build:dict": "node scripts/build-jmdict.mjs",
@@ -17,6 +19,7 @@
     "@capacitor/core": "^6.0.0",
     "@huggingface/transformers": "4.3.2",
     "mediabunny": "1.65.2",
+    "pdfjs-dist": "6.5.438",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "ts-fsrs": "^5.4.2"
