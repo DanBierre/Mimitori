@@ -15,10 +15,33 @@ const FILTERS = [
   ["known", "Known"],
 ];
 
+const SORTS = [
+  ["due", "Due first"],
+  ["new", "Newest first"],
+  ["az", "A–Z"],
+];
+
+// Due words first (soonest first), then the rest by when they're due; known words last.
+const byDue = (a, b) => (a.due ? a.due.getTime() : Infinity) - (b.due ? b.due.getTime() : Infinity);
+const SORTERS = {
+  due: byDue,
+  new: (a, b) => (b.addedAt || 0) - (a.addedAt || 0),
+  az: (a, b) => a.base.localeCompare(b.base, "ja"),
+};
+
 let batchRunning = false; // survives a tab switch, so a second Send all can't start mid-run
 
 export default function WordsView({ onGoWatch, onGoRead }) {
-  const { state, removeWord, knowWord, unknowWord, markInAnki } = useStore();
+  const { state, removeWord, knowWord, unknowWord, restoreWord, markInAnki } = useStore();
+  const [sort, setSort] = useState("due");
+  const [undo, setUndo] = useState(null); // { text, word } after Remove or I know this
+  const [exported, setExported] = useState("");
+  // Remove and I know this drop a word's review history, so both can be undone.
+  const drop = (how, base, text) => {
+    const word = state.words[base];
+    if (word) setUndo({ text: `${text} ${base}.`, word });
+    how(base);
+  };
   const [filter, setFilter] = useState("all");
   const filterRef = useMarker('[aria-pressed="true"]');
   const [query, setQuery] = useState("");
@@ -32,6 +55,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
       reading: w.reading,
       glosses: w.glosses || [],
       sentence: w.sentence,
+      addedAt: w.addedAt,
       due: new Date(w.card.due),
       mark: wordState(state, w.base, now),
     }));
@@ -40,11 +64,12 @@ export default function WordsView({ onGoWatch, onGoRead }) {
       reading: "",
       glosses: [],
       sentence: "",
+      addedAt: state.known[base],
       due: null,
       mark: "known",
     }));
-    return [...learning, ...known].sort((a, b) => a.base.localeCompare(b.base, "ja"));
-  }, [state]);
+    return [...learning, ...known].sort(SORTERS[sort]);
+  }, [state, sort]);
 
   const counts = useMemo(() => {
     const c = { all: rows.length, due: 0, saved: 0, known: 0 };
@@ -131,8 +156,23 @@ export default function WordsView({ onGoWatch, onGoRead }) {
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search words"
         />
+        <select className="select words__sort" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort words">
+          {SORTS.map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
         <div className="words__actions-bar">
-          <button className="btn" onClick={() => downloadCsv(savedWords)} disabled={savedWords.length === 0}>
+          <button
+            className="btn"
+            onClick={() => {
+              downloadCsv(savedWords);
+              setExported(`Exported ${savedWords.length} ${savedWords.length === 1 ? "word" : "words"} to a CSV file. Import it in Anki with File, Import.`);
+            }}
+            disabled={savedWords.length === 0}
+            title={savedWords.length === 0 ? "Save some words first" : undefined}
+          >
             Export to Anki (CSV)
           </button>
           {ankiMode(state) && (
@@ -143,6 +183,27 @@ export default function WordsView({ onGoWatch, onGoRead }) {
         </div>
       </div>
 
+      {(undo || exported) && (
+        <p className="note words__undo" role="status">
+          {undo ? (
+            <>
+              {undo.text}{" "}
+              <button
+                className="link"
+                onClick={() => {
+                  restoreWord(undo.word);
+                  setUndo(null);
+                }}
+              >
+                Undo
+              </button>
+            </>
+          ) : (
+            exported
+          )}
+        </p>
+      )}
+
       {rows.length === 0 ? (
         <div className="words__empty">
           <h2 className="words__empty-title">Your words live here</h2>
@@ -151,8 +212,8 @@ export default function WordsView({ onGoWatch, onGoRead }) {
             as known are tracked too, so furigana stays out of your way.
           </p>
           <div className="words__empty-actions">
-            <button className="btn btn--primary" onClick={onGoWatch}>Open Watch</button>
-            <button className="btn btn--quiet" onClick={onGoRead}>Open Read</button>
+            <button className="btn btn--primary" onClick={onGoRead}>Open Read</button>
+            <button className="btn btn--quiet" onClick={onGoWatch}>Open Watch</button>
           </div>
         </div>
       ) : visible.length === 0 ? (
@@ -182,6 +243,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
               {open === r.base && (
                 <div className="words__detail">
                   <SceneStill base={r.base} />
+                  {r.glosses.length > 2 && <p className="words__glosses">{r.glosses.join("; ")}</p>}
                   {r.sentence && (
                     <p className="words__sentence" lang="ja">
                       {r.sentence}
@@ -189,17 +251,17 @@ export default function WordsView({ onGoWatch, onGoRead }) {
                   )}
                   <div className="words__actions">
                     {r.mark !== "known" && (
-                      <button className="btn" onClick={() => knowWord(r.base)}>
+                      <button className="btn" onClick={() => drop(knowWord, r.base, "Marked as known:")}>
                         I know this
                       </button>
                     )}
                     {r.mark === "known" && (
                       <button className="btn" onClick={() => unknowWord(r.base)}>
-                        Not yet
+                        Mark as new
                       </button>
                     )}
                     {r.mark !== "known" && (
-                      <button className="btn btn--quiet" onClick={() => removeWord(r.base)}>
+                      <button className="btn btn--quiet" onClick={() => drop(removeWord, r.base, "Removed")}>
                         Remove
                       </button>
                     )}

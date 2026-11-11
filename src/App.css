@@ -3421,3 +3421,54 @@ rt.rt--known {
     line-height: 1;
   }
 }
+
+/* Review: Undo and End sit on the progress row; a quiet line of keys under the card on desktop. */
+.review__progress {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.review__bar {
+  grid-row: 2;
+  grid-column: 1 / -1;
+}
+
+.review__links {
+  grid-row: 1;
+  grid-column: 2;
+  display: flex;
+  gap: 16px;
+}
+
+.review__links .link {
+  min-height: 32px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.review__links .link:hover {
+  color: var(--text);
+}
+
+.review__keys {
+  margin: 14px 0 0;
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-3);
+}
+
+/* Words: sort picker, the undo / export line, and the full meaning in an opened row. */
+.words__sort {
+  flex: none;
+}
+
+.words__undo {
+  margin: 0 0 12px;
+}
+
+.words__glosses {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+}
