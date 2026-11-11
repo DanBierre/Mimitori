@@ -1,12 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Small-size mark (tab icon, app header): bigger ear, heavier strokes, one subtitle line. -->
+  <!-- Small-size mark (tab icon): bigger ear, heavier stroke. -->
   <title>Mimitori</title>
-  <rect width="100" height="100" rx="22" fill="#2563eb"/>
-  <g fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
-    <g transform="translate(11.5 1) scale(3.1)" stroke-width="3.2">
+  <rect width="100" height="100" rx="22" fill="#111114"/>
+  <g fill="none" stroke="#fbfbfa" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" transform="translate(4.4 4.4) scale(3.8)">
       <path d="M6 10a7 7 0 1 1 13 3.6a10 10 0 0 1 -2 2a8 8 0 0 0 -2 3a4.5 4.5 0 0 1 -6.8 1.4"/>
       <path d="M10.6 10a2.4 2.4 0 1 1 4.2 1.6"/>
-    </g>
-    <path d="M22 84H78" stroke-width="10"/>
   </g>
 </svg>

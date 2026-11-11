@@ -1,8 +1,7 @@
 /* Tokens. Light by default, dark when the device asks; the Watch stage is
    always dark (--stage-*). One accent, "your ink", chosen in Settings: the
    store sets --ink-l (light page) and --ink-d (dark page / stage) on the root.
-   Amber stays the signal for words due. --accent* are aliases of the ink so
-   screens not yet restyled follow the learner's choice. */
+   Amber stays the signal for words due. --ink-hover and --ink-on style filled ink buttons. */
 :root {
   --ink-l: #5560d8;
   --ink-d: #8b8bff;
@@ -21,13 +20,11 @@
   --text: #111114;
   --text-2: #5c5c65;
   --text-3: #70707a;
-  --accent: var(--ink-strong);
-  --accent-hover: color-mix(in srgb, var(--ink-strong) 88%, #000);
-  --accent-soft: var(--ink-soft);
-  --accent-ink: #ffffff;
+  --ink-strong-page: var(--ink-strong);
+  --ink-hover: color-mix(in srgb, var(--ink-strong) 88%, #000);
+  --ink-on: #ffffff;
   --due: #c26a06;
   --danger: #c4321e;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px -12px rgb(0 0 0 / 0.18);
   --shadow-pop: 0 1px 2px rgb(0 0 0 / 0.1), 0 22px 44px -18px rgb(0 0 0 / 0.5);
 
   --stage: #0e0e10;
@@ -63,12 +60,11 @@
     --text: #ededef;
     --text-2: #a1a1aa;
     --text-3: #85858f;
-    --accent-hover: color-mix(in srgb, var(--ink) 85%, #fff);
-    --accent-ink: #0b0b10;
+    --ink-hover: color-mix(in srgb, var(--ink) 85%, #fff);
+    --ink-on: #0b0b10;
     --due: #fbbf24;
     --danger: #ff7a66;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
-    --shadow-pop: 0 2px 6px rgb(0 0 0 / 0.4), 0 18px 40px -14px rgb(0 0 0 / 0.8);
+      --shadow-pop: 0 2px 6px rgb(0 0 0 / 0.4), 0 18px 40px -14px rgb(0 0 0 / 0.8);
     --stage: #101013;
     color-scheme: dark;
   }
@@ -123,22 +119,22 @@ h3 {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  background: color-mix(in srgb, var(--ink-strong) 28%, transparent);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink-strong);
   outline-offset: 2px;
 }
 
 textarea,
 input {
-  caret-color: var(--accent);
+  caret-color: var(--ink-strong);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--surface-3) transparent;
+  scrollbar-color: var(--line-strong) transparent;
 }
 
 kbd {
