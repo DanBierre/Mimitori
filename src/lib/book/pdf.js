@@ -53,15 +53,17 @@ export async function loadPdf(file, pdfjsLib) {
     lib.GlobalWorkerOptions.workerSrc = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
   }
   let doc;
+  let task;
   try {
     const data = new Uint8Array(await file.arrayBuffer());
-    doc = await lib.getDocument({
+    task = lib.getDocument({
       data,
       cMapUrl: "/pdfjs/cmaps/",
       cMapPacked: true,
       standardFontDataUrl: "/pdfjs/standard_fonts/",
       wasmUrl: "/pdfjs/wasm/",
-    }).promise;
+    });
+    doc = await task.promise;
   } catch (e) {
     throw fail(e?.name === "PasswordException" ? "password" : "broken", e?.message || "Couldn't open the PDF");
   }
@@ -83,6 +85,6 @@ export async function loadPdf(file, pdfjsLib) {
       const content = await page.getTextContent();
       return normalizeItems(content.items, content.styles, page.getViewport({ scale: 1 }));
     },
-    destroy: () => doc.destroy(),
+    destroy: () => task.destroy(),
   };
 }
