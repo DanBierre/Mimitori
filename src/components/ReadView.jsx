@@ -273,6 +273,17 @@ export default function ReadView({ onOpenSettings }) {
               >
                 Try a sample
               </button>
+              {input && (
+                <button
+                  className="btn btn--quiet"
+                  onClick={() => {
+                    setInput("");
+                    pasteRef.current?.focus();
+                  }}
+                >
+                  Clear
+                </button>
+              )}
               <span className="read__keys" aria-hidden="true">
                 <kbd>{MOD_KEY}</kbd> <kbd>Enter</kbd> to read
               </span>

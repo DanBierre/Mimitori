@@ -3581,3 +3581,17 @@ rt.rt--known {
     display: none;
   }
 }
+
+/* Phones: with the transcript open, the video and its line stay pinned under the header while the list scrolls. */
+@media (max-width: 719px) {
+  /* Lets the stage stick within the whole Watch page, not just its own wrapper. */
+  .watch--transcript-open .watch__main {
+    display: contents;
+  }
+
+  .watch--transcript-open .watch__stage {
+    position: sticky;
+    top: 52px;
+    z-index: 6;
+  }
+}
