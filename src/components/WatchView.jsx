@@ -470,6 +470,17 @@ export default function WatchView({ active, onOpenSettings }) {
         pickFiles(e.dataTransfer.files);
       }}
     >
+      {!focus && (
+        <header className="watch__top">
+          <p className="watch__hello" lang="ja">
+            {greeting(new Date(), state.settings.name)}
+          </p>
+          <p className="watch__progress">
+            {knownCount} words known · {week} this week
+          </p>
+        </header>
+      )}
+
       {!ready && (
         <WatchDrop
           onFiles={pickFiles}
@@ -480,17 +491,6 @@ export default function WatchView({ active, onOpenSettings }) {
           hasSubs={Boolean(primary)}
           error={fileError || (videoError ? BAD_VIDEO : "")}
         />
-      )}
-
-      {!focus && (
-        <header className="watch__top">
-          <p className="watch__hello" lang="ja">
-            {greeting(new Date(), state.settings.name)}
-          </p>
-          <p className="watch__progress">
-            {knownCount} words known · {week} this week
-          </p>
-        </header>
       )}
 
       {video && (
@@ -516,7 +516,7 @@ export default function WatchView({ active, onOpenSettings }) {
             />
           </div>
 
-          {ready && <Ticks counts={newCounts} total={primary.cues.length} current={current} onSeek={seekToCue} />}
+          {ready && <Ticks counts={newCounts} cues={primary.cues} current={current} onSeek={seekToCue} />}
 
           {primary && (
             <div className="watch__lines" ref={linesRef} style={{ "--read-size": `${size}px` }}>
@@ -617,7 +617,8 @@ export default function WatchView({ active, onOpenSettings }) {
           <p className="watch__meta">
             {coverage !== null && readings === "ready" && (
               <span className="watch__cov">
-                You know {coverage}% of this episode
+                <span className="watch__pct">{coverage}%</span>
+                <span className="watch__pct-label">known in this episode</span>
                 <span className="watch__bar" role="img" aria-label={`${coverage} percent known`}>
                   <b style={{ width: `${coverage}%` }} />
                 </span>

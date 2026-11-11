@@ -24,7 +24,7 @@ function SentenceWithWord({ sentence, surface, base }) {
   );
 }
 
-export default function ReviewView({ onGoRead }) {
+export default function ReviewView({ onGoRead, onGoWatch }) {
   const { state, grade } = useStore();
   const { queue: due, waiting } = useReviewToday();
 
@@ -179,11 +179,15 @@ export default function ReviewView({ onGoRead }) {
         </>
       ) : (
         <>
-          <p className="review__big">No words yet</p>
-          <p className="review__sub">Read some Japanese, tap a word, and choose “Save to review”. It appears here.</p>
-          <button className="btn btn--primary" onClick={onGoRead}>
-            Go read
-          </button>
+          <p className="review__big">Review is empty</p>
+          <p className="review__sub">
+            Words you save in Read or Watch show up here, spaced so you see each one just before you'd forget it.
+            Tap a word and choose “Save to review”.
+          </p>
+          <div className="review__actions">
+            <button className="btn btn--primary" onClick={onGoWatch}>Open Watch</button>
+            <button className="btn btn--quiet" onClick={onGoRead}>Open Read</button>
+          </div>
         </>
       )}
     </section>

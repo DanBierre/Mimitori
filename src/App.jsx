@@ -47,7 +47,10 @@ function Shell() {
     <div className="app">
       <header className="app__header">
         <h1 className="app__title">
-          <img className="app__logo" src="/favicon.svg" alt="" width="24" height="24" />
+          <svg className="app__logo" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M6 10a7 7 0 1 1 13 3.6a10 10 0 0 1 -2 2a8 8 0 0 0 -2 3a4.5 4.5 0 0 1 -6.8 1.4" />
+            <path d="M10.6 10a2.4 2.4 0 1 1 4.2 1.6" />
+          </svg>
           mimitori
         </h1>
         <nav className="rail" aria-label="Sections">
@@ -92,7 +95,7 @@ function Shell() {
           <WatchView active={tab === "watch"} onOpenSettings={() => setTab("settings")} />
         </div>
         {tab === "settings" && <SettingsView active />}
-        {tab === "review" && !inAnkiMode && <ReviewView onGoRead={() => setTab("read")} />}
+        {tab === "review" && !inAnkiMode && <ReviewView onGoRead={() => setTab("read")} onGoWatch={() => setTab("watch")} />}
         {tab === "words" && <WordsView onGoWatch={() => setTab("watch")} onGoRead={() => setTab("read")} />}
       </main>
     </div>

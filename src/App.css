@@ -36,6 +36,7 @@
 
 .app__logo {
   display: block;
+  color: var(--text);
 }
 
 .app__side {
@@ -495,6 +496,10 @@ rt.rt--known {
   margin: 0;
 }
 
+.read__after {
+  margin-left: -17px;
+}
+
 /* Word card in Read: a side panel on desktop, a bottom sheet on phones. */
 .read {
   display: block;
@@ -777,10 +782,6 @@ rt.rt--known {
   text-underline-offset: 3px;
 }
 
-.watch-drop + .watch__top {
-  margin-top: 20px;
-}
-
 /* Quiet top row: greeting, and how far along you are. */
 .watch__top {
   display: flex;
@@ -865,20 +866,24 @@ rt.rt--known {
   display: none;
 }
 
-/* One tick per line; tall inked ticks are the lines full of new words. */
+/* One thin tick per line, placed at its start time; tall inked ticks are the lines full of new words. */
 .ticks {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
   height: 24px;
   padding: 0 16px;
   margin-top: 12px;
   cursor: pointer;
 }
 
+.ticks__track {
+  position: relative;
+  height: 100%;
+}
+
 .ticks i {
-  flex: 1 1 0;
-  min-width: 1px;
+  position: absolute;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
   background: rgb(255 255 255 / 0.18);
   border-radius: 1px;
 }
@@ -888,6 +893,9 @@ rt.rt--known {
 }
 
 .ticks .ticks__now {
+  z-index: 1;
+  width: 3px;
+  margin-left: -1.5px;
   background: #fff;
 }
 
@@ -1228,6 +1236,19 @@ rt.rt--known {
   font-weight: 500;
 }
 
+.watch__pct {
+  font-size: 23px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.watch__pct-label {
+  color: var(--text-3);
+  font-weight: 400;
+}
+
 .watch__bar {
   position: relative;
   display: inline-block;
@@ -1385,7 +1406,6 @@ rt.rt--known {
 
 .transcript__line[aria-current="true"] {
   background: color-mix(in srgb, var(--ink) 6%, transparent);
-  box-shadow: inset 2px 0 0 var(--ink);
   color: var(--text);
 }
 
@@ -1403,12 +1423,22 @@ rt.rt--known {
 }
 
 .transcript__new {
+  display: inline-flex;
   flex: none;
+  align-items: center;
+  gap: 3px;
+  align-self: flex-start;
+  height: 1.6em;
   margin-left: auto;
-  color: var(--ink);
-  font-size: 11px;
-  letter-spacing: 1px;
-  white-space: nowrap;
+  padding-left: 6px;
+  font-size: 14px;
+}
+
+.transcript__new i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--ink);
 }
 
 .transcript__auto {
@@ -1581,8 +1611,53 @@ rt.rt--known {
     grid-column: 1 / -1;
   }
 
+  /* The stage fills the viewport under the top nav: the video takes whatever height is
+     left after ticks, a two-line cue, translation, controls and the coverage row. */
+  .watch--ready .watch__main {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: calc(100dvh - 162px);
+  }
+
+  .watch--ready .watch__stage {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .watch--ready .watch__stage > * {
+    flex: none;
+  }
+
+  .watch--ready .watch__stage > .watch__frame {
+    display: flex;
+    flex: 1 1 0;
+    min-height: 160px;
+  }
+
+  .watch--ready .watch__stage > .watch__close {
+    flex: none;
+  }
+
   .watch--ready .watch__video {
-    max-height: calc(100dvh - 382px);
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    max-height: none;
+    object-fit: contain;
+  }
+
+  .watch--ready .watch__line {
+    --fs: clamp(22px, calc(var(--read-size) + 4px), 36px);
+    font-size: var(--fs);
+    min-height: calc(var(--fs) * 4.3);
+  }
+
+  .watch--ready .watch__meta,
+  .watch--ready .watch__notes {
+    flex: none;
   }
 
   .watch__side {
@@ -1665,7 +1740,13 @@ rt.rt--known {
 
 .review--center .btn {
   margin-top: 14px;
-  min-width: 220px;
+}
+
+.review--center .review__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
 }
 
 .review__big {
@@ -1898,10 +1979,8 @@ rt.rt--known {
 
 .words__empty {
   max-width: 440px;
-  margin: 56px auto;
-  padding: 32px 28px;
-  border: 1px solid var(--line);
-  border-radius: 2px;
+  margin: 72px auto;
+  padding: 0 16px;
   text-align: center;
 }
 
@@ -2276,6 +2355,13 @@ rt.rt--known {
   position: static;
   width: auto;
   margin: 10px 12px 0;
+  /* Page-theme surface on the dark stage: reset the stage's tokens so the button meets contrast. */
+  --text: var(--card-text);
+  --text-2: var(--card-text-2);
+  --text-3: var(--card-text-3);
+  --accent-soft: var(--ink-soft);
+  --ink: var(--ink-page);
+  --accent: var(--ink-strong);
 }
 
 .watch-drop {
@@ -2325,6 +2411,29 @@ rt.rt--known {
   text-underline-offset: 3px;
 }
 
-.watch-drop + .watch__top {
-  margin-top: 20px;
+/* ---------- Browser surfaces ---------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.watch__stage,
+.watch__stage * {
+  scrollbar-color: var(--stage-3) transparent;
+}
+
+.select {
+  appearance: none;
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%2370707a' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%2385858f' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
 }
