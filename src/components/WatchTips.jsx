@@ -3,10 +3,15 @@ import { createFlags } from "../lib/firstRun";
 import { noFocus } from "./WatchControls";
 import Icon from "./Icon";
 
+const touch = typeof matchMedia !== "undefined" && matchMedia("(pointer: coarse)").matches;
 const TIPS = [
   ["Tap any word", "You'll see its reading, its meaning and how it's conjugated."],
-  ["Missed it?", "Press R, or the replay button, to hear the line again."],
-  ["Keep the good ones", "Use Save to review on a word's card. With Anki connected, it becomes a card with audio and a picture."],
+  ["Missed it?", touch ? "Tap the replay button to hear the line again." : "Press R, or the replay button, to hear the line again."],
+  [
+    "Keep the good ones",
+    "Use Save to review on a word's card. With Anki connected, it becomes a card with audio and a picture." +
+      (touch ? "" : " Press ? any time for keyboard shortcuts."),
+  ],
 ];
 
 const flags = createFlags();

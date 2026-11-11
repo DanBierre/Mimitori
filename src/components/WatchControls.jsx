@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "./Icon";
 
 const SPEEDS = [0.5, 0.75, 1, 1.25];
@@ -57,6 +57,18 @@ export default function WatchControls({
   const [timingOpen, setTimingOpen] = useState(false);
   const showTiming = timingOpen || syncText !== null;
 
+  // Esc closes the timing box (and cancels Line up a line).
+  useEffect(() => {
+    if (!showTiming) return;
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      if (syncText !== null) onSyncCancel();
+      setTimingOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showTiming, syncText, onSyncCancel]);
+
   return (
     <div className="ctl">
       <div className="ctl__group">
@@ -113,6 +125,17 @@ export default function WatchControls({
           <div className="popover__head">
             <strong>Subtitle timing</strong>
             <span className="popover__meta">{formatOffset(offsetMs)}</span>
+            <button
+              className="icon-btn"
+              onMouseDown={noFocus}
+              onClick={() => {
+                if (syncText !== null) onSyncCancel();
+                setTimingOpen(false);
+              }}
+              aria-label="Close subtitle timing"
+            >
+              <Icon name="close" size={18} />
+            </button>
           </div>
 
           {syncText === null ? (
@@ -140,6 +163,9 @@ export default function WatchControls({
                   Download fixed file
                 </button>
               </div>
+              <p className="popover__hint only-fine">
+                Tip: <kbd>[</kbd> and <kbd>]</kbd> nudge by 0.1 s while you watch.
+              </p>
             </>
           ) : (
             <>

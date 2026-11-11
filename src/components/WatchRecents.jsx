@@ -36,6 +36,9 @@ export default function WatchRecents({ recents, onCarryOn, onSample, sampleLoadi
       <h2 id="recents-title" className="recents__title">
         Recent
       </h2>
+      {recents.length > 0 && (
+        <p className="recents__note">Mimitori never keeps a copy of your videos, so pick the same file again to carry on.</p>
+      )}
       <ul className="recents__list">
         {rows.map((r) => (
           <li key={r.key} className="recents__row">

@@ -119,6 +119,8 @@ export default function WatchView({ active, onOpenSettings }) {
   const [current, setCurrent] = useState(-1);
   const [secondCurrent, setSecondCurrent] = useState(-1);
   const [selection, setSelection] = useState(null); // { cue, token }
+  const resumeRef = useRef(false); // the video was playing when a word was tapped, so closing the card plays it again
+  const [tipsKey, setTipsKey] = useState(0);
 
   // Release the old object URL whenever the video changes or the tab unmounts.
   useEffect(() => () => video && URL.revokeObjectURL(video.url), [video]);
@@ -514,8 +516,9 @@ export default function WatchView({ active, onOpenSettings }) {
         f: k.toggleFocus,
         F: k.toggleFocus,
       };
-      // Esc leaves the full-window fallback (real fullscreen handles Esc itself).
+      // Esc leaves the full-window fallback (real fullscreen handles Esc itself), otherwise closes the shortcuts.
       if (e.key === "Escape" && k.focus && !document.fullscreenElement) actions.Escape = k.toggleFocus;
+      else if (e.key === "Escape") return setHelpOpen(false);
       const action = actions[e.key];
       if (!action) return;
       e.preventDefault();
@@ -526,12 +529,16 @@ export default function WatchView({ active, onOpenSettings }) {
   }, [active]);
 
   function selectWord(i) {
-    if (i === null) {
-      setSelection(null);
-      return;
-    }
+    if (i === null) return closeCard();
+    if (!selection) resumeRef.current = Boolean(videoRef.current && !videoRef.current.paused);
     videoRef.current?.pause();
     setSelection({ cue: current, token: i });
+  }
+
+  function closeCard() {
+    setSelection(null);
+    if (resumeRef.current) videoRef.current?.play().catch(() => {});
+    resumeRef.current = false;
   }
 
   // The word card sits above the tapped word (desktop); keep it on screen.
@@ -745,7 +752,7 @@ export default function WatchView({ active, onOpenSettings }) {
                     ankiContext={ankiContext()}
                     onOpenSettings={onOpenSettings}
                     onSaved={(base) => captureFrame(videoRef.current).then((blob) => blob && putImage(base, blob))}
-                    onClose={() => setSelection(null)}
+                    onClose={closeCard}
                   />
                 </div>
               )}
@@ -778,7 +785,7 @@ export default function WatchView({ active, onOpenSettings }) {
             />
           )}
 
-          {ready && !helpOpen && <WatchTips />}
+          {ready && !helpOpen && <WatchTips key={tipsKey} />}
 
           {helpOpen && (
             <div className="popover watch__help" role="region" aria-label="Keyboard shortcuts">
@@ -803,6 +810,21 @@ export default function WatchView({ active, onOpenSettings }) {
                   </div>
                 ))}
               </dl>
+              <button
+                className="link watch__tips-again"
+                onMouseDown={noFocus}
+                onClick={() => {
+                  try {
+                    localStorage.removeItem("mimitori:tips");
+                  } catch {
+                    /* tips just won't come back */
+                  }
+                  setHelpOpen(false);
+                  setTipsKey((k) => k + 1);
+                }}
+              >
+                Show the tips again
+              </button>
             </div>
           )}
 

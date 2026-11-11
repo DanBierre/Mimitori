@@ -2428,11 +2428,13 @@ rt.rt--known {
   font-variant-numeric: tabular-nums;
 }
 
-/* Tips sit in the page flow under the controls, so they never cover the line they're talking about. */
+/* Tips float over the top corner of the video, away from the subtitle line, so the video keeps its size. */
 .popover.watch__tips {
-  position: static;
-  width: auto;
-  margin: 10px 12px 0;
+  top: 12px;
+  right: 12px;
+  bottom: auto;
+  width: min(320px, calc(100% - 24px));
+  margin: 0;
   /* Page-theme surface on the dark stage: reset the stage's tokens so the button meets contrast. */
   --text: var(--card-text);
   --text-2: var(--card-text-2);
@@ -3471,4 +3473,26 @@ rt.rt--known {
   font-size: 14px;
   line-height: 1.55;
   color: var(--text);
+}
+
+/* Watch: the timing box's offset sits beside its close button; quiet hints in pop-ups. */
+.ctl__timing .popover__meta {
+  margin-left: auto;
+}
+
+.popover__hint {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--card-text-2);
+}
+
+.popover__hint kbd,
+.review__keys kbd {
+  font: inherit;
+}
+
+.watch__tips-again {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--card-text-2);
 }

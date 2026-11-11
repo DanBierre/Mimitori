@@ -39,12 +39,15 @@ export default function WatchDrop({ onFiles, onSample, onMakeSubtitles, sampleLo
     );
   }
 
+  const touch = typeof matchMedia !== "undefined" && matchMedia("(pointer: coarse)").matches;
   const prompt =
     hasVideo && !hasSubs
-      ? "Now add the subtitle file (.srt, .vtt or .ass)."
+      ? "Playing without subtitles. Add the subtitle file (.srt, .vtt or .ass) to read along."
       : hasSubs && !hasVideo
-        ? "Now add the video file."
-        : "Drop a video and its Japanese subtitles here.";
+        ? "Subtitles are in. Now add the video file."
+        : touch
+          ? "Choose a video and its Japanese subtitles."
+          : "Drop a video and its Japanese subtitles here.";
 
   return (
     <div
