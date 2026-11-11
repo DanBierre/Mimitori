@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mimitori Watch mock-ups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Old+Mincho:wght@500;700&family=M+PLUS+1+Code:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1b1b1d; color: #eee; font-family: "Noto Sans JP", system-ui, sans-serif; padding: 32px 16px 80px; }
+  .intro { max-width: 1120px; margin: 0 auto 28px; }
+  .intro h1 { font-size: 22px; font-weight: 700; }
+  .intro p { color: #aaa; font-size: 14px; margin-top: 6px; line-height: 1.6; }
+  .opt { max-width: 1120px; margin: 0 auto 56px; }
+  .opt header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+  .opt h2 { font-size: 18px; font-weight: 700; }
+  .opt header span { color: #9a9aa2; font-size: 13px; }
+  .frame { border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px -20px #000; }
+  .notes { color: #a5a5ad; font-size: 13px; line-height: 1.6; margin-top: 10px; }
+  ruby rt { font-size: 0.45em; font-weight: 500; letter-spacing: 0.04em; }
+  .vid { position: relative; aspect-ratio: 16/9; overflow: hidden; }
+  .vid .scene { position: absolute; inset: 0; }
+  .vid .label { position: absolute; left: 14px; bottom: 12px; font-size: 11px; opacity: .55; letter-spacing: .04em; }
+
+  /* ===== 1. Tankōbon ===== */
+  .tk { background: #0b0b0b; display: grid; grid-template-columns: 1fr 268px; gap: 10px; padding: 10px; font-family: "Noto Sans JP", sans-serif; }
+  .tk .panel { background: #fff; padding: 6px; }
+  .tk .panel-in { border: 3px solid #0b0b0b; }
+  .tk .vid .scene { background:
+      radial-gradient(circle at 30% 40%, #3a3f46 0 18%, transparent 19%),
+      linear-gradient(160deg, #565b62 0%, #2b2e33 60%, #1a1c1f 100%); }
+  .tk .vid .scene::after { content: ""; position: absolute; inset: 0;
+      background-image: radial-gradient(#ffffff22 1px, transparent 1.4px); background-size: 6px 6px; }
+  .tk .line-panel { background: #fff; margin-top: 10px; padding: 6px; }
+  .tk .line-in { border: 3px solid #0b0b0b; padding: 26px 24px 22px; position: relative; text-align: center; }
+  .tk .line { color: #0b0b0b; font-size: 34px; font-weight: 900; letter-spacing: .03em; line-height: 2; }
+  .tk .line .w { padding: 0 1px; }
+  .tk .line .saved { background-image: radial-gradient(#0b0b0b 1.1px, transparent 1.5px); background-size: 5px 5px; background-repeat: repeat-x; background-position: 0 100%; padding-bottom: 4px; }
+  .tk .line .sel { background: #0b0b0b; color: #fff; }
+  .tk .line .sel rt { color: #0b0b0b; }
+  .tk .en { font-size: 14px; color: #555; margin-top: 2px; }
+  .tk .balloon { position: absolute; left: 50%; top: -168px; transform: translateX(-12%); width: 360px; background: #fff; border: 3px solid #0b0b0b; border-radius: 48% 52% 46% 54% / 56% 50% 50% 44%; padding: 24px 34px 24px; text-align: left; box-shadow: 6px 6px 0 #0b0b0b; z-index: 2; }
+  .tk .balloon::after { content: ""; position: absolute; left: 70px; bottom: -26px; width: 30px; height: 30px; background: #fff; border-right: 3px solid #0b0b0b; border-bottom: 3px solid #0b0b0b; transform: skewX(28deg) rotate(28deg); }
+  .tk .balloon .t { font-family: "Zen Old Mincho", serif; font-size: 30px; font-weight: 700; color: #0b0b0b; }
+  .tk .balloon .r { font-size: 13px; color: #555; margin-left: 6px; }
+  .tk .balloon .g { font-size: 14px; color: #222; margin: 6px 0 12px; }
+  .tk .balloon .acts { display: flex; gap: 6px; }
+  .tk .b { white-space: nowrap; font: 700 12px "Noto Sans JP"; border: 2px solid #0b0b0b; background: #fff; color: #0b0b0b; padding: 6px 10px; }
+  .tk .b.p { background: #0f8fbf; border-color: #0f8fbf; color: #fff; }
+  .tk .ctl { display: flex; gap: 6px; margin-top: 10px; }
+  .tk .ctl div { background: #fff; color: #0b0b0b; font-weight: 700; font-size: 12px; padding: 8px 12px; }
+  .tk .ctl .on { background: #0b0b0b; color: #fff; outline: 2px solid #fff; outline-offset: -4px; }
+  .tk .side { display: flex; flex-direction: column; gap: 8px; }
+  .tk .side h3 { color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .08em; padding: 4px 2px 2px; }
+  .tk .tp { background: #fff; padding: 4px; }
+  .tk .tp div { border: 2px solid #0b0b0b; padding: 9px 10px; color: #0b0b0b; font-size: 14px; font-weight: 500; display: grid; grid-template-columns: 34px 1fr; }
+  .tk .tp i { font-style: normal; font-size: 11px; color: #666; padding-top: 2px; }
+  .tk .tp.cur div { background-image: radial-gradient(#0b0b0b33 1.1px, transparent 1.5px); background-size: 5px 5px; }
+
+  /* ===== 2. Karaoke ===== */
+  .kr { background: radial-gradient(120% 90% at 50% 0%, #1a2266 0%, #0b0f2e 55%, #070920 100%); display: grid; grid-template-columns: 1fr 260px; gap: 0; }
+  .kr .main { padding: 18px; }
+  .kr .vid { border-radius: 10px; }
+  .kr .vid .scene { background: linear-gradient(135deg, #2c3570, #121634); }
+  .kr .lyrics { padding: 26px 10px 8px; position: relative; }
+  .kr .l1, .kr .l2 { font-weight: 900; font-size: 34px; line-height: 2; letter-spacing: .04em; }
+  .kr .l1 { text-align: left; background: linear-gradient(90deg, #36c2ff 0 58%, #ffffff 58%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 0 #050716) drop-shadow(0 0 1px #050716); }
+  .kr .l1 rt { color: #9fdcff; -webkit-text-stroke: 0; }
+  .kr .l2 { text-align: right; color: #ffffffcc; font-size: 26px; margin-top: 4px; }
+  .kr .l2 rt { color: #ffffff99; -webkit-text-stroke: 0; }
+  .kr .tag { position: absolute; right: 10px; top: 4px; font-size: 11px; color: #9fa6d8; }
+  .kr .card { position: absolute; left: 40%; top: -150px; width: 280px; background: #ffffff; color: #0b0f2e; border-radius: 16px; padding: 16px 18px; box-shadow: 0 18px 40px -10px #000c; }
+  .kr .card .t { font-size: 28px; font-weight: 700; }
+  .kr .card .r { color: #ff5fa2; font-weight: 700; font-size: 13px; margin-left: 6px; }
+  .kr .card .g { font-size: 14px; color: #334; margin: 4px 0 12px; }
+  .kr .card .acts { display: flex; gap: 6px; }
+  .kr .b { white-space: nowrap; font: 700 12px "Noto Sans JP"; border-radius: 999px; padding: 7px 12px; background: #eef0ff; color: #1a2266; }
+  .kr .b.p { background: #ff5fa2; color: #fff; }
+  .kr .side { background: #070920aa; border-left: 1px solid #ffffff14; padding: 18px 14px; }
+  .kr .side h3 { font-size: 12px; color: #9fa6d8; margin-bottom: 10px; }
+  .kr .row { font-size: 14px; color: #c7cbef; padding: 9px 10px; border-radius: 8px; }
+  .kr .row.cur { background: #36c2ff22; color: #fff; box-shadow: inset 3px 0 #36c2ff; }
+  .kr .row i { font-style: normal; font-size: 11px; color: #7d84b8; margin-right: 8px; }
+
+  /* ===== 3. Manuscript grid ===== */
+  .mg { --c: 34px; background-color: #fbfcfe; background-image: linear-gradient(#cfe0f3 1px, transparent 1px), linear-gradient(90deg, #cfe0f3 1px, transparent 1px); background-size: var(--c) var(--c); color: #141414; display: grid; grid-template-columns: 1fr 272px; gap: var(--c); padding: var(--c); }
+  .mg .vid { border: 2px solid #141414; }
+  .mg .vid .scene { background: linear-gradient(150deg, #e9eef5, #b8c6d8); }
+  .mg .vid .label { color: #141414; }
+  .mg .cells { display: flex; flex-wrap: wrap; margin-top: var(--c); position: relative; }
+  .mg .cell { width: 56px; height: 72px; border: 1px solid #9ec3e6; margin: 0 -1px -1px 0; display: grid; place-items: end center; padding-bottom: 6px; background: #fff; position: relative; font-size: 34px; font-weight: 700; }
+  .mg .cell small { position: absolute; top: 4px; left: 0; right: 0; text-align: center; font-size: 11px; font-weight: 500; color: #1f4fd8; }
+  .mg .cell.saved { box-shadow: inset 0 -4px #1f4fd8; }
+  .mg .cell.sel { background: #1f4fd8; color: #fff; border-color: #1f4fd8; }
+  .mg .cell.sel small { color: #fff; }
+  .mg .en { font-size: 14px; color: #555; margin-top: 10px; }
+  .mg .card { position: absolute; left: 300px; top: -180px; width: 272px; background: #fff; border: 2px solid #141414; padding: 16px; box-shadow: 8px 8px 0 #1f4fd8; }
+  .mg .card .t { font-size: 30px; font-weight: 900; }
+  .mg .card .r { font-family: "M PLUS 1 Code", monospace; font-size: 12px; color: #1f4fd8; margin-left: 8px; }
+  .mg .card .g { font-size: 14px; margin: 6px 0 12px; }
+  .mg .b { white-space: nowrap; font: 600 12px "M PLUS 1 Code", monospace; border: 1.5px solid #141414; padding: 6px 10px; background: #fff; }
+  .mg .b.p { background: #141414; color: #fff; }
+  .mg .acts { display: flex; gap: 6px; }
+  .mg .side { background: #fff; border: 2px solid #141414; align-self: start; }
+  .mg .side h3 { font: 600 12px "M PLUS 1 Code", monospace; padding: 10px 12px; border-bottom: 2px solid #141414; display: flex; justify-content: space-between; }
+  .mg .row { display: grid; grid-template-columns: 44px 1fr; border-bottom: 1px solid #cfe0f3; font-size: 14px; }
+  .mg .row i { font: 400 11px "M PLUS 1 Code", monospace; color: #6a7a8c; padding: 10px 0 0 12px; font-style: normal; }
+  .mg .row span { padding: 9px 10px 9px 0; }
+  .mg .row.cur { background: #1f4fd8; color: #fff; }
+  .mg .row.cur i { color: #cdd9ff; }
+
+  /* ===== 4. Quiet precision ===== */
+  .qp { background: #fbfbfc; color: #0d0d10; display: grid; grid-template-columns: 52px 1fr 280px; font-size: 13px; }
+  .qp nav { border-right: 1px solid #ececf0; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 0; }
+  .qp nav b { width: 22px; height: 22px; border-radius: 6px; background: #0d0d10; display: grid; place-items: center; color: #fff; font-size: 12px; }
+  .qp nav i { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid #b9b9c2; }
+  .qp nav i.on { border-color: #5b5bf0; background: #5b5bf022; }
+  .qp .main { padding: 20px 22px; }
+  .qp .crumb { color: #8a8a93; font-size: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; }
+  .qp .crumb b { color: #0d0d10; font-weight: 500; }
+  .qp .vid { border-radius: 10px; background: #000; }
+  .qp .vid .scene { background: linear-gradient(140deg, #26262c, #0c0c0f); }
+  .qp .stage { background: #0d0d10; border-radius: 10px; margin-top: 10px; padding: 22px 20px 18px; position: relative; text-align: center; }
+  .qp .line { color: #fff; font-size: 30px; font-weight: 500; line-height: 2.1; letter-spacing: .02em; }
+  .qp .line .saved { box-shadow: inset 0 -2px #5b5bf0; }
+  .qp .line .sel { background: #5b5bf033; box-shadow: inset 0 -2px #8f8fff; border-radius: 3px; }
+  .qp .en { color: #9a9aa4; font-size: 13px; }
+  .qp .cmd { position: absolute; left: 44%; top: -215px; width: 300px; background: #fff; color: #0d0d10; border: 1px solid #e4e4ea; border-radius: 12px; box-shadow: 0 2px 6px #0000000f, 0 24px 48px -16px #00000055; text-align: left; overflow: hidden; }
+  .qp .cmd .hd { padding: 14px 16px 10px; border-bottom: 1px solid #f0f0f3; }
+  .qp .cmd .t { font-size: 24px; font-weight: 700; }
+  .qp .cmd .r { color: #8a8a93; margin-left: 6px; }
+  .qp .cmd .g { color: #4a4a52; margin-top: 2px; }
+  .qp .cmd .it { display: flex; justify-content: space-between; padding: 8px 16px; color: #2a2a30; }
+  .qp .cmd .it.on { background: #f3f3ff; color: #3b3bd6; }
+  .qp kbd { font: 500 11px "Noto Sans JP"; color: #8a8a93; border: 1px solid #e4e4ea; border-radius: 4px; padding: 0 5px; }
+  .qp .bar { display: flex; gap: 6px; margin-top: 12px; }
+  .qp .bar div { border: 1px solid #e4e4ea; border-radius: 7px; padding: 6px 10px; color: #4a4a52; background: #fff; }
+  .qp .bar .on { border-color: #5b5bf0; color: #3b3bd6; background: #f3f3ff; }
+  .qp .side { border-left: 1px solid #ececf0; padding: 20px 16px; }
+  .qp .side h3 { font-size: 12px; font-weight: 500; color: #8a8a93; margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .qp .row { display: grid; grid-template-columns: 40px 1fr; padding: 8px 8px; border-radius: 7px; color: #2a2a30; }
+  .qp .row i { font-style: normal; color: #a0a0aa; font-variant-numeric: tabular-nums; }
+  .qp .row.cur { background: #f3f3ff; color: #0d0d10; }
+
+  /* The four gaps, shown in each world */
+  .gaps { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; font-size: 12px; }
+  .gaps .cov { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+  .gaps .meter { width: 120px; height: 6px; position: relative; }
+  .gaps .meter b { position: absolute; inset: 0 14% 0 0; }
+  .gaps .chip { padding: 4px 9px; }
+  .rev { margin-top: auto; font-size: 12px; line-height: 1.5; padding: 10px 12px; }
+  .rev strong { display: block; font-size: 22px; line-height: 1.1; }
+  .tk .gaps { color: #fff; } .tk .meter { background: #fff; } .tk .meter b { background-image: radial-gradient(#0b0b0b 1.2px, transparent 1.6px); background-size: 4px 4px; background-color: #fff; border: 2px solid #fff; }
+  .tk .gaps .chip { background: #fff; color: #0b0b0b; font-weight: 700; } .tk .gaps .chip.draft { background: #0b0b0b; color: #fff; outline: 2px dashed #fff; outline-offset: -2px; }
+  .tk .rev { background: #fff; color: #0b0b0b; border: 3px solid #fff; outline: 2px solid #0b0b0b; outline-offset: -5px; }
+  .kr .gaps { color: #c7cbef; } .kr .meter { background: #ffffff22; border-radius: 9px; } .kr .meter b { background: linear-gradient(90deg, #36c2ff, #ff5fa2); border-radius: 9px; }
+  .kr .gaps .chip { background: #ffffff14; border-radius: 999px; } .kr .gaps .chip.draft { color: #ff9cc6; }
+  .kr .side { display: flex; flex-direction: column; } .kr .rev { background: #ffffff10; border-radius: 12px; color: #c7cbef; } .kr .rev strong { color: #fff; }
+  .mg .gaps { font-family: "M PLUS 1 Code", monospace; } .mg .meter { background: #fff; border: 1.5px solid #141414; } .mg .meter b { background: #1f4fd8; }
+  .mg .gaps .chip { background: #fff; border: 1.5px solid #141414; } .mg .gaps .chip.draft { border-style: dashed; color: #1f4fd8; }
+  .mg .rev { border-top: 2px solid #141414; font-family: "M PLUS 1 Code", monospace; } .mg .rev strong { font-family: "Noto Sans JP"; font-weight: 900; font-size: 30px; }
+  .qp .gaps { color: #4a4a52; } .qp .meter { background: #ececf0; border-radius: 9px; } .qp .meter b { background: #5b5bf0; border-radius: 9px; }
+  .qp .gaps .chip { border: 1px solid #e4e4ea; border-radius: 6px; background: #fff; } .qp .gaps .chip.draft { color: #3b3bd6; border-color: #c9c9ff; }
+  .qp .side { display: flex; flex-direction: column; } .qp .rev { border: 1px solid #ececf0; border-radius: 10px; background: #fff; color: #4a4a52; } .qp .rev strong { color: #0d0d10; font-weight: 600; }
+  /* ===== 5. Quiet precision, refined ===== */
+  .qr { --ink: #5b5bf0; background: #fbfbfa; color: #111114; display: grid; grid-template-columns: 1fr 290px; font-size: 13px; font-feature-settings: "palt"; }
+  .qr .main { padding: 18px 22px 22px; }
+  .qr .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .qr .hello { font-size: 15px; font-weight: 500; }
+  .qr .hello span { color: #8b8b93; font-weight: 400; margin-left: 8px; font-size: 13px; }
+  .qr .inks { display: flex; gap: 7px; align-items: center; color: #8b8b93; font-size: 12px; }
+  .qr .inks button { width: 14px; height: 14px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: 0 0 0 2px #fbfbfa, 0 0 0 3px transparent; }
+  .qr .inks button.on { box-shadow: 0 0 0 2px #fbfbfa, 0 0 0 3.5px #111114; }
+  .qr .stage { background: #0e0e10; border-radius: 16px; overflow: hidden; }
+  .qr .vid .scene { background: linear-gradient(140deg, #2a2a30, #0c0c0f); }
+  .qr .vid .ctl { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 16px 12px; display: flex; gap: 14px; align-items: center; color: #fff; font-size: 12px; background: linear-gradient(transparent, #000a); opacity: .9; }
+  .qr .vid .ctl .on { color: var(--ink); filter: brightness(1.6); }
+  .qr .tl { display: flex; align-items: flex-end; gap: 2px; height: 22px; padding: 0 16px; margin-top: 10px; }
+  .qr .tl i { flex: 1; background: #ffffff26; border-radius: 1px; }
+  .qr .tl i.hard { background: color-mix(in srgb, var(--ink) 70%, #fff); }
+  .qr .tl i.now { background: #fff; }
+  .qr .line { color: #fff; font-size: 32px; font-weight: 500; line-height: 2.2; letter-spacing: .01em; text-align: center; padding: 18px 20px 4px; position: relative; }
+  .qr .line ruby rt { color: #a8a8b2; }
+  .qr .line .saved { box-shadow: inset 0 -2px var(--ink); }
+  .qr .line .sel { background: color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 4px; box-shadow: inset 0 -2px color-mix(in srgb, var(--ink) 60%, #fff); }
+  .qr .en { color: #8b8b95; font-size: 13px; text-align: center; padding-bottom: 22px; }
+  .qr .card { position: absolute; left: 47%; top: -214px; width: 268px; background: #fff; color: #111114; border-radius: 12px; box-shadow: 0 1px 2px #0000001a, 0 22px 44px -18px #00000080; text-align: left; overflow: hidden; font-size: 13px; }
+  .qr .card .hd { padding: 13px 14px 9px; }
+  .qr .card .t { font-size: 22px; font-weight: 700; }
+  .qr .card .r { color: #8b8b93; margin-left: 6px; }
+  .qr .card .it { display: flex; justify-content: space-between; padding: 7px 14px; color: #3a3a42; }
+  .qr .card .it.on { background: color-mix(in srgb, var(--ink) 9%, #fff); color: var(--ink); }
+  .qr kbd { font: 500 11px "Noto Sans JP"; color: #9a9aa2; }
+  .qr .meta { display: flex; gap: 16px; align-items: center; margin-top: 12px; color: #6d6d75; font-size: 12px; }
+  .qr .meta .cov { display: flex; align-items: center; gap: 8px; color: #111114; font-weight: 500; }
+  .qr .meta .bar { width: 90px; height: 3px; background: #e7e7ea; border-radius: 3px; position: relative; }
+  .qr .meta .bar b { position: absolute; inset: 0 14% 0 0; background: var(--ink); border-radius: 3px; }
+  .qr .meta .draft { border: 1px dashed #c4c4cc; border-radius: 5px; padding: 1px 6px; }
+  .qr .side { padding: 22px 18px; display: flex; flex-direction: column; }
+  .qr .side h3 { font-size: 12px; font-weight: 500; color: #8b8b93; margin-bottom: 6px; }
+  .qr .row { display: grid; grid-template-columns: 34px 1fr auto; gap: 6px; align-items: baseline; padding: 8px 6px; color: #2a2a30; border-radius: 6px; }
+  .qr .row i { font-style: normal; color: #a6a6ae; font-variant-numeric: tabular-nums; font-size: 12px; }
+  .qr .row.cur { box-shadow: inset 2px 0 var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
+  .qr .row em { font-style: normal; color: var(--ink); font-size: 11px; letter-spacing: 1px; }
+  .qr .rev { margin-top: auto; border-top: 1px solid #ececef; padding-top: 14px; color: #6d6d75; font-size: 12px; }
+  .qr .rev strong { color: #111114; font-weight: 600; font-size: 13px; display: inline; }
+  .qr .local { color: #a6a6ae; font-size: 11px; margin-top: 6px; }
+  .opt.featured header h2 { color: #fff; }
+  .opt.featured header span { color: #c9c9ff; }
+
+
+  /* ===== 6. Shoji sibling ===== */
+  .qr.sib { --ink: #2f4f8f; --paper: #f4f1ea; --sumi: #1b1b1a; --soft: #6f6a60; --hair: rgb(27 27 26 / .15); background: var(--paper); color: var(--sumi); grid-template-columns: 34px 1fr 290px; }
+  .qr.sib .gutter { writing-mode: vertical-rl; font-size: 11px; letter-spacing: .32em; color: var(--soft); padding: 22px 0 0 10px; }
+  .qr.sib .hello { font-weight: 400; font-size: 17px; } .qr.sib .hello span { color: var(--soft); }
+  .qr.sib .inks button { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px transparent; } .qr.sib .inks button.on { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--sumi); }
+  .qr.sib .stage { background: #141416; border-radius: 14px; }
+  .qr.sib .line { font-weight: 400; color: #efece4; }
+  .qr.sib .line .saved { box-shadow: none; background: no-repeat left bottom / 100% 7px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8' preserveAspectRatio='none'%3E%3Cpath d='M1 5 C 20 2, 45 6.5, 70 3.5 S 95 4, 99 2.5' stroke='%237d98d6' stroke-width='2.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); padding-bottom: 3px; }
+  .qr.sib .line .sel { background: rgb(239 236 228 / .14); box-shadow: none; }
+  .qr.sib .card { background: var(--paper); color: var(--sumi); border-radius: 14px; box-shadow: 0 1px 0 var(--hair), 0 24px 44px -20px #0009; }
+  .qr.sib .card .t { font-weight: 500; } .qr.sib .card .r { color: var(--soft); }
+  .qr.sib .card .it { border-top: 1px solid var(--hair); color: var(--sumi); }
+  .qr.sib .card .it.on { background: color-mix(in srgb, var(--sumi) 6%, transparent); color: var(--sumi); }
+  .qr.sib .card .it.on span::before { content: "+ "; color: var(--ink); }
+  .qr.sib .vid .ctl .on { color: #efece4; background: rgb(239 236 228 / .14); border-radius: 999px; padding: 3px 10px; filter: none; }
+  .qr.sib .meta { color: var(--soft); } .qr.sib .meta .cov { color: var(--sumi); font-weight: 400; }
+  .qr.sib .meta .bar { background: var(--hair); }
+  .qr.sib .meta .draft { border-color: var(--hair); border-radius: 999px; padding: 1px 9px; }
+  .qr.sib .side { border-left: 1px solid var(--hair); }
+  .qr.sib .side h3 { color: var(--soft); font-weight: 400; letter-spacing: .32em; font-size: 11px; text-transform: uppercase; }
+  .qr.sib .row { border-radius: 0; border-bottom: 1px solid var(--hair); padding: 11px 4px; color: var(--sumi); }
+  .qr.sib .row.cur { background: none; box-shadow: inset 2px 0 var(--ink); }
+  .qr.sib .rev { border-top: 0; color: var(--soft); } .qr.sib .rev strong { font-weight: 400; color: var(--sumi); }
+  .qr.sib .seal { display: inline-grid; place-items: center; width: 22px; height: 22px; border: 1.5px solid var(--ink); color: var(--ink); border-radius: 5px; font-size: 13px; margin-right: 8px; transform: rotate(-3deg); }
+  .gaplist { max-width: 1120px; margin: 0 auto 36px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .gaplist div { background: #26262a; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #c9c9cf; line-height: 1.5; }
+  .gaplist b { color: #fff; display: block; margin-bottom: 2px; }
+
+  @media (max-width: 900px) {
+    .gaplist { grid-template-columns: 1fr 1fr; }
+    .tk, .kr, .mg, .qp, .qr, .qr.sib { grid-template-columns: 1fr; }
+    .qr.sib .gutter { display: none; }
+    .qr .card { position: static; margin: 0 auto 14px; }
+    .qp nav, .tk .side, .kr .side, .mg .side, .qp .side { display: none; }
+    .tk .balloon, .kr .card, .mg .card, .qp .cmd { position: static; transform: none; margin: 0 auto 14px; }
+    .tk .balloon::after { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Watch screen, six ways</h1>
+    <p>Same scene in each: the current line is 「今日は友達と映画を見ました。」, the learner has tapped 映画, and 友達 is already saved. The video is a placeholder. Mock-ups only; nothing here is built yet.</p>
+  </div>
+  <div class="gaplist">
+    <div><b>1. No setup, no account</b>Everything in one app, files stay on your computer. Rivals need three tools or a subscription.</div>
+    <div><b>2. Coverage before you watch</b>"You know 86% of this episode, 41 new words." jpdb and Jiten users love this.</div>
+    <div><b>3. Free subtitles, honestly labelled</b>Made-by-Mimitori lines carry a "draft" mark until you fix or confirm them.</div>
+    <div><b>4. No review-pile guilt</b>A daily cap: "20 today, the rest can wait." No streaks, no shame.</div>
+  </div>
+
+  <!-- 6. Shoji sibling -->
+  <section class="opt featured">
+    <header><h2>Quiet precision × Shoji</h2><span>a sibling of Shoji: paper and sumi, 藍 indigo instead of 朱 vermilion · try the dye colours</span></header>
+    <div class="frame qr sib" id="qr2">
+      <div class="gutter">視聴 · WATCH</div><div class="main">
+        <div class="top">
+          <div class="hello"><span class="seal" style="margin-left:0">耳</span>こんばんは、Dan<span>412 words known · 9 this week</span></div>
+          <div class="inks">Your ink
+            <button class="on" style="background:#2f4f8f" data-ink="#2f4f8f" aria-label="Ai, indigo"></button>
+            <button style="background:#3f6b4f" data-ink="#3f6b4f" aria-label="Matsu, pine"></button>
+            <button style="background:#56616e" data-ink="#56616e" aria-label="Nezumi, slate"></button>
+            <button style="background:#b07d16" data-ink="#b07d16" aria-label="Yamabuki, gold"></button>
+            <button style="background:#76649e" data-ink="#76649e" aria-label="Fuji, wisteria"></button>
+          </div>
+        </div>
+        <div class="stage">
+          <div class="vid"><div class="scene"></div>
+            <div class="ctl"><span>◀</span><span>↻</span><span>▶</span><span class="on">Pause after each line</span><span>1×</span><span style="margin-left:auto">0:03 / 23:37</span></div>
+          </div>
+          <div class="tl" aria-hidden="true">
+            <i style="height:30%"></i><i class="now" style="height:60%"></i><i style="height:20%"></i><i class="hard" style="height:80%"></i><i style="height:35%"></i><i style="height:15%"></i><i class="hard" style="height:90%"></i><i style="height:40%"></i><i style="height:25%"></i><i style="height:30%"></i><i class="hard" style="height:70%"></i><i style="height:20%"></i><i style="height:45%"></i><i style="height:15%"></i><i style="height:30%"></i><i class="hard" style="height:100%"></i><i style="height:35%"></i><i style="height:20%"></i><i style="height:25%"></i><i style="height:40%"></i><i style="height:15%"></i><i class="hard" style="height:75%"></i><i style="height:30%"></i><i style="height:20%"></i><i style="height:35%"></i><i style="height:25%"></i><i style="height:15%"></i><i class="hard" style="height:85%"></i><i style="height:30%"></i><i style="height:20%"></i><i style="height:40%"></i><i style="height:25%"></i><i style="height:20%"></i><i style="height:35%"></i><i class="hard" style="height:65%"></i><i style="height:15%"></i><i style="height:30%"></i><i style="height:20%"></i><i style="height:25%"></i><i style="height:40%"></i>
+          </div>
+          <div class="line">
+            <div class="card">
+              <div class="hd"><span class="t">映画</span><span class="r">えいが · noun</span><div style="color:#55555d;margin-top:2px">film; movie</div></div>
+              <div class="it on"><span>Add to Anki</span><kbd>A</kbd></div>
+              <div class="it"><span>Save</span><kbd>S</kbd></div>
+              <div class="it"><span>I know this</span><kbd>K</kbd></div>
+            </div>
+            今日は<span class="saved"><ruby>友達<rt>ともだち</rt></ruby></span>と<span class="sel"><ruby>映画<rt>えいが</rt></ruby></span>を見ました。
+          </div>
+          <div class="en">I watched a movie with a friend today.</div>
+        </div>
+        <div class="meta">
+          <span class="cov">You know 86% of this episode <span class="bar"><b></b></span></span>
+          <span>41 new words</span>
+          <span class="draft">Subtitles made by Mimitori · draft</span>
+        </div>
+      </div>
+      <div class="side">
+        <h3>Transcript</h3>
+        <div class="row cur"><i>0:01</i><span>今日は友達と映画を見ました。</span><em>••</em></div>
+        <div class="row"><i>0:04</i><span>とても面白かったです。</span><em></em></div>
+        <div class="row"><i>0:08</i><span>昨日は何も食べなかった。</span><em>•</em></div>
+        <div class="row"><i>0:11</i><span>駅の近くに新しい喫茶店ができました。</span><em>•••</em></div>
+        <div class="row"><i>0:15</i><span>日本語を毎日勉強しています。</span><em></em></div>
+        <div class="rev"><strong>20 to review today.</strong> The other 44 can wait.<div class="local">No account. Everything stays on this computer.</div></div>
+      </div>
+    </div>
+    <p class="notes">Shoji's paper, sumi and hairlines, but its own accent (藍 indigo, with traditional dye colours to choose from), Noto Sans JP for furigana, a brushed underline for saved words and a vertical 視聴 label. Vermilion stays Shoji's. No boxes, one ink of your choosing. 今日 and 見 have no furigana because you already know them, so each line gets cleaner as you learn. The bar under the video marks every line: tall, inked ticks are the ones full of new words. Dots in the transcript count new words per line.</p>
+  </section>
+  <script>
+    document.querySelectorAll('#qr2 .inks button').forEach(b => b.addEventListener('click', () => {
+      document.getElementById('qr2').style.setProperty('--ink', b.dataset.ink);
+      document.querySelectorAll('#qr2 .inks button').forEach(x => x.classList.toggle('on', x === b));
+    }));
+  </script>
+
+  <!-- 5. Quiet precision, refined -->
+  <section class="opt featured">
+    <header><h2>Quiet precision, refined</h2><span>more minimal, more personal · try the ink dots top right</span></header>
+    <div class="frame qr" id="qr">
+      <div class="main">
+        <div class="top">
+          <div class="hello">こんばんは、Dan<span>412 words known · 9 this week</span></div>
+          <div class="inks">Your ink
+            <button class="on" style="background:#5b5bf0" data-ink="#5b5bf0" aria-label="Indigo"></button>
+            <button style="background:#1f8a70" data-ink="#1f8a70" aria-label="Pine"></button>
+            <button style="background:#0e7490" data-ink="#0e7490" aria-label="Teal"></button>
+            <button style="background:#b45309" data-ink="#b45309" aria-label="Amber"></button>
+            <button style="background:#8b5cf6" data-ink="#8b5cf6" aria-label="Violet"></button>
+          </div>
+        </div>
+        <div class="stage">
+          <div class="vid"><div class="scene"></div>
+            <div class="ctl"><span>◀</span><span>↻</span><span>▶</span><span class="on">Pause after each line</span><span>1×</span><span style="margin-left:auto">0:03 / 23:37</span></div>
+          </div>
+          <div class="tl" aria-hidden="true">
+            <i style="height:30%"></i><i class="now" style="height:60%"></i><i style="height:20%"></i><i class="hard" style="height:80%"></i><i style="height:35%"></i><i style="height:15%"></i><i class="hard" style="height:90%"></i><i style="height:40%"></i><i style="height:25%"></i><i style="height:30%"></i><i class="hard" style="height:70%"></i><i style="height:20%"></i><i style="height:45%"></i><i style="height:15%"></i><i style="height:30%"></i><i class="hard" style="height:100%"></i><i style="height:35%"></i><i style="height:20%"></i><i style="height:25%"></i><i style="height:40%"></i><i style="height:15%"></i><i class="hard" style="height:75%"></i><i style="height:30%"></i><i style="height:20%"></i><i style="height:35%"></i><i style="height:25%"></i><i style="height:15%"></i><i class="hard" style="height:85%"></i><i style="height:30%"></i><i style="height:20%"></i><i style="height:40%"></i><i style="height:25%"></i><i style="height:20%"></i><i style="height:35%"></i><i class="hard" style="height:65%"></i><i style="height:15%"></i><i style="height:30%"></i><i style="height:20%"></i><i style="height:25%"></i><i style="height:40%"></i>
+          </div>
+          <div class="line">
+            <div class="card">
+              <div class="hd"><span class="t">映画</span><span class="r">えいが · noun</span><div style="color:#55555d;margin-top:2px">film; movie</div></div>
+              <div class="it on"><span>Add to Anki</span><kbd>A</kbd></div>
+              <div class="it"><span>Save</span><kbd>S</kbd></div>
+              <div class="it"><span>I know this</span><kbd>K</kbd></div>
+            </div>
+            今日は<span class="saved"><ruby>友達<rt>ともだち</rt></ruby></span>と<span class="sel"><ruby>映画<rt>えいが</rt></ruby></span>を見ました。
+          </div>
+          <div class="en">I watched a movie with a friend today.</div>
+        </div>
+        <div class="meta">
+          <span class="cov">You know 86% of this episode <span class="bar"><b></b></span></span>
+          <span>41 new words</span>
+          <span class="draft">Subtitles made by Mimitori · draft</span>
+        </div>
+      </div>
+      <div class="side">
+        <h3>Transcript</h3>
+        <div class="row cur"><i>0:01</i><span>今日は友達と映画を見ました。</span><em>••</em></div>
+        <div class="row"><i>0:04</i><span>とても面白かったです。</span><em></em></div>
+        <div class="row"><i>0:08</i><span>昨日は何も食べなかった。</span><em>•</em></div>
+        <div class="row"><i>0:11</i><span>駅の近くに新しい喫茶店ができました。</span><em>•••</em></div>
+        <div class="row"><i>0:15</i><span>日本語を毎日勉強しています。</span><em></em></div>
+        <div class="rev"><strong>20 to review today.</strong> The other 44 can wait.<div class="local">No account. Everything stays on this computer.</div></div>
+      </div>
+    </div>
+    <p class="notes">No boxes, one ink of your choosing. 今日 and 見 have no furigana because you already know them, so each line gets cleaner as you learn. The bar under the video marks every line: tall, inked ticks are the ones full of new words. Dots in the transcript count new words per line.</p>
+  </section>
+  <script>
+    document.querySelectorAll('#qr .inks button').forEach(b => b.addEventListener('click', () => {
+      document.getElementById('qr').style.setProperty('--ink', b.dataset.ink);
+      document.querySelectorAll('#qr .inks button').forEach(x => x.classList.toggle('on', x === b));
+    }));
+  </script>
+
+  <!-- 1. Tankōbon -->
+  <section class="opt">
+    <header><h2>1. Tankōbon</h2><span>the roll: the player as a manga panel, the word card as a speech balloon</span></header>
+    <div class="frame tk">
+      <div>
+        <div class="gaps"><span class="cov">You know 86% of this episode <span class="meter"><b></b></span></span><span class="chip">41 new words</span><span class="chip draft">Subtitles made by Mimitori · draft</span><span class="chip">No account · files stay on this computer</span></div><div class="panel"><div class="panel-in vid"><div class="scene"></div><div class="label" style="color:#fff">video</div></div></div>
+        <div class="line-panel"><div class="line-in">
+          <div class="balloon">
+            <div><span class="t">映画</span><span class="r">えいが · noun</span></div>
+            <div class="g">1. film; movie</div>
+            <div class="acts"><span class="b p">Add to Anki</span><span class="b">Save</span><span class="b">Replay line</span></div>
+          </div>
+          <div class="line"><ruby>今日<rt>きょう</rt></ruby>は<span class="w saved"><ruby>友達<rt>ともだち</rt></ruby></span>と<span class="w sel"><ruby>映画<rt>えいが</rt></ruby></span>を<ruby>見<rt>み</rt></ruby>ました。</div>
+          <div class="en">I watched a movie with a friend today.</div>
+        </div></div>
+        <div class="ctl"><div>◀ Prev</div><div>↻ Replay</div><div>Next ▶</div><div class="on">Pause after each line</div><div>1×</div></div>
+      </div>
+      <div class="side">
+        <h3>TRANSCRIPT</h3>
+        <div class="tp cur"><div><i>0:01</i>今日は友達と映画を見ました。</div></div>
+        <div class="tp"><div><i>0:04</i>とても面白かったです。</div></div>
+        <div class="tp"><div><i>0:08</i>昨日は何も食べなかった。</div></div>
+        <div class="tp"><div><i>0:11</i>駅の近くに新しい喫茶店ができました。</div></div>
+        <div class="tp"><div><i>0:15</i>日本語を毎日勉強しています。</div></div>
+        <div class="rev"><strong>20</strong>to review today · capped, the other 44 can wait</div>
+      </div>
+    </div>
+    <p class="notes">Ink on white, screentone dots for "saved", solid black for "selected", one blue for the main action. Changes cut like a page turn instead of fading. The word card's tail points at the word you tapped.</p>
+  </section>
+
+  <!-- 2. Karaoke -->
+  <section class="opt">
+    <header><h2>2. Karaoke lyric screen</h2><span>my pick: the line fills with colour as it's spoken</span></header>
+    <div class="frame kr">
+      <div class="main">
+        <div class="gaps"><span class="cov">You know 86% of this episode <span class="meter"><b></b></span></span><span class="chip">41 new words</span><span class="chip draft">Subtitles made by Mimitori · draft</span><span class="chip">No account · files stay on this computer</span></div><div class="vid"><div class="scene"></div><div class="label">video</div></div>
+        <div class="lyrics">
+          <span class="tag">♪ line 1 of 312</span>
+          <div class="card">
+            <div><span class="t">映画</span><span class="r">えいが</span></div>
+            <div class="g">noun · film; movie</div>
+            <div class="acts"><span class="b p">Add to Anki</span><span class="b">Save</span><span class="b">Replay</span></div>
+          </div>
+          <div class="l1"><ruby>今日<rt>きょう</rt></ruby>は<ruby>友達<rt>ともだち</rt></ruby>と<ruby>映画<rt>えいが</rt></ruby>を<ruby>見<rt>み</rt></ruby>ました。</div>
+          <div class="l2">とても<ruby>面白<rt>おもしろ</rt></ruby>かったです。</div>
+        </div>
+      </div>
+      <div class="side">
+        <h3>Transcript</h3>
+        <div class="row cur"><i>0:01</i>今日は友達と映画を見ました。</div>
+        <div class="row"><i>0:04</i>とても面白かったです。</div>
+        <div class="row"><i>0:08</i>昨日は何も食べなかった。</div>
+        <div class="row"><i>0:11</i>駅の近くに新しい喫茶店ができました。</div>
+        <div class="row"><i>0:15</i>日本語を毎日勉強しています。</div>
+        <div class="rev"><strong>20</strong>to review today · capped, the other 44 can wait</div>
+      </div>
+    </div>
+    <p class="notes">Deep blue night, the current line wipes from white to blue as it's spoken, and the next line waits on the right. Lively and very "Japanese screen". Needs word-level timing for a true wipe; we'd fake it across the line until then.</p>
+  </section>
+
+  <!-- 3. Manuscript grid -->
+  <section class="opt">
+    <header><h2>3. Manuscript grid</h2><span>Japanese set in visible square cells, like genkō yōshi paper</span></header>
+    <div class="frame mg">
+      <div>
+        <div class="gaps"><span class="cov">You know 86% of this episode <span class="meter"><b></b></span></span><span class="chip">41 new words</span><span class="chip draft">Subtitles made by Mimitori · draft</span><span class="chip">No account · files stay on this computer</span></div><div class="vid"><div class="scene"></div><div class="label">video</div></div>
+        <div class="cells">
+          <div class="card">
+            <div><span class="t">映画</span><span class="r">えいが / noun</span></div>
+            <div class="g">1. film; movie</div>
+            <div class="acts"><span class="b p">Add to Anki</span><span class="b">Save</span><span class="b">Replay</span></div>
+          </div>
+          <div class="cell"><small>きょう</small>今</div><div class="cell">日</div><div class="cell">は</div>
+          <div class="cell saved"><small>とも</small>友</div><div class="cell saved"><small>だち</small>達</div><div class="cell">と</div>
+          <div class="cell sel"><small>えい</small>映</div><div class="cell sel"><small>が</small>画</div><div class="cell">を</div>
+          <div class="cell"><small>み</small>見</div><div class="cell">ま</div><div class="cell">し</div><div class="cell">た</div><div class="cell">。</div>
+        </div>
+        <div class="en">I watched a movie with a friend today.</div>
+      </div>
+      <div class="side">
+        <h3><span>Transcript</span><span>312</span></h3>
+        <div class="row cur"><i>0:01</i><span>今日は友達と映画を見ました。</span></div>
+        <div class="row"><i>0:04</i><span>とても面白かったです。</span></div>
+        <div class="row"><i>0:08</i><span>昨日は何も食べなかった。</span></div>
+        <div class="row"><i>0:11</i><span>駅の近くに新しい喫茶店ができました。</span></div>
+        <div class="row"><i>0:15</i><span>日本語を毎日勉強しています。</span></div>
+        <div class="rev"><strong>20</strong>to review today · capped, the other 44 can wait</div>
+      </div>
+    </div>
+    <p class="notes">Faint blue grid across the whole app, every character in its own cell with furigana sitting in the cell top. Very clear for kanji study. Long lines wrap into many cells, so busy scenes get tall.</p>
+  </section>
+
+  <!-- 4. Quiet precision -->
+  <section class="opt">
+    <header><h2>4. Quiet precision</h2><span>the Linear / Things look</span></header>
+    <div class="frame qp">
+      <nav><b>耳</b><i></i><i class="on"></i><i></i><i></i></nav>
+      <div class="main">
+        <div class="gaps"><span class="cov">You know 86% of this episode <span class="meter"><b></b></span></span><span class="chip">41 new words</span><span class="chip draft">Subtitles made by Mimitori · draft</span><span class="chip">No account · files stay on this computer</span></div><div class="crumb"><span>Watch / <b>sample.mp4</b></span><span>Subtitles ready · 312 lines</span></div>
+        <div class="vid"><div class="scene"></div><div class="label" style="color:#fff">video</div></div>
+        <div class="stage">
+          <div class="cmd">
+            <div class="hd"><span class="t">映画</span><span class="r">えいが · noun</span><div class="g">film; movie</div></div>
+            <div class="it on"><span>Add to Anki</span><kbd>A</kbd></div>
+            <div class="it"><span>Save to review</span><kbd>S</kbd></div>
+            <div class="it"><span>Replay line</span><kbd>R</kbd></div>
+            <div class="it"><span>I know this</span><kbd>K</kbd></div>
+          </div>
+          <div class="line"><ruby>今日<rt>きょう</rt></ruby>は<span class="saved"><ruby>友達<rt>ともだち</rt></ruby></span>と<span class="sel"><ruby>映画<rt>えいが</rt></ruby></span>を<ruby>見<rt>み</rt></ruby>ました。</div>
+          <div class="en">I watched a movie with a friend today.</div>
+        </div>
+        <div class="bar"><div>Prev</div><div>Replay</div><div>Next</div><div class="on">Pause after each line</div><div>1×</div></div>
+      </div>
+      <div class="side">
+        <h3><span>Transcript</span><span>312</span></h3>
+        <div class="row cur"><i>0:01</i>今日は友達と映画を見ました。</div>
+        <div class="row"><i>0:04</i>とても面白かったです。</div>
+        <div class="row"><i>0:08</i>昨日は何も食べなかった。</div>
+        <div class="row"><i>0:11</i>駅の近くに新しい喫茶店ができました。</div>
+        <div class="row"><i>0:15</i>日本語を毎日勉強しています。</div>
+        <div class="rev"><strong>20</strong>to review today · capped, the other 44 can wait</div>
+      </div>
+    </div>
+    <p class="notes">Near-white app, black player, one indigo accent, a word card that works like a command menu with keyboard keys. Fastest to use; the least "Japanese" in feel.</p>
+  </section>
+</body>
+</html>

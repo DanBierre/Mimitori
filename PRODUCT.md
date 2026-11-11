@@ -28,7 +28,9 @@ Pasted or imported Japanese text is tokenized locally (kuromoji.js, dictionary i
 
 ## Brand Commitments
 Name: **Mimitori** (耳取り, "catching it by ear"; a play on 聞き取り). Chosen by Dan on 11 November 2026, replacing the placeholder "Nihongo Reader". Domain: **mimitori.com** (registered on Cloudflare, 11 November 2026). No logo or voice commitments exist yet.
-- Look: minimal, like a regular subtitle reader (Netflix/YouTube player, Language Reactor), with learning tools tucked in. Chosen by Dan on 10 November 2026 over themed directions; no decorative themes.
+- Look: "Quiet precision, personal" (chosen by Dan on 11 November 2026, replacing the 10 November player look he found plain). Sleek and near-bare like Linear or Things; the learner's own progress is the only decoration; the learner picks their accent ink. No decorative themes.
+- Dan's signature design philosophy (shared across his apps; each app keeps its own visual identity): calm, nothing shouts; hierarchy from size and spacing, not bold, boxes or colour blocks; hairlines, not cards; shadow only on things that float; one accent used sparingly; hand-made, imperfect marks for progress; lots of space; light and dark by device.
+- Entirely separate from Dan's Shoji app: no warm cream paper, no Murecho, no vertical side labels, no vermilion, no ensō or seals, no capsule ink-well controls.
 - Follows the device light/dark setting; Watch always sits on a dark stage.
 
 ## Evidence on Hand
