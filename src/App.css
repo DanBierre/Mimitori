@@ -2841,11 +2841,40 @@ rt.rt--known {
 }
 
 .book__count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
   min-width: 68px;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   text-align: center;
   color: var(--text-2);
+}
+
+/* The page number is a small box you can type into to jump. */
+.book__jump {
+  width: 4.5ch;
+  padding: 2px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.book__jump::-webkit-inner-spin-button,
+.book__jump::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.book__jump:focus {
+  outline: none;
+  border-bottom-color: var(--ink-strong);
 }
 
 .book__body {
@@ -2859,6 +2888,57 @@ rt.rt--known {
   justify-content: center;
   min-height: 240px;
   overflow: auto;
+}
+
+.book__page > :not(.book__turn) {
+  min-width: 0;
+}
+
+/* Big page-turn buttons at the outer edges of the page area. */
+.book__turn {
+  flex: none;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.book__turn--left {
+  order: -1;
+  margin-right: auto;
+}
+
+.book__turn--right {
+  order: 1;
+  margin-left: auto;
+}
+
+.book__turn:hover:not(:disabled) {
+  background: var(--tint-hover);
+  color: var(--text);
+}
+
+.book__turn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+@media (max-width: 719px) {
+  .book__turn {
+    width: 36px;
+  }
+}
+
+/* The last page stays on screen, dimmed, while the next one loads. */
+.page--stale .page__canvas {
+  opacity: 0.5;
 }
 
 .book__fail {
@@ -3260,4 +3340,27 @@ rt.rt--known {
   min-height: 32px;
   padding: 0 8px;
   font-size: 13px;
+}
+
+/* Wording and buttons that only make sense with a mouse (drag and drop, folders) or only on touch. */
+.only-touch {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .only-fine {
+    display: none;
+  }
+
+  .only-touch {
+    display: inline;
+  }
+}
+
+.recents__note {
+  margin: 0 0 10px;
+  padding: 0 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-3);
 }

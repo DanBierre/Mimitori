@@ -209,7 +209,7 @@ export default function ReadView({ onOpenSettings }) {
       <section className="sheet read__sheet" aria-label="Reading sheet">
         {!tokens ? (
           <div className="read__compose">
-            <h1 className="read__head">Read real Japanese.</h1>
+            <h2 className="read__head">Read real Japanese.</h2>
             <p className="read__lede" id="paste-hint">
               Paste anything you’re reading, then tap a word for its reading and meaning.
             </p>
@@ -261,14 +261,18 @@ export default function ReadView({ onOpenSettings }) {
               </span>
               <div className="read__book-text">
                 <p className="read__book-title">Manga or a PDF?</p>
-                <p className="read__book-hint">Drop a CBZ, PDF or folder of pages here. Box a speech bubble to read it.</p>
+                <p className="read__book-hint">
+                  <span className="only-fine">Drop a CBZ, PDF or folder of pages here. </span>
+                  <span className="only-touch">Open a CBZ or PDF. </span>
+                  Box a speech bubble to read it. Nothing leaves your device.
+                </p>
               </div>
               <div className="read__book-actions">
                 <button className="btn" onClick={() => fileInput.current.click()} disabled={opening}>
                   {opening ? "Opening…" : "Choose a file"}
                 </button>
-                <button className="btn" onClick={() => folderInput.current.click()} disabled={opening}>
-                  Folder
+                <button className="btn only-fine" onClick={() => folderInput.current.click()} disabled={opening}>
+                  Folder of pages
                 </button>
               </div>
               <input ref={fileInput} type="file" hidden multiple accept=".pdf,.cbz,.zip,image/*" onChange={onPicked} />
@@ -285,6 +289,7 @@ export default function ReadView({ onOpenSettings }) {
                 <h2 id="book-recents" className="recents__title">
                   Carry on reading
                 </h2>
+                <p className="recents__note">Mimitori never keeps a copy of your files, so pick the same one again to carry on.</p>
                 <ul className="recents__list">
                   {recents.map((r) => (
                     <li key={r.key} className="recents__row">

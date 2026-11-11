@@ -6,7 +6,7 @@ const boxStyle = ([x0, y0, x1, y1]) => ({ left: pct(x0), top: pct(y0), width: pc
 
 // One page, drawn on a canvas, with the boxed lines outlined over it. While `boxing`, dragging draws a new box
 // and onBox(box) gets it (fractions of the page, never a stray click). `float` sits beside the current box.
-export default function PageCanvas({ page, lines, currentId, boxing, fit, pending, floatBox, onBox, onPick, float }) {
+export default function PageCanvas({ page, label, stale, lines, currentId, boxing, fit, pending, floatBox, onBox, onPick, float }) {
   const canvasRef = useRef(null);
   const layerRef = useRef(null);
   const [drag, setDrag] = useState(null); // { a, b } while the pointer is down, as { x, y } fractions
@@ -24,7 +24,7 @@ export default function PageCanvas({ page, lines, currentId, boxing, fit, pendin
     return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
   };
   const down = (e) => {
-    if (!boxing || e.button !== 0) return;
+    if (!boxing || stale || e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     const p = at(e);
     setDrag({ a: p, b: p });
@@ -44,9 +44,9 @@ export default function PageCanvas({ page, lines, currentId, boxing, fit, pendin
   const live = drag && normBox(drag.a, drag.b);
 
   return (
-    <div className={`page page--${fit}`} data-boxing={boxing || undefined}>
+    <div className={`page page--${fit}${stale ? " page--stale" : ""}`} data-boxing={boxing || undefined}>
       <div className="page__stage">
-        <canvas ref={canvasRef} className="page__canvas" aria-label="Page" />
+        <canvas ref={canvasRef} className="page__canvas" role="img" aria-label={label} />
         <div
           ref={layerRef}
           className="page__layer"
@@ -72,6 +72,8 @@ export default function PageCanvas({ page, lines, currentId, boxing, fit, pendin
           {float && anchor && (
             <div
               className="page__float"
+              role="status"
+              aria-live="polite"
               onPointerDown={(e) => e.stopPropagation()}
               style={{ top: pct(anchor[1]), ...(side ? { right: `calc(${pct(1 - anchor[0])} + 10px)` } : { left: `calc(${pct(anchor[2])} + 10px)` }) }}
             >

@@ -15,6 +15,7 @@ import TokenLine from "./TokenLine";
 import WordPanel from "./WordPanel";
 import PageCanvas from "./PageCanvas";
 import PageLines from "./PageLines";
+import Icon from "./Icon";
 
 const SLOW_MS = 10000;
 const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
@@ -38,7 +39,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
   const [pageData, setPageData] = useState(null);
   const [pageError, setPageError] = useState(false);
   const [retry, setRetry] = useState(0);
-  const [boxing, setBoxing] = useState(false);
+  const [boxing, setBoxing] = useState(true); // on from the start: dragging over a bubble is the point of the viewer
   const [currentId, setCurrentId] = useState(null);
   const [float, setFloat] = useState(null); // null | { phase: "wait" | "reading" | "line" | "empty" | "error", box, ... }
   const [editing, setEditing] = useState(null); // { id, text } while Fix text is open
@@ -87,11 +88,10 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
   useEffect(() => {
     if (!rec) return;
     let live = true;
-    setPageData(null);
     setPageError(false);
     book
       .getPage(page)
-      .then((p) => live && setPageData(p))
+      .then((p) => live && setPageData({ ...p, n: page }))
       .catch(() => live && setPageError(true));
     return () => {
       live = false;
@@ -137,7 +137,11 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
   }, [selLine?.id, pageData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function go(delta) {
-    const next = Math.min(Math.max(1, page + delta), book.pageCount);
+    goTo(page + delta);
+  }
+
+  function goTo(n) {
+    const next = Math.min(Math.max(1, Math.round(n) || 1), book.pageCount);
     if (next === page) return;
     waiting.current = null;
     activeBox.current = null;
@@ -189,7 +193,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
   async function onBox(box) {
     const boxedPage = page; // the page the box was drawn on, whatever page is showing when the answer comes back
     const src = pageData;
-    if (!src) return;
+    if (!src || src.n !== boxedPage) return; // the next page is still loading
     activeBox.current = box;
     boxedPageRef.current = boxedPage;
     setCurrentId(null);
@@ -227,6 +231,8 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
       if (t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
       if (e.key === "ArrowLeft") go(rtl ? 1 : -1);
       else if (e.key === "ArrowRight") go(rtl ? -1 : 1);
+      else if (e.key === "Home") goTo(1);
+      else if (e.key === "End") goTo(book.pageCount);
       else if (e.key === "b" || e.key === "B") setBoxing((b) => !b);
       else if (e.key === "Escape") {
         waiting.current = null;
@@ -238,6 +244,19 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
+
+  // The browser's Back button closes the book, like leaving any other page.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    // One history entry per open book (StrictMode mounts twice; the second mount finds it already there).
+    if (!history.state?.mimitoriBook) history.pushState({ mimitoriBook: true }, "");
+    const onPop = () => closeRef.current();
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  // Close steps back over that entry, so Back afterwards leaves Read as usual.
+  const close = () => (history.state?.mimitoriBook ? history.back() : onClose());
 
   const pick = (id) => {
     const l = lines.find((x) => x.id === id);
@@ -283,7 +302,8 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
       floatNode = ocr.status === "needs-ok" ? (
         <>
           <p className="book__float-note">
-            Reading bubbles needs a one-off download, about {OCR_SIZE_MB} MB. It then works offline.
+            {book.kind === "pdf" ? "This page is a picture, not text, so reading it" : "Reading bubbles"} needs a one-off
+            download, about {OCR_SIZE_MB} MB. It then works offline.
           </p>
           <button className="btn btn--primary" onClick={ocr.allowDownload}>
             Download
@@ -427,8 +447,13 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
           {book.title}
         </h2>
         <div className="book__tools">
-          <button className="btn btn--quiet" aria-pressed={boxing} onClick={() => setBoxing((b) => !b)}>
-            Box a line <kbd>B</kbd>
+          <button
+            className="btn btn--quiet book__boxing"
+            aria-pressed={boxing}
+            title="Drag over a speech bubble to read it (B)"
+            onClick={() => setBoxing((b) => !b)}
+          >
+            {boxing ? "Boxing on" : "Box a line"} <kbd>B</kbd>
           </button>
           <div className="segmented" role="group" aria-label="Reading direction">
             <button className="segmented__btn" aria-pressed={rtl} onClick={() => update((r) => ({ ...r, rtl: true }))}>
@@ -452,14 +477,27 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
             <button className="icon-btn" aria-label="Previous page" onClick={() => go(-1)} disabled={page <= 1}>
               {backward}
             </button>
-            <span className="book__count">
-              {page} / {book.pageCount}
-            </span>
+            <label className="book__count">
+              <span className="sr-only">Page</span>
+              <input
+                key={page}
+                className="book__jump"
+                type="number"
+                inputMode="numeric"
+                min="1"
+                max={book.pageCount}
+                defaultValue={page}
+                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                onBlur={(e) => goTo(Number(e.currentTarget.value))}
+              />
+              <span aria-hidden="true">/ {book.pageCount}</span>
+              <span className="sr-only">of {book.pageCount}</span>
+            </label>
             <button className="icon-btn" aria-label="Next page" onClick={() => go(1)} disabled={page >= book.pageCount}>
               {forward}
             </button>
           </div>
-          <button className="btn btn--quiet" onClick={onClose}>
+          <button className="btn btn--quiet" onClick={close}>
             Close
           </button>
         </div>
@@ -467,6 +505,22 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
 
       <div className="book__body">
         <div className="book__page">
+          <button
+            className={`book__turn book__turn--${rtl ? "right" : "left"}`}
+            aria-label="Previous page"
+            onClick={() => go(-1)}
+            disabled={page <= 1}
+          >
+            <Icon name={rtl ? "next" : "prev"} size={28} />
+          </button>
+          <button
+            className={`book__turn book__turn--${rtl ? "left" : "right"}`}
+            aria-label="Next page"
+            onClick={() => go(1)}
+            disabled={page >= book.pageCount}
+          >
+            <Icon name={rtl ? "prev" : "next"} size={28} />
+          </button>
           {pageError ? (
             <div className="book__fail">
               <p>This page didn't load.</p>
@@ -478,6 +532,8 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
             <p className="note">Loading page…</p>
           ) : (
             <PageCanvas
+              label={`Page ${page} of ${book.pageCount}`}
+              stale={pageData.n !== page}
               page={pageData}
               lines={lines}
               currentId={currentId}

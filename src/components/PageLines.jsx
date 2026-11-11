@@ -5,7 +5,7 @@ import { useStore } from "../lib/store";
 export default function PageLines({ lines, tokensById, currentId, selected, onSelect, onPick }) {
   const { state } = useStore();
   if (!lines.length) {
-    return <p className="note book__empty">No lines yet. Press B and drag over a bubble.</p>;
+    return <p className="note book__empty">No lines yet. Drag a box over a speech bubble to read it.</p>;
   }
   return (
     <ol className="book__lines" lang="ja" style={{ "--read-size": `${Math.min(state.settings.size, 26)}px` }}>
