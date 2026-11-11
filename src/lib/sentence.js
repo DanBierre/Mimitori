@@ -13,3 +13,9 @@ export function sentenceAround(tokens, i) {
   const { start, end } = sentenceSpan(tokens, i);
   return tokens.slice(start, end + 1).map((t) => t.surface).join("").trim();
 }
+
+// What the word card needs to build an Anki sentence: the sentence, its tokens, and where the tapped word sits in them.
+export function sentenceContext(tokens, i) {
+  const { start, end } = sentenceSpan(tokens, i);
+  return { sentence: sentenceAround(tokens, i), tokens: tokens.slice(start, end + 1), tokenIndex: i - start };
+}

@@ -10,10 +10,11 @@ const hasOk = () => {
   }
 };
 
-// status: "needs-ok" | "downloading" | "ready" | "error" ("idle" before the hook has decided).
+// status: "idle" (not asked for yet) | "needs-ok" | "downloading" | "ready" | "error".
+// load() starts the worker when the learner already said OK; otherwise the status stays "needs-ok".
 // read(bitmap) -> Promise<string>; rejects with an Error whose .code is the worker's error code.
 export function useOcr() {
-  const [status, setStatus] = useState(() => (hasOk() ? "downloading" : "needs-ok"));
+  const [status, setStatus] = useState(() => (hasOk() ? "idle" : "needs-ok"));
   const [modelPct, setModelPct] = useState(0);
   const [device, setDevice] = useState(null);
   const [error, setError] = useState(null);
@@ -23,10 +24,13 @@ export function useOcr() {
   const started = useRef(false);
 
   const start = useCallback(() => {
-    if (started.current) return;
-    started.current = true;
     setError(null);
     setStatus("downloading");
+    if (started.current) {
+      worker.current?.postMessage({ type: "load" }); // a retry: the worker starts the model download again
+      return;
+    }
+    started.current = true;
     const w = new Worker(new URL("./ocr.worker.js", import.meta.url), { type: "module" });
     worker.current = w;
     w.onmessage = (e) => {
@@ -56,8 +60,11 @@ export function useOcr() {
     w.postMessage({ type: "load" });
   }, []);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (hasOk()) start();
+  }, [start]);
+
+  useEffect(() => {
     return () => {
       worker.current?.terminate();
       worker.current = null;
@@ -65,7 +72,7 @@ export function useOcr() {
       for (const j of jobs.current.values()) j.reject(Object.assign(new Error("closed"), { code: "unknown" }));
       jobs.current.clear();
     };
-  }, [start]);
+  }, []);
 
   const allowDownload = useCallback(() => {
     try {
@@ -90,5 +97,5 @@ export function useOcr() {
     [],
   );
 
-  return { status, modelPct, device, error, allowDownload, read };
+  return { status, modelPct, device, error, load, allowDownload, read };
 }
