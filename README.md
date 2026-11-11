@@ -86,6 +86,8 @@ Issues and pull requests are welcome. Keep changes small and focused, run `npm t
 - Spaced repetition by **ts-fsrs** (MIT).
 - **transformers.js** by Hugging Face (Apache-2.0) and **ONNX Runtime Web** (MIT) run the speech model in your browser.
 - **Mediabunny** (MPL-2.0, used unmodified) reads the audio from your video.
+- **pdf.js** by Mozilla (Apache-2.0) reads PDFs in the Read tab.
+- **manga-ocr** by kha-white (Apache-2.0) reads speech bubbles. It runs as the ONNX export [kimchireader/manga-ocr-onnx-q8](https://huggingface.co/kimchireader/manga-ocr-onnx-q8) (Apache-2.0), downloaded from Hugging Face when you first read an image page, not bundled.
 - **Whisper large-v3 turbo** by OpenAI (MIT) makes the subtitles. It's downloaded from Hugging Face when you use it, not bundled.
 - The ear in the logo is based on the ear icon from **Tabler Icons** (MIT). Logo sources and the script that renders the icons live in `brand/`.
 

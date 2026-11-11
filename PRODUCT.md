@@ -20,11 +20,12 @@ Pasted or imported Japanese text is tokenized locally (kuromoji.js, dictionary i
 - Free and open source (MIT). No pricing, no accounts.
 - Existing: local furigana, offline JMdict word lookup, FSRS review, saved and known words, level-adaptive furigana, CSV export (phone Anki export not available right now), optional DeepL sentence translation.
 - Watch: play the learner's own video with their own subtitle files (.srt, .vtt, .ass), with furigana, tap-for-meaning, line replay, pause after each line, speed, transcript and timing fixes. Files never leave the device.
+- Read manga and PDFs (desktop first): open a CBZ, an image folder or a PDF in Read, box a speech bubble and get the line with furigana and tap-for-meaning. Text PDFs read their own text; image pages are read by an OCR model that downloads once (about 117 MB) and runs in the browser. Anki cards from a book get the bubble as the picture and "title, p. N" as the source. Files never leave the device.
 - Anki auto-cards (desktop): send a word, sentence, second subtitle line, screenshot and audio clip to Anki via AnkiConnect, learning the learner's note layout. Cards queue when Anki is closed; words already in the chosen deck count as known.
 - Local-first: words, SRS state and known-words live on device. No accounts or sync in v1; UI should leave room for sign-in/sync later.
 - JMdict is CC-BY-SA: attribution required in-app. Do not copy WaniKani content.
 - DeepL free tier is limited; translation must be cached and later rate-limited per account. Translation is optional: the public build ships without a worker URL.
-- Later: graded content library, OCR/camera, Android Anki plugin, kanji info, name dictionary, Yomitan dictionary import.
+- Later: graded content library, camera OCR, mokuro import, automatic bubble finding, Android Anki plugin, kanji info, name dictionary, Yomitan dictionary import.
 
 ## Brand Commitments
 Name: **Mimitori** (耳取り, "catching it by ear"; a play on 聞き取り). Chosen by Dan on 11 November 2026, replacing the placeholder "Nihongo Reader". Domain: **mimitori.com** (registered on Cloudflare, 11 November 2026). No logo or voice commitments exist yet.

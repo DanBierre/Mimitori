@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furigana";
 import { translateText, translationEnabled } from "../lib/translate";
 import { useStore } from "../lib/store";
@@ -8,12 +8,11 @@ import { conjugationParts } from "../lib/conjugation";
 import { canSpeak, speak } from "../lib/speak";
 import WordPanel from "./WordPanel";
 import { sentenceAround, sentenceContext } from "../lib/sentence";
-import { openBook } from "../lib/book/open";
-import { cropPicture } from "../lib/book/crop";
 import { loadBookRecents, saveBookRecents, coverKey } from "../lib/book/recents";
 import { upsertRecent, droppedKeys } from "../lib/recents";
 import { putImage, getImageUrl, deleteImage } from "../lib/images";
-import BookView from "./BookView";
+// The viewer, pdf.js and the book code load only when a book opens.
+const BookView = lazy(() => import("./BookView"));
 
 const SAMPLE =
   "今日は友達と一緒に日本語を勉強します。難しい漢字がたくさんありますが、毎日少しずつ読むと、だんだん分かるようになります。";
@@ -81,11 +80,13 @@ export default function ReadView({ onOpenSettings }) {
     setOpening(true);
     setBookError("");
     try {
+      const { openBook } = await import("../lib/book/open");
       const next = await openBook(files);
       const first = !recentsRef.current.some((r) => r.key === next.key);
       setBook(next);
       if (first) {
         // a small cover from page 1; a failure just leaves the row without one
+        const { cropPicture } = await import("../lib/book/crop");
         next
           .getPage(1)
           .then((p) => cropPicture(p.source, p.width, p.height, [0, 0, 1, 1], 192))
@@ -157,7 +158,11 @@ export default function ReadView({ onOpenSettings }) {
   const panelOpen = Boolean(selectedToken);
 
   if (book) {
-    return <BookView book={book} onClose={closeBook} onOpenSettings={onOpenSettings} onPage={savePage} />;
+    return (
+      <Suspense fallback={<p className="note">Opening…</p>}>
+        <BookView book={book} onClose={closeBook} onOpenSettings={onOpenSettings} onPage={savePage} />
+      </Suspense>
+    );
   }
 
   return (
