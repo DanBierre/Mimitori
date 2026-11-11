@@ -10,7 +10,9 @@ import {
   pickPrimary,
 } from "../lib/subtitles/cues";
 import { writeSrt } from "../lib/subtitles/write";
-import { useStore } from "../lib/store";
+import { ankiMode, useDueWords, useStore } from "../lib/store";
+import { addedThisWeek, greeting } from "../lib/greeting";
+import Ticks from "./Ticks";
 import TokenLine from "./TokenLine";
 import WordPanel from "./WordPanel";
 import WatchDrop from "./WatchDrop";
@@ -404,11 +406,32 @@ export default function WatchView({ active, onOpenSettings }) {
     setAnchorX(Math.min(Math.max(w.left + w.width / 2 - b.left, half), Math.max(half, b.width - half)));
   }, [selection, current]);
 
-  // Not-yet-known words per line, for the transcript.
-  const newCounts = useMemo(
-    () => tokens.map((line) => (line ? line.filter((t) => t.isWord && wordState(state, t.base) !== "known").length : 0)),
-    [tokens, state]
-  );
+  // Not-yet-known words per line (transcript dots, tick heights), plus how much
+  // of the episode is already known and how many different new words it holds.
+  const { newCounts, coverage, newWords } = useMemo(() => {
+    let all = 0;
+    let known = 0;
+    const fresh = new Set();
+    const counts = tokens.map((line) => {
+      let n = 0;
+      for (const t of line || []) {
+        if (!t.isWord) continue;
+        all++;
+        if (wordState(state, t.base) === "known") known++;
+        else {
+          n++;
+          fresh.add(t.base);
+        }
+      }
+      return n;
+    });
+    return { newCounts: counts, coverage: all ? Math.round((known / all) * 100) : null, newWords: fresh.size };
+  }, [tokens, state]);
+
+  const due = useDueWords();
+  const knownCount = new Set([...Object.keys(state.known), ...Object.keys(state.anki.known)]).size;
+  const week = addedThisWeek(state);
+  const showReview = !ankiMode(state);
 
   const ready = Boolean(video && primary);
   const busy = t.status === "loading-model" || t.status === "running";
@@ -458,7 +481,19 @@ export default function WatchView({ active, onOpenSettings }) {
         />
       )}
 
+      {!focus && (
+        <header className="watch__top">
+          <p className="watch__hello" lang="ja">
+            {greeting(new Date(), state.settings.name)}
+          </p>
+          <p className="watch__progress">
+            {knownCount} words known · {week} this week
+          </p>
+        </header>
+      )}
+
       {video && (
+        <div className="watch__main">
         <section className="watch__stage" aria-label="Player">
           {!focus && (
             <button className="watch__close" onMouseDown={noFocus} onClick={closeVideo}>
@@ -479,6 +514,8 @@ export default function WatchView({ active, onOpenSettings }) {
               onError={() => setVideoError(true)}
             />
           </div>
+
+          {ready && <Ticks counts={newCounts} total={primary.cues.length} current={current} onSeek={seekToCue} />}
 
           {primary && (
             <div className="watch__lines" ref={linesRef} style={{ "--read-size": `${size}px` }}>
@@ -573,6 +610,27 @@ export default function WatchView({ active, onOpenSettings }) {
             </div>
           )}
 
+        </section>
+
+        {ready && !focus && (
+          <p className="watch__meta">
+            {coverage !== null && readings === "ready" && (
+              <span className="watch__cov">
+                You know {coverage}% of this episode
+                <span className="watch__bar" role="img" aria-label={`${coverage} percent known`}>
+                  <b style={{ width: `${coverage}%` }} />
+                </span>
+              </span>
+            )}
+            {coverage !== null && readings === "ready" && (
+              <span>
+                {newWords} new {newWords === 1 ? "word" : "words"}
+              </span>
+            )}
+            {primary.auto && <span className="watch__draft">Subtitles made by Mimitori · draft</span>}
+          </p>
+        )}
+
           <div className="watch__notes">
               {videoError && (
                 <p className="note note--error" role="alert">
@@ -612,7 +670,7 @@ export default function WatchView({ active, onOpenSettings }) {
               {sample === "on" && <p className="note">{SAMPLE.credit}</p>}
               {ready && <WatchDrop compact onFiles={pickFiles} />}
           </div>
-        </section>
+        </div>
       )}
 
       {ready && (
@@ -630,6 +688,12 @@ export default function WatchView({ active, onOpenSettings }) {
             edited={t.record.edited}
             onEdit={t.editLine}
           />
+          <div className="watch__foot">
+            {showReview && (
+              <p>{due.length > 0 ? `${due.length} to review today.` : "Nothing to review today."}</p>
+            )}
+            <p>No account. Everything stays on this computer.</p>
+          </div>
         </aside>
       )}
     </div>

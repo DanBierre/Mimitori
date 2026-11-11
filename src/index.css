@@ -1,29 +1,41 @@
 /* Tokens. Light by default, dark when the device asks; the Watch stage is
-   always dark (--stage-*). One accent (blue) for actions and saved words,
-   amber for words due. */
+   always dark (--stage-*). One accent, "your ink", chosen in Settings: the
+   store sets --ink-l (light page) and --ink-d (dark page / stage) on the root.
+   Amber stays the signal for words due. --accent* are aliases of the ink so
+   screens not yet restyled follow the learner's choice. */
 :root {
-  --bg: #fafafa;
+  --ink-l: #5560d8;
+  --ink-d: #8b8bff;
+  --ink-page: var(--ink-l);
+  --ink: var(--ink-page);
+  /* Darkened a touch so ink text and filled buttons reach 4.5:1 for every ink. */
+  --ink-strong: color-mix(in srgb, var(--ink) 86%, #000);
+  --ink-soft: color-mix(in srgb, var(--ink) 9%, var(--surface));
+
+  --bg: #fbfbfa;
   --surface: #ffffff;
-  --surface-2: #f4f4f5;
-  --surface-3: #e9e9ec;
-  --line: #e4e4e7;
-  --text: #18181b;
-  --text-2: #5f5f68;
-  --accent: #2563eb;
-  --accent-hover: #1d4fd7;
-  --accent-soft: #e8efff;
+  --surface-2: #f4f4f2;
+  --surface-3: #e7e7ea;
+  --line: #ececef;
+  --line-strong: #cfcfd6;
+  --text: #111114;
+  --text-2: #5c5c65;
+  --text-3: #70707a;
+  --accent: var(--ink-strong);
+  --accent-hover: color-mix(in srgb, var(--ink-strong) 88%, #000);
+  --accent-soft: var(--ink-soft);
   --accent-ink: #ffffff;
   --due: #c26a06;
   --danger: #c4321e;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px -12px rgb(0 0 0 / 0.18);
-  --shadow-pop: 0 2px 6px rgb(0 0 0 / 0.08), 0 18px 40px -14px rgb(0 0 0 / 0.35);
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / 0.1), 0 22px 44px -18px rgb(0 0 0 / 0.5);
 
-  --stage: #000000;
-  --stage-2: #141416;
-  --stage-3: #222226;
+  --stage: #0e0e10;
+  --stage-2: #17171a;
+  --stage-3: #26262b;
   --stage-line: #26262b;
   --stage-text: #ffffff;
-  --stage-text-2: #b4b4bb;
+  --stage-text-2: #a8a8b2;
 
   --font: "Noto Sans JP", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
   --radius: 10px;
@@ -33,24 +45,36 @@
   color-scheme: light;
 }
 
+/* Amber ink would look like due amber, so due turns rose for that learner. */
+:root[data-ink="amber"] {
+  --due: #be185d;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0e0e10;
-    --surface: #17171a;
-    --surface-2: #1f1f23;
+    --ink-page: var(--ink-d);
+    --ink-strong: var(--ink);
+    --bg: #0b0b0d;
+    --surface: #141417;
+    --surface-2: #1c1c20;
     --surface-3: #2a2a2f;
-    --line: #2a2a2f;
+    --line: #232328;
+    --line-strong: #3a3a41;
     --text: #ededef;
     --text-2: #a1a1aa;
-    --accent: #6b9bff;
-    --accent-hover: #8ab0ff;
-    --accent-soft: #1b2741;
-    --accent-ink: #0b1220;
+    --text-3: #85858f;
+    --accent-hover: color-mix(in srgb, var(--ink) 85%, #fff);
+    --accent-ink: #0b0b10;
     --due: #fbbf24;
     --danger: #ff7a66;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
     --shadow-pop: 0 2px 6px rgb(0 0 0 / 0.4), 0 18px 40px -14px rgb(0 0 0 / 0.8);
+    --stage: #101013;
     color-scheme: dark;
+  }
+
+  :root[data-ink="amber"] {
+    --due: #f472b6;
   }
 }
 
@@ -71,6 +95,7 @@ body {
   font-family: var(--font);
   font-size: 16px;
   line-height: 1.55;
+  font-feature-settings: "palt";
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
@@ -81,6 +106,14 @@ textarea,
 select {
   font: inherit;
   color: inherit;
+}
+
+h1,
+h2,
+h3,
+strong,
+b {
+  font-weight: 500;
 }
 
 h1,
@@ -112,15 +145,11 @@ kbd {
   display: inline-block;
   min-width: 1.6em;
   padding: 0 5px;
-  border: 1px solid var(--line);
-  border-bottom-width: 2px;
-  border-radius: 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
   font-family: var(--font);
   font-size: 12px;
   line-height: 1.5;
-  text-align: center;
-  color: var(--text-2);
-  background: var(--surface);
 }
 
 .sr-only {

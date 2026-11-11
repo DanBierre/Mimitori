@@ -8,13 +8,15 @@ export default function TokenLine({ tokens, selected, onSelect }) {
 
   return tokens.map((token, i) => {
     const mark = token.isWord ? wordState(state, token.base) : "plain";
-    const showRuby = token.reading && furigana !== "off" && !(furigana === "unknown" && mark === "known");
+    const showRuby = token.reading && furigana !== "off";
+    // Known words keep their reading in the DOM but fade it out, so marking a word known is visible.
+    const fade = furigana === "unknown" && mark === "known" ? "rt--known" : undefined;
     const inner = showRuby
       ? token.segments.map((seg, j) =>
           seg.ruby ? (
             <ruby key={j}>
               {seg.text}
-              <rt>{seg.ruby}</rt>
+              <rt className={fade}>{seg.ruby}</rt>
             </ruby>
           ) : (
             seg.text

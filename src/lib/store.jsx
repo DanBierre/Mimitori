@@ -3,10 +3,11 @@
 // reading settings. Everything lives in localStorage on the device; sync and
 // accounts are a later layer.
 
-import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useReducer } from "react";
 import { becameKnown, gradeCard, isDue, newCard } from "./srs";
 import { deleteImage } from "./images";
 import { loadCommon } from "./common";
+import { applyInk } from "./ink";
 export { ankiMode, wordState } from "./anki/settingsLogic";
 
 // Old app name kept on purpose: renaming the key would wipe saved words and settings.
@@ -14,12 +15,14 @@ const STORAGE_KEY = "nihongo-reader:v1";
 
 const DEFAULT_STATE = {
   words: {}, // keyed by dictionary form
-  known: {}, // dictionary form -> true
+  known: {}, // dictionary form -> time marked (true on older data)
   // furigana: all | unknown | off
   settings: {
     furigana: "unknown",
     size: 26,
     commonKnown: true, // treat very common words as known
+    ink: "indigo", // the learner's accent colour
+    name: "", // optional, for the Watch greeting
     watch: { autoPause: false, speed: 1, showSecondLine: true },
     anki: { enabled: false, deck: "", model: "", mapping: {}, fieldList: [], readDecks: [], tagKnown: false },
   },
@@ -77,7 +80,7 @@ function reducer(state, action) {
     case "know": {
       const words = { ...state.words };
       delete words[action.base];
-      return { ...state, words, known: { ...state.known, [action.base]: true } };
+      return { ...state, words, known: { ...state.known, [action.base]: Date.now() } };
     }
     case "unknow": {
       const known = { ...state.known };
@@ -89,7 +92,7 @@ function reducer(state, action) {
       if (!word) return state;
       const card = gradeCard(word.card, action.rating);
       const next = { ...state, words: { ...state.words, [action.base]: { ...word, card } } };
-      if (becameKnown(card)) next.known = { ...state.known, [action.base]: true };
+      if (becameKnown(card)) next.known = { ...state.known, [action.base]: Date.now() };
       return next;
     }
     case "settings":
@@ -117,6 +120,7 @@ export function StoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, undefined, load);
 
   useEffect(() => persist(state), [state]);
+  useLayoutEffect(() => applyInk(state.settings.ink), [state.settings.ink]);
   useEffect(() => {
     loadCommon().then(() => dispatch({ type: "commonReady" }));
   }, []);

@@ -20,6 +20,15 @@ const ADD_STATUS = {
   changed: "Your note type changed. Check the field matching.",
 };
 
+// A shortcut hint. The key itself is wired up in WordPanel: it clicks the visible
+// button that carries the matching data-key.
+const hot = (k) => ({ "data-key": k, "aria-keyshortcuts": k.toUpperCase() });
+const Key = ({ k }) => (
+  <kbd className="word-panel__key" aria-hidden="true">
+    {k.toUpperCase()}
+  </kbd>
+);
+
 // In Anki mode, ankiContext = { sentence, tokens, tokenIndex, translation?, fileName?,
 // timeMs?, video?, cue?, offsetMs? } and the main button adds a card to Anki.
 export default function WordPanel({ token, sentence, grammar = [], ankiContext, onSaved, onClose, onOpenSettings }) {
@@ -30,6 +39,9 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
   const current = useRef(token.base); // ignore late updates from a word we moved off
   current.current = token.base;
   const addToAnki = ankiMode(state) && Boolean(ankiContext);
+  const rootRef = useRef(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   const [entry, setEntry] = useState({ status: "loading", data: null });
 
   useEffect(() => {
@@ -42,6 +54,25 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
       cancelled = true;
     };
   }, [token.base, token.surface, token.reading]);
+
+  // A, S and K act on the card; Esc closes it. Not while typing, and not
+  // while the card sits on a tab that isn't showing.
+  useEffect(() => {
+    const onKey = (e) => {
+      const t = e.target;
+      if (e.ctrlKey || e.metaKey || e.altKey || t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName)) return;
+      const root = rootRef.current;
+      if (!root || !root.getClientRects().length) return;
+      if (e.key === "Escape") return closeRef.current();
+      const btn = root.querySelector(`[data-key="${e.key.toLowerCase()}"]:not(:disabled)`);
+      if (btn) {
+        e.preventDefault();
+        btn.click();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const [sure, setSure] = useState(false); // very-common notice acknowledged
   useEffect(() => {
@@ -102,14 +133,18 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
     add === "queued" ? `Waiting for Anki (${waiting})` : typeof add === "object" && add ? add.error : ADD_STATUS[add];
 
   return (
-    <aside className="word-panel" aria-label={`Word: ${token.base}`}>
+    <aside className="word-panel" ref={rootRef} aria-label={`Word: ${token.base}`}>
       <button className="word-panel__close icon-btn" onClick={onClose} aria-label="Close word card">
         <Icon name="close" size={18} />
       </button>
 
       <div className="word-panel__head">
         <span className={`word-panel__term mk mk--${mark}`}>{token.base}</span>
-        {reading && <span className="word-panel__reading">{reading}</span>}
+        {(reading || entry.data?.pos.length > 0) && (
+          <span className="word-panel__reading">
+            {[reading, entry.data?.pos.join(", ")].filter(Boolean).join(" · ")}
+          </span>
+        )}
         {token.base !== token.surface && (
           <span className="word-panel__form">as written: {token.surface}</span>
         )}
@@ -132,7 +167,6 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
 
       {entry.status === "ready" && (
         <div className="word-panel__body">
-          {entry.data.pos.length > 0 && <p className="word-panel__pos">{entry.data.pos.join(" · ")}</p>}
           <ol className="word-panel__glosses">
             {entry.data.glosses.map((g, i) => (
               <li key={i}>{g}</li>
@@ -170,8 +204,9 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
         {mark === "inAnki" && (
           <>
             {!add && <p className="word-panel__status">In your Anki deck</p>}
-            <button className="btn" onClick={() => knowWord(token.base)}>
-              I know this
+            <button className="btn" {...hot("k")} onClick={() => knowWord(token.base)}>
+              <span>I know this</span>
+              <Key k="k" />
             </button>
           </>
         )}
@@ -179,13 +214,16 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
           <>
             <button
               className="btn btn--primary"
+              {...hot(addToAnki ? "a" : "s")}
               onClick={addToAnki ? handleAdd : handleSave}
               disabled={add === "adding" || add === "recording" || (addToAnki && entry.status === "loading")}
             >
-              {addToAnki ? "Add to Anki" : "Save to review"}
+              <span>{addToAnki ? "Add to Anki" : "Save to review"}</span>
+              <Key k={addToAnki ? "a" : "s"} />
             </button>
-            <button className="btn" onClick={() => knowWord(token.base)}>
-              I know this
+            <button className="btn" {...hot("k")} onClick={() => knowWord(token.base)}>
+              <span>I know this</span>
+              <Key k="k" />
             </button>
             {addToAnki && entry.status === "missing" && (
               <p className="word-panel__note">No meaning found — the card will have an empty meaning.</p>
@@ -199,8 +237,9 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
                 ? "In your review queue, due now."
                 : `In your review queue, next in ${formatInterval(new Date(saved.card.due) - new Date())}.`}
             </p>
-            <button className="btn" onClick={() => knowWord(token.base)}>
-              I know this
+            <button className="btn" {...hot("k")} onClick={() => knowWord(token.base)}>
+              <span>I know this</span>
+              <Key k="k" />
             </button>
             <button className="btn btn--quiet" onClick={() => removeWord(token.base)}>
               Remove
@@ -211,18 +250,21 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
           <>
             <p className="word-panel__status">Treated as known. Furigana is hidden for it.</p>
             {!addToAnki ? (
-              <button className="btn btn--primary" onClick={handleSave}>
-                Save anyway
+              <button className="btn btn--primary" {...hot("s")} onClick={handleSave}>
+                <span>Save anyway</span>
+                <Key k="s" />
               </button>
             ) : !sure ? (
-              <button className="btn btn--primary" onClick={() => setSure(true)}>
-                Add to Anki
+              <button className="btn btn--primary" {...hot("a")} onClick={() => setSure(true)}>
+                <span>Add to Anki</span>
+                <Key k="a" />
               </button>
             ) : (
               <>
                 <p className="word-panel__note" role="status">This is a very common word.</p>
-                <button className="btn btn--primary" autoFocus onClick={handleAdd} disabled={add === "adding" || add === "recording" || entry.status === "loading"}>
-                  Add anyway
+                <button className="btn btn--primary" {...hot("a")} autoFocus onClick={handleAdd} disabled={add === "adding" || add === "recording" || entry.status === "loading"}>
+                  <span>Add anyway</span>
+                  <Key k="a" />
                 </button>
               </>
             )}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ankiMode, useStore } from "../lib/store";
+import { INKS, inkById } from "../lib/ink";
 import { anki, useAnki } from "../lib/anki/useAnki";
 import { guessFieldRoles, ROLES } from "../lib/anki/fieldRoles";
 import { listFailed, retryFailed } from "../lib/anki/queue";
@@ -101,6 +102,42 @@ export default function SettingsView({ active }) {
   return (
     <section className="settings">
       <h2 className="settings__title">Settings</h2>
+
+      <div className="card">
+        <h3 className="card__title">Make it yours</h3>
+        <div className="settings__row" role="radiogroup" aria-labelledby="ink-label">
+          <span id="ink-label" className="settings__label">Your ink</span>
+          <div className="inks__dots">
+            {INKS.map((ink) => (
+              <label key={ink.id} className="inks__dot" style={{ "--swatch": ink.light }}>
+                <input
+                  type="radio"
+                  name="ink"
+                  value={ink.id}
+                  aria-label={ink.name}
+                  checked={inkById(state.settings.ink).id === ink.id}
+                  onChange={() => setSettings({ ink: ink.id })}
+                />
+                <span className="inks__swatch" style={{ background: ink.light }} aria-hidden="true" />
+                <span className="inks__name" aria-hidden="true">{ink.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="settings__row">
+          <label className="settings__label" htmlFor="your-name">Your name (optional)</label>
+          <input
+            id="your-name"
+            className="select"
+            type="text"
+            maxLength={40}
+            autoComplete="given-name"
+            value={state.settings.name || ""}
+            onChange={(e) => setSettings({ name: e.target.value })}
+          />
+        </div>
+        <p className="note">Your ink colours saved words and progress. Your name only appears in the greeting on Watch.</p>
+      </div>
 
       <div className="card">
         <h3 className="card__title">Anki</h3>

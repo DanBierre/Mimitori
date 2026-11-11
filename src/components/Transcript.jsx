@@ -81,7 +81,11 @@ export default function Transcript({ cues, current, onJump, newCounts = [], auto
                   {cue.text.replace(/\n/g, " ")}
                 </span>
                 {auto && !edited.includes(i) && <span className="transcript__auto">auto</span>}
-                {newCounts[i] > 0 && <span className="transcript__new">{newCounts[i]} new</span>}
+                {newCounts[i] > 0 && (
+                  <span className="transcript__new" role="img" aria-label={`${newCounts[i]} new ${newCounts[i] === 1 ? "word" : "words"}`}>
+                    {"•".repeat(Math.min(newCounts[i], 3))}
+                  </span>
+                )}
               </button>
               {auto && (
                 <button className="transcript__fix" aria-label="Fix this line" onClick={() => setEditing(i)}>

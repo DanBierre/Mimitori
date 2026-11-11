@@ -171,6 +171,9 @@ export const SHORTCUTS = [
   ["R", "Replay the line"],
   ["← →", "Previous / next line"],
   ["[ ]", "Subtitles 0.1 s earlier / later"],
+  ["A / S", "Add or save the tapped word"],
+  ["K", "Mark the tapped word as known"],
+  ["Esc", "Close the word card"],
   ["F", "Focus mode"],
   ["?", "Show or hide these shortcuts"],
 ];
