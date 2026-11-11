@@ -2974,8 +2974,14 @@ rt.rt--known {
 
 .page--height .page__canvas {
   width: auto;
-  height: calc(100dvh - 150px);
-  min-height: 320px;
+  height: auto;
+  /* Fit the height, but never wider than the space there is (phones), keeping the page's shape. */
+  max-height: max(320px, calc(100dvh - 150px));
+  max-width: 100%;
+}
+
+.page--height {
+  max-width: 100%;
 }
 
 .page--width {
@@ -3538,4 +3544,40 @@ rt.rt--known {
   margin-top: -4px;
   font-size: 13px;
   color: var(--text-3);
+}
+
+/* Phones: the boxed line sits in a sheet above the tab bar instead of beside the bubble, so it never falls off the page. */
+@media (max-width: 719px) {
+  .page__float {
+    position: fixed;
+    top: auto !important;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 8px);
+    width: auto;
+    max-width: none;
+    z-index: 26;
+    line-height: normal;
+  }
+}
+
+/* Phones: the book toolbar in two rows — title, page and Close; then boxing and direction. Pages already fit the screen. */
+@media (max-width: 719px) {
+  .book__title {
+    flex: 1;
+    order: 0;
+  }
+
+  .book__nav {
+    order: 1;
+  }
+
+  .book__tools {
+    order: 2;
+    flex: 1 0 100%;
+  }
+
+  .book__fit {
+    display: none;
+  }
 }

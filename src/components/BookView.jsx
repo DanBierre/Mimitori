@@ -463,7 +463,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
               Left to right
             </button>
           </div>
-          <div className="segmented" role="group" aria-label="Fit">
+          <div className="segmented book__fit" role="group" aria-label="Fit">
             <button className="segmented__btn" aria-pressed={fit === "height"} onClick={() => update((r) => ({ ...r, fit: "height" }))}>
               Fit height
             </button>
