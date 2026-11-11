@@ -3089,3 +3089,43 @@ rt.rt--known {
     animation: none;
   }
 }
+
+
+/* Read: open a book, and the recent books list (the Watch recents, with a portrait cover). */
+.read__open {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 20px;
+  margin-top: 18px;
+}
+
+.read__folder {
+  min-height: 40px;
+  color: var(--text-3);
+  font-size: 14px;
+}
+
+.read--drop .read__sheet {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  outline: 1px dashed var(--ink-strong);
+  outline-offset: 8px;
+}
+
+.recents--books .recents__row {
+  grid-template-columns: 40px minmax(0, 1fr) auto auto;
+}
+
+.recents--books .recents__thumb {
+  width: 40px;
+  height: 56px;
+  background: var(--surface-2);
+}
+
+.recents--books .recents__stop {
+  grid-column: 3;
+}
+
+.recents--books .recents__go {
+  grid-column: 4;
+}

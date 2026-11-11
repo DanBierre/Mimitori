@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furigana";
 import { translateText, translationEnabled } from "../lib/translate";
 import { useStore } from "../lib/store";
@@ -7,7 +7,13 @@ import { useMarker } from "../lib/useMarker";
 import { conjugationParts } from "../lib/conjugation";
 import { canSpeak, speak } from "../lib/speak";
 import WordPanel from "./WordPanel";
-import { sentenceAround, sentenceSpan } from "../lib/sentence";
+import { sentenceAround, sentenceContext } from "../lib/sentence";
+import { openBook } from "../lib/book/open";
+import { cropPicture } from "../lib/book/crop";
+import { loadBookRecents, saveBookRecents, coverKey } from "../lib/book/recents";
+import { upsertRecent, droppedKeys } from "../lib/recents";
+import { putImage, getImageUrl, deleteImage } from "../lib/images";
+import BookView from "./BookView";
 
 const SAMPLE =
   "今日は友達と一緒に日本語を勉強します。難しい漢字がたくさんありますが、毎日少しずつ読むと、だんだん分かるようになります。";
@@ -18,9 +24,30 @@ const FURIGANA_MODES = [
   ["off", "Off"],
 ];
 
-function ankiContext(tokens, i) {
-  const { start, end } = sentenceSpan(tokens, i);
-  return { sentence: sentenceAround(tokens, i), tokens: tokens.slice(start, end + 1), tokenIndex: i - start };
+const BOOK_ERRORS = {
+  unsupported: "Mimitori can't open this kind of file yet. Save it as CBZ, or as a PDF without a password.",
+  password: "Mimitori can't open this kind of file yet. Save it as CBZ, or as a PDF without a password.",
+  "no-pages": "No pages found in this file.",
+  broken: "No pages found in this file.",
+};
+
+// A recent book's cover, loaded after the row shows.
+function Cover({ id }) {
+  const [src, setSrc] = useState(null);
+  useEffect(() => {
+    let url = null;
+    let off = false;
+    getImageUrl(coverKey(id)).then((u) => {
+      url = u;
+      if (off && u) URL.revokeObjectURL(u);
+      else if (u) setSrc(u);
+    });
+    return () => {
+      off = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [id]);
+  return <span className="recents__thumb">{src && <img src={src} alt="" loading="lazy" decoding="async" />}</span>;
 }
 
 export default function ReadView({ onOpenSettings }) {
@@ -34,6 +61,63 @@ export default function ReadView({ onOpenSettings }) {
   const [status, setStatus] = useState("idle"); // idle | loading | error
   const [error, setError] = useState("");
   const [selected, setSelected] = useState(null); // token index
+
+  // Books: PDFs, CBZ files and image folders open in BookView in place of the sheet.
+  const [book, setBook] = useState(null);
+  const [opening, setOpening] = useState(false);
+  const [bookError, setBookError] = useState("");
+  const [dropping, setDropping] = useState(false);
+  const [recents, setRecents] = useState(loadBookRecents);
+  const recentsRef = useRef(recents);
+  const bookRef = useRef(null);
+  const fileInput = useRef(null);
+  const folderInput = useRef(null);
+  bookRef.current = book;
+  useEffect(() => () => bookRef.current?.close(), []);
+
+  async function openFiles(list) {
+    const files = [...list];
+    if (!files.length || opening) return;
+    setOpening(true);
+    setBookError("");
+    try {
+      const next = await openBook(files);
+      const first = !recentsRef.current.some((r) => r.key === next.key);
+      setBook(next);
+      if (first) {
+        // a small cover from page 1; a failure just leaves the row without one
+        next
+          .getPage(1)
+          .then((p) => cropPicture(p.source, p.width, p.height, [0, 0, 1, 1], 192))
+          .then((blob) => putImage(coverKey(next.key), blob))
+          .catch(() => {});
+      }
+    } catch (e) {
+      setBookError(BOOK_ERRORS[e?.code] || BOOK_ERRORS.broken);
+    } finally {
+      setOpening(false);
+    }
+  }
+
+  function savePage(page) {
+    const patch = { key: book.key, name: book.title, page, pageCount: book.pageCount };
+    const prev = recentsRef.current;
+    const next = upsertRecent(prev, patch);
+    for (const k of droppedKeys(prev, next)) deleteImage(coverKey(k));
+    recentsRef.current = next;
+    setRecents(next);
+    saveBookRecents(next);
+  }
+
+  function closeBook() {
+    book.close();
+    setBook(null);
+  }
+
+  const onPicked = (e) => {
+    openFiles(e.target.files);
+    e.target.value = ""; // the same file can be picked again
+  };
 
   async function handleLookup() {
     const text = input.trim();
@@ -72,8 +156,26 @@ export default function ReadView({ onOpenSettings }) {
   const selectedToken = tokens && selected !== null ? tokens[selected] : null;
   const panelOpen = Boolean(selectedToken);
 
+  if (book) {
+    return <BookView book={book} onClose={closeBook} onOpenSettings={onOpenSettings} onPage={savePage} />;
+  }
+
   return (
-    <div className={`read ${panelOpen ? "read--panel-open" : ""}`}>
+    <div
+      className={`read ${panelOpen ? "read--panel-open" : ""}${dropping ? " read--drop" : ""}`}
+      onDragOver={(e) => {
+        if (e.dataTransfer?.types?.includes("Files")) {
+          e.preventDefault();
+          setDropping(true);
+        }
+      }}
+      onDragLeave={(e) => e.currentTarget.contains(e.relatedTarget) || setDropping(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDropping(false);
+        openFiles(e.dataTransfer.files);
+      }}
+    >
       <section className="sheet read__sheet" aria-label="Reading sheet">
         {!tokens ? (
           <div className="read__compose">
@@ -105,6 +207,48 @@ export default function ReadView({ onOpenSettings }) {
               <p className="note note--error" role="alert">
                 {error}
               </p>
+            )}
+
+            <div className="read__open">
+              <button className="btn btn--quiet read__edit" onClick={() => fileInput.current.click()} disabled={opening}>
+                {opening ? "Opening…" : "Open a PDF, CBZ or folder"}
+              </button>
+              <button className="link read__edit read__folder" onClick={() => folderInput.current.click()} disabled={opening}>
+                Choose a folder
+              </button>
+              <input ref={fileInput} type="file" hidden multiple accept=".pdf,.cbz,.zip,image/*" onChange={onPicked} />
+              <input ref={folderInput} type="file" hidden webkitdirectory="" onChange={onPicked} />
+            </div>
+            {bookError && (
+              <p className="note note--error" role="alert">
+                {bookError}
+              </p>
+            )}
+
+            {recents.length > 0 && (
+              <section className="recents recents--books" aria-labelledby="book-recents">
+                <h2 id="book-recents" className="recents__title">
+                  Recent books
+                </h2>
+                <ul className="recents__list">
+                  {recents.map((r) => (
+                    <li key={r.key} className="recents__row">
+                      <Cover id={r.key} />
+                      <span className="recents__name" title={r.name}>
+                        {r.name}
+                      </span>
+                      <span className="recents__stop">{r.page && r.pageCount ? `p. ${r.page} of ${r.pageCount}` : ""}</span>
+                      <button
+                        className="btn btn--quiet recents__go row-action"
+                        aria-label={`Carry on with ${r.name}`}
+                        onClick={() => fileInput.current.click()}
+                      >
+                        Carry on
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             )}
           </div>
         ) : (
@@ -175,7 +319,7 @@ export default function ReadView({ onOpenSettings }) {
           token={selectedToken}
           sentence={sentenceAround(tokens, selected)}
           grammar={conjugationParts(tokens, selected)}
-          ankiContext={ankiContext(tokens, selected)}
+          ankiContext={sentenceContext(tokens, selected)}
           onOpenSettings={onOpenSettings}
           onClose={() => setSelected(null)}
         />
