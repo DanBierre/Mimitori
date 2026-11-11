@@ -136,6 +136,10 @@ export default function SettingsView({ active }) {
             onChange={(e) => setSettings({ name: e.target.value })}
           />
         </div>
+        <label className="settings__toggle">
+          <input type="checkbox" checked={state.settings.ambient !== false} onChange={(e) => setSettings({ ambient: e.target.checked })} />
+          <span>Soft light from the video</span>
+        </label>
         <p className="note">Your ink colours saved words and progress. Your name only appears in the greeting on Watch.</p>
       </div>
 

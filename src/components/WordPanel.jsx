@@ -139,7 +139,7 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
       </button>
 
       <div className="word-panel__head">
-        <span className={`word-panel__term mk mk--${mark}`}>{token.base}</span>
+        <span className={`word-panel__term${token.base.length > 5 ? " word-panel__term--long" : ""} mk mk--${mark}`}>{token.base}</span>
         {(reading || entry.data?.pos.length > 0) && (
           <span className="word-panel__reading">
             {[reading, entry.data?.pos.join(", ")].filter(Boolean).join(" · ")}

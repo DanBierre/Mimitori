@@ -26,10 +26,11 @@ import MakeSubtitles from "./MakeSubtitles";
 import { transcriptKey } from "../lib/transcribe/state";
 import { useTranscribe } from "../lib/transcribe/useTranscribe";
 import { SAMPLE, sampleFiles } from "../lib/firstRun";
-import { loadRecents, resumeAt, saveRecents, upsertRecent } from "../lib/recents";
+import { droppedKeys, loadRecents, posterDue, posterKey, resumeAt, saveRecents, upsertRecent } from "../lib/recents";
+import { sampleVideo } from "../lib/ambient";
 import Icon from "./Icon";
 import { conjugationParts } from "../lib/conjugation";
-import { captureFrame, putImage } from "../lib/images";
+import { captureFrame, deleteImage, putImage } from "../lib/images";
 import { wordState } from "../lib/store";
 import { isRecording } from "../lib/media/clip";
 
@@ -103,6 +104,7 @@ export default function WatchView({ active, onOpenSettings }) {
     setRecents((list) => {
       const next = upsertRecent(list, patch);
       saveRecents(next);
+      droppedKeys(list, next).forEach((k) => deleteImage(posterKey(k))); // idempotent, so safe if React reruns this
       return next;
     });
   }
@@ -333,16 +335,25 @@ export default function WatchView({ active, onOpenSettings }) {
     const flush = () => {
       if (lastPos.current?.key === key) remember(lastPos.current);
     };
+    // A small poster frame for the Recent list: at most every ~30 s, and on pause / close.
+    let lastPoster = 0;
+    const poster = (force) => {
+      if (sampleRef.current !== "off" || v.readyState < 2 || !posterDue(lastPoster, Date.now(), force)) return;
+      lastPoster = Date.now();
+      captureFrame(v, 192, 0.6).then((blob) => blob && putImage(posterKey(key), blob));
+    };
     const onTime = () => {
       snap();
       if (Date.now() - lastSave.current > 5000) {
         lastSave.current = Date.now();
         flush();
+        if (!v.paused) poster(false);
       }
     };
     const onPause = () => {
       snap();
       flush();
+      poster(true);
     };
     v.addEventListener("timeupdate", onTime);
     v.addEventListener("pause", onPause);
@@ -352,9 +363,56 @@ export default function WatchView({ active, onOpenSettings }) {
       v.removeEventListener("pause", onPause);
       window.removeEventListener("beforeunload", flush);
       flush();
+      poster(true); // the frame is drawn synchronously, before the video goes away
       lastPos.current = null;
     };
   }, [video]);
+
+  // Soft light from the video: a left and right colour about once a second while it plays,
+  // and once on seek / pause. Written straight to the stage, so nothing re-renders.
+  const stageRef = useRef(null);
+  const ambient = state.settings.ambient !== false;
+  useEffect(() => {
+    const v = videoRef.current;
+    const stage = stageRef.current;
+    if (!ambient || !v || !stage) return;
+    const set = (l, r) => {
+      stage.style.setProperty("--amb-l", l);
+      stage.style.setProperty("--amb-r", r);
+    };
+    let id = null;
+    const sample = () => {
+      if (document.hidden) return;
+      try {
+        const c = sampleVideo(v);
+        if (c) set(c.l, c.r);
+      } catch {
+        stop(); // a tainted canvas just means no glow
+        set("transparent", "transparent");
+        ["seeked", "pause", "loadeddata"].forEach((e) => v.removeEventListener(e, sample));
+      }
+    };
+    const tick = () => {
+      if (!v.paused) sample();
+    };
+    const start = () => {
+      if (id === null) id = setInterval(tick, 1000);
+    };
+    const stop = () => {
+      clearInterval(id);
+      id = null;
+    };
+    const onVisible = () => (document.hidden ? stop() : start());
+    ["seeked", "pause", "loadeddata"].forEach((e) => v.addEventListener(e, sample));
+    document.addEventListener("visibilitychange", onVisible);
+    start();
+    return () => {
+      stop();
+      ["seeked", "pause", "loadeddata"].forEach((e) => v.removeEventListener(e, sample));
+      document.removeEventListener("visibilitychange", onVisible);
+      set("transparent", "transparent");
+    };
+  }, [ambient, video]);
 
   // Speed applies to every new video too.
   useEffect(() => {
@@ -626,7 +684,7 @@ export default function WatchView({ active, onOpenSettings }) {
 
       {video && (
         <div className="watch__main">
-        <section className="watch__stage" aria-label="Player">
+        <section ref={stageRef} className={`watch__stage${ambient ? " watch__stage--amb" : ""}`} aria-label="Player">
           {!focus && (
             <button className="watch__close" onMouseDown={noFocus} onClick={closeVideo}>
               <Icon name="prev" size={16} /> Close video

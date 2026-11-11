@@ -23,6 +23,7 @@ const DEFAULT_STATE = {
     commonKnown: true, // treat very common words as known
     ink: "indigo", // the learner's accent colour
     name: "", // optional, for the Watch greeting
+    ambient: true, // soft light from the video on the Watch stage
     watch: { autoPause: false, speed: 1, showSecondLine: true },
     anki: { enabled: false, deck: "", model: "", mapping: {}, fieldList: [], readDecks: [], tagKnown: false },
   },

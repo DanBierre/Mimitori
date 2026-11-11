@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { upsertRecent, cleanRecents, loadRecents, saveRecents, formatClock, stoppedLabel, resumeAt, RECENTS_KEY } from "./recents.js";
+import { upsertRecent, cleanRecents, loadRecents, saveRecents, formatClock, stoppedLabel, resumeAt, RECENTS_KEY, droppedKeys, posterKey, posterDue } from "./recents.js";
 
 const mem = () => {
   const m = new Map();
@@ -52,4 +52,18 @@ test("resume only for the same file", () => {
   assert.equal(resumeAt(row, "a|1|2"), 90);
   assert.equal(resumeAt(row, "b|1|2"), null);
   assert.equal(resumeAt({ key: "a", positionS: 1 }, "a"), null);
+});
+
+test("trimmed entries are reported so their posters can be deleted", () => {
+  const list = Array.from({ length: 12 }, (_, i) => ({ key: `k${i}`, name: "n", watchedAt: 100 - i }));
+  const next = upsertRecent(list, { key: "new", name: "n" }, 1000);
+  assert.deepEqual(droppedKeys(list, next), ["k11"]);
+  assert.deepEqual(droppedKeys(list, list), []);
+  assert.equal(posterKey("a|1|2"), "recent:a|1|2");
+});
+
+test("poster is due every 30 s or when forced", () => {
+  assert.equal(posterDue(0, 29000), false);
+  assert.equal(posterDue(0, 30000), true);
+  assert.equal(posterDue(1000, 2000, true), true);
 });

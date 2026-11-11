@@ -290,10 +290,10 @@ A monochrome neutral scale carries the whole interface; the learner's ink is the
 - **Display** (400, 72px, 1): the number of words due on the Review start screen. Large but light.
 - **Headline** (400, 56px, 1.25): the word on the review card.
 - **Cue** (500, scales 22–36px with the learner's size setting, default 30px, 2.15): the current subtitle line on the Watch stage, centred, with room for ruby.
-- **Title** (500, 26px, 1.3): the word on the word card.
+- **Title** (400, 56px, 1.2; 40px on phones, one step down for words over five characters): the word on the word card, with its reading and part of speech quietly beneath.
 - **Reading** (400, 24px by default and learner-adjustable, 2.25, 0.02em): pasted text in Read.
 - **Figure** (500, 23px, 1, tabular): the coverage percentage under the stage.
-- **Heading** (500, 22px): screen titles (Settings); section headings drop to 16px, empty-state titles to 18px, the drop prompt to 20px.
+- **Heading** (500, 22px): screen titles (Settings) and the Watch greeting; section headings drop to 16px, empty-state titles to 18px, the drop prompt to 20px.
 - **Body** (400, 16px, 1.55): default copy.
 - **UI** (400, 14px): buttons, menu rows, transcript lines, notes, glosses.
 - **Label** (400, 13px, tabular): meta rows, segmented labels, control-bar text, progress counts.

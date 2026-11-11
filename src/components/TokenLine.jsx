@@ -1,10 +1,28 @@
+import { useEffect, useRef, useState } from "react";
 import { useStore, wordState } from "../lib/store";
 
 // One line of tokenized Japanese: furigana over kanji (per the furigana
 // setting) and tappable content words. Shared by Read and Watch.
+const SAVED = new Set(["saved", "inAnki", "due"]);
+
 export default function TokenLine({ tokens, selected, onSelect }) {
   const { state } = useStore();
   const { furigana } = state.settings;
+
+  // A word that just went from new/known to saved gets its underline drawn on, once.
+  const marks = {};
+  for (const t of tokens) if (t.isWord) marks[t.base] = wordState(state, t.base);
+  const seen = useRef(null);
+  const [fresh, setFresh] = useState(null);
+  useEffect(() => {
+    const prev = seen.current;
+    seen.current = marks;
+    if (!prev) return;
+    const added = Object.keys(marks).filter((b) => (prev[b] === "new" || prev[b] === "known") && SAVED.has(marks[b]));
+    if (!added.length) return;
+    setFresh(new Set(added));
+    setTimeout(() => setFresh(null), 600);
+  });
 
   return tokens.map((token, i) => {
     const mark = token.isWord ? wordState(state, token.base) : "plain";
@@ -27,7 +45,7 @@ export default function TokenLine({ tokens, selected, onSelect }) {
     return (
       <button
         key={i}
-        className={`word mk mk--${mark}`}
+        className={`word mk mk--${mark}${fresh?.has(token.base) ? " mk--draw" : ""}`}
         aria-pressed={selected === i}
         onClick={() => onSelect(selected === i ? null : i)}
         // Yomitan-style: hold Shift and move the mouse over words to look them up.

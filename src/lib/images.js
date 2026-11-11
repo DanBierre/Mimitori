@@ -46,18 +46,17 @@ export async function getImageUrl(base) {
   }
 }
 
-// Current video frame as a 480px-wide JPEG, or null.
-export function captureFrame(video) {
+// Current video frame as a JPEG (480px wide unless told otherwise), or null.
+export function captureFrame(video, width = 480, quality = 0.7) {
   return new Promise((resolve) => {
     try {
       if (!video?.videoWidth) return resolve(null);
-      const width = 480;
       const height = Math.round((width * video.videoHeight) / video.videoWidth);
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
       canvas.getContext("2d").drawImage(video, 0, 0, width, height);
-      canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.7);
+      canvas.toBlob((blob) => resolve(blob), "image/jpeg", quality);
     } catch {
       resolve(null);
     }

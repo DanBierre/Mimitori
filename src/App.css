@@ -395,6 +395,55 @@
   background: var(--due);
 }
 
+/* The moment a word is saved, its underline paints on left to right. */
+.word.mk--draw::after {
+  animation: brush-draw 420ms var(--ease-out) both;
+}
+
+@keyframes brush-draw {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Soft light from the video: two washes at the stage edges, behind everything. */
+@property --amb-l {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --amb-r {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+.watch__stage--amb {
+  isolation: isolate;
+  transition: --amb-l 1.2s var(--ease-out), --amb-r 1.2s var(--ease-out);
+}
+
+.watch__stage--amb .watch__frame,
+.watch__stage--amb .watch__video {
+  background: transparent;
+}
+
+.watch__stage--amb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 100% at 0% 50%, color-mix(in srgb, var(--amb-l) 13%, transparent), transparent 80%),
+    radial-gradient(ellipse 55% 100% at 100% 50%, color-mix(in srgb, var(--amb-r) 13%, transparent), transparent 80%);
+}
+
 .word[aria-pressed="true"] {
   background: var(--ink-soft);
 }
@@ -596,9 +645,26 @@ rt.rt--known {
 }
 
 .word-panel__term {
-  font-size: 26px;
-  font-weight: 500;
-  line-height: 1.3;
+  flex: 0 0 100%;
+  font-size: 56px;
+  font-weight: 400;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* Longer words step down so the card doesn't wrap them mid-word. */
+.word-panel__term--long {
+  font-size: 40px;
+}
+
+@media (max-width: 719px) {
+  .word-panel__term {
+    font-size: 40px;
+  }
+
+  .word-panel__term--long {
+    font-size: 32px;
+  }
 }
 
 .word-panel__reading {
@@ -783,7 +849,7 @@ rt.rt--known {
 
 .watch__hello {
   margin: 0;
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 500;
 }
 
@@ -941,7 +1007,7 @@ rt.rt--known {
     left: var(--anchor-x);
     bottom: calc(100% - 6px);
     z-index: 15;
-    width: 280px;
+    width: 340px;
     transform: translateX(-50%);
   }
 
@@ -2498,13 +2564,30 @@ rt.rt--known {
 
 .recents__row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-columns: 96px minmax(0, 1fr) auto auto auto;
   align-items: center;
   gap: 4px 18px;
   min-height: 48px;
-  padding: 0 6px;
+  padding: 8px 6px;
   border-top: 1px solid var(--line);
   font-size: 14px;
+}
+
+.recents__thumb {
+  display: block;
+  width: 96px;
+  height: 54px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--stage);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.recents__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .recents__name {
@@ -2521,19 +2604,19 @@ rt.rt--known {
 }
 
 .recents__stop {
-  grid-column: 3;
+  grid-column: 4;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   color: var(--text-3);
 }
 
 .recents__row--sample .recents__stop {
-  grid-column: 2 / 4;
+  grid-column: 3 / 5;
   justify-self: end;
 }
 
 .recents__go {
-  grid-column: 4;
+  grid-column: 5;
 }
 
 @media (pointer: coarse) {

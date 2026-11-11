@@ -14,6 +14,15 @@ export function upsertRecent(list, patch, now = Date.now(), max = MAX_RECENTS) {
   return [next, ...list.filter((r) => r.key !== patch.key)].sort((a, b) => b.watchedAt - a.watchedAt).slice(0, max);
 }
 
+// IndexedDB key of an entry's poster frame.
+export const posterKey = (key) => `recent:${key}`;
+
+// Keys that were in `prev` but are gone from `next` (trimmed out), so their posters can go too.
+export const droppedKeys = (prev, next) => prev.filter((p) => !next.some((n) => n.key === p.key)).map((p) => p.key);
+
+// A poster is due once ~30 s have passed since the last one, or straight away when forced.
+export const posterDue = (lastAt, now = Date.now(), force = false) => force || now - lastAt >= 30000;
+
 // Drops anything that isn't a usable entry.
 export function cleanRecents(raw) {
   if (!Array.isArray(raw)) return [];
