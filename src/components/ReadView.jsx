@@ -224,7 +224,7 @@ export default function ReadView({ onOpenSettings }) {
 
   return (
     <div
-      className={`read ${panelOpen ? "read--panel-open" : ""}${dropping ? " read--drop" : ""}`}
+      className={`read ${panelOpen ? "read--panel-open" : ""}${tokens ? " read--reading" : ""}${dropping ? " read--drop" : ""}`}
       onDragOver={(e) => {
         if (e.dataTransfer?.types?.includes("Files")) {
           e.preventDefault();
@@ -405,6 +405,11 @@ export default function ReadView({ onOpenSettings }) {
         )}
       </section>
 
+      {tokens && !selectedToken && (
+        <aside className="read__card-hint" aria-hidden="true">
+          Tap any word to see its reading and meaning.
+        </aside>
+      )}
       {selectedToken && (
         <WordPanel
           token={selectedToken}

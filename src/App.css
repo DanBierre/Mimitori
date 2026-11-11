@@ -3496,3 +3496,40 @@ rt.rt--known {
   font-size: 13px;
   color: var(--card-text-2);
 }
+
+/* Desktop reading: the word card's column stays put, so the text never reflows when a card opens. */
+.read__card-hint {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .read--reading {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 28px;
+  }
+
+  .read__card-hint {
+    display: block;
+    position: sticky;
+    top: 80px;
+    align-self: start;
+    padding: 18px 16px;
+    border: 1px dashed var(--line);
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-3);
+  }
+
+  /* The card column already says it, so the one-off hint above the text is for phones. */
+  .read__tip {
+    display: none;
+  }
+}
+
+/* Wide screens show the Today column on the empty Watch page, which already has these numbers. */
+@media (min-width: 1100px) {
+  .watch--empty .watch__progress {
+    display: none;
+  }
+}
