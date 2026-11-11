@@ -25,6 +25,14 @@ function Shell() {
   // First visit lands on Watch, where the sample clip is one tap away. After that, Read as before.
   const [tab, setTab] = useState(() => (flags.has("visited") ? "read" : "watch"));
   useEffect(() => flags.set("visited"), []);
+  // Settings remembers where you came from, so Back (or the gear again) returns there.
+  const [prevTab, setPrevTab] = useState("read");
+  const openSettings = () => {
+    if (tab === "settings") return setTab(prevTab);
+    setPrevTab(tab);
+    setTab("settings");
+  };
+  const backLabel = TABS.find((t) => t.id === prevTab)?.label ?? "Read";
   const railRef = useMarker('[aria-current="page"] .rail__label');
   const today = useReviewToday();
   const { state } = useStore();
@@ -80,9 +88,9 @@ function Shell() {
         <div className="app__side">
           <button
             className="icon-btn"
-            aria-label="Settings"
+            aria-label={tab === "settings" ? `Close settings, back to ${backLabel}` : "Settings"}
             aria-current={tab === "settings" ? "page" : undefined}
-            onClick={() => setTab("settings")}
+            onClick={openSettings}
           >
             <Icon name="settings" size={20} />
           </button>
@@ -92,12 +100,12 @@ function Shell() {
       <main className="app__main">
         {/* Read and Watch stay mounted so pasted text and the video keep their place. */}
         <div hidden={tab !== "read"}>
-          <ReadView onOpenSettings={() => setTab("settings")} />
+          <ReadView onOpenSettings={openSettings} />
         </div>
         <div hidden={tab !== "watch"}>
-          <WatchView active={tab === "watch"} onOpenSettings={() => setTab("settings")} />
+          <WatchView active={tab === "watch"} onOpenSettings={openSettings} />
         </div>
-        {tab === "settings" && <SettingsView active />}
+        {tab === "settings" && <SettingsView active backLabel={backLabel} onBack={() => setTab(prevTab)} />}
         {tab === "review" && !inAnkiMode && <ReviewView onGoRead={() => setTab("read")} onGoWatch={() => setTab("watch")} />}
         {tab === "words" && <WordsView onGoWatch={() => setTab("watch")} onGoRead={() => setTab("read")} />}
       </main>

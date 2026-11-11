@@ -4,6 +4,7 @@ import { INKS, inkById } from "../lib/ink";
 import { anki, useAnki } from "../lib/anki/useAnki";
 import { guessFieldRoles, ROLES } from "../lib/anki/fieldRoles";
 import { listFailed, retryFailed } from "../lib/anki/queue";
+import Icon from "./Icon";
 import { ROLE_LABELS, buildMapping, flatFields, hasWordField, lowConfidence, pickSampleQuery, templateParts } from "../lib/anki/settingsLogic";
 
 const STATUS_TEXT = {
@@ -34,10 +35,25 @@ function RoleSelect({ field, value, isTemplate, onChange }) {
   );
 }
 
-export default function SettingsView({ active }) {
+export default function SettingsView({ active, onBack, backLabel = "Read" }) {
   const { state, setAnkiSettings, setSettings, setDeckNotes } = useStore();
   const cfg = state.settings.anki;
   const a = useAnki(active);
+  // Anki is optional: before the learner presses Connect, "not reachable" is just "not set up", not an error.
+  const [tried, setTried] = useState(false);
+  const touch = typeof matchMedia !== "undefined" && matchMedia("(pointer: coarse)").matches;
+  const quiet = !tried && a.status === "unreachable";
+
+  // Esc goes back, unless you're typing in a field.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== "Escape" || !onBack) return;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName)) return;
+      onBack();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onBack]);
   const [draft, setDraft] = useState(null); // { fieldNames, guesses, roles }
   const [checking, setChecking] = useState(false);
   const [checkError, setCheckError] = useState("");
@@ -101,7 +117,15 @@ export default function SettingsView({ active }) {
 
   return (
     <section className="settings">
-      <h2 className="settings__title">Settings</h2>
+      <div className="settings__top">
+        {onBack && (
+          <button className="btn btn--quiet settings__back" onClick={onBack}>
+            <Icon name="prev" size={18} />
+            Back to {backLabel}
+          </button>
+        )}
+        <h2 className="settings__title">Settings</h2>
+      </div>
 
       <div className="settings__section">
         <h3 className="settings__heading">Make it yours</h3>
@@ -128,7 +152,7 @@ export default function SettingsView({ active }) {
           <label className="settings__label" htmlFor="your-name">Your name (optional)</label>
           <input
             id="your-name"
-            className="select"
+            className="text-input"
             type="text"
             maxLength={40}
             autoComplete="given-name"
@@ -145,16 +169,29 @@ export default function SettingsView({ active }) {
 
       <div className="settings__section">
         <h3 className="settings__heading">Anki</h3>
-        <p className={`note ${a.status === "ok" ? "" : "note--error"}`} role="status">{STATUS_TEXT[a.status]}</p>
+        <p className={`note ${a.status === "ok" || quiet ? "" : "note--error"}`} role="status">
+          {quiet ? "Optional. Mimitori can send cards straight to your Anki deck on a computer." : STATUS_TEXT[a.status]}
+        </p>
         {a.error && <p className="note note--error">{a.error}</p>}
-        {!connected && a.status !== "checking" && (
+        {!connected && a.status !== "checking" && touch && (
+          <p className="note">Anki sync works on a computer. On your phone, export your words as a CSV from the Words tab.</p>
+        )}
+        {!connected && a.status !== "checking" && !touch && (
           <>
             <ol className="settings__steps">
               <li>Open Anki on this computer.</li>
               <li>Install the AnkiConnect add-on (Tools, Add-ons, Get Add-ons, code 2055492159), then restart Anki.</li>
               <li>Press Connect and choose Yes in the box Anki shows.</li>
             </ol>
-            <button className="btn btn--primary" onClick={a.connect}>Connect</button>
+            <button
+              className="btn btn--primary"
+              onClick={() => {
+                setTried(true);
+                a.connect();
+              }}
+            >
+              Connect
+            </button>
           </>
         )}
 

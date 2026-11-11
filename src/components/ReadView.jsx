@@ -60,7 +60,22 @@ export default function ReadView({ onOpenSettings }) {
   const { furigana, size } = state.settings;
   const furiRef = useMarker('[aria-pressed="true"]');
 
-  const [input, setInput] = useState("");
+  // The draft survives a reload (pasted text is the learner's work).
+  const [input, setInputState] = useState(() => {
+    try {
+      return localStorage.getItem("mimitori:read-draft") || "";
+    } catch {
+      return "";
+    }
+  });
+  const setInput = (v) => {
+    setInputState(v);
+    try {
+      localStorage.setItem("mimitori:read-draft", v);
+    } catch {
+      /* the draft just won't survive a reload */
+    }
+  };
   const [tokens, setTokens] = useState(null);
   const [translation, setTranslation] = useState({ status: "idle", text: "", error: "" });
   const [status, setStatus] = useState("idle"); // idle | loading | error
@@ -75,6 +90,22 @@ export default function ReadView({ onOpenSettings }) {
       flags.set("read-tip");
       setTip(false);
     }
+    // Phones and tablets: the word card is a sheet over the bottom of the screen, so lift the word above it.
+    if (i !== null && window.innerWidth < 1100) {
+      requestAnimationFrame(() => {
+        const el = document.querySelector(".read__text .word[aria-pressed='true']");
+        if (!el) return;
+        const top = el.getBoundingClientRect().top;
+        const want = window.innerHeight * 0.22;
+        if (top > window.innerHeight * 0.38 || top < 60) window.scrollBy({ top: top - want, behavior: "smooth" });
+      });
+    }
+  }
+
+  // Closing the card puts focus back on the word it came from.
+  function closeCard() {
+    document.querySelector(".read__text .word[aria-pressed='true']")?.focus();
+    setSelected(null);
   }
 
   // Books: PDFs, CBZ files and image folders open in BookView in place of the sheet.
@@ -177,6 +208,7 @@ export default function ReadView({ onOpenSettings }) {
   function backToEdit() {
     setTokens(null);
     setSelected(null);
+    setTimeout(() => pasteRef.current?.focus(), 0);
   }
 
   const selectedToken = tokens && selected !== null ? tokens[selected] : null;
@@ -237,10 +269,7 @@ export default function ReadView({ onOpenSettings }) {
               </button>
               <button
                 className="btn"
-                onClick={() => {
-                  setInput(SAMPLE);
-                  pasteRef.current?.focus();
-                }}
+                onClick={() => setInput(SAMPLE)}
               >
                 Try a sample
               </button>
@@ -368,7 +397,7 @@ export default function ReadView({ onOpenSettings }) {
               </button>
               {canSpeak() && (
                 <button className="btn btn--quiet read__edit" onClick={() => speak(input)}>
-                  Say it
+                  Read aloud
                 </button>
               )}
             </div>
@@ -383,7 +412,7 @@ export default function ReadView({ onOpenSettings }) {
           grammar={conjugationParts(tokens, selected)}
           ankiContext={sentenceContext(tokens, selected)}
           onOpenSettings={onOpenSettings}
-          onClose={() => setSelected(null)}
+          onClose={closeCard}
         />
       )}
     </div>

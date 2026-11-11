@@ -78,6 +78,12 @@ function reducer(state, action) {
       delete words[action.base];
       return { ...state, words };
     }
+    // Undo for remove / know: put the saved word back exactly as it was, review history and all.
+    case "restore": {
+      const known = { ...state.known };
+      delete known[action.word.base];
+      return { ...state, known, words: { ...state.words, [action.word.base]: action.word } };
+    }
     case "know": {
       const words = { ...state.words };
       delete words[action.base];
@@ -140,6 +146,8 @@ export function StoreProvider({ children }) {
         deleteImage(base);
       },
       unknowWord: (base) => dispatch({ type: "unknow", base }),
+      // The scene still was already deleted with the word, so an undone word comes back without it.
+      restoreWord: (word) => dispatch({ type: "restore", word }),
       grade: (base, rating) => dispatch({ type: "grade", base, rating }),
       setSettings: (patch) => dispatch({ type: "settings", patch }),
       setWatchSettings: (patch) => dispatch({ type: "watch", patch }),

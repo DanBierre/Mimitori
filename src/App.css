@@ -302,6 +302,11 @@
   gap: 4px;
 }
 
+/* When the Read toolbar wraps on a phone, the size buttons stay on the right. */
+.read__toolbar .stepper {
+  margin-left: auto;
+}
+
 .stepper__btn {
   min-width: 36px;
   height: 36px;
@@ -713,9 +718,9 @@ rt.rt--known {
 .word-panel__glosses {
   margin: 0;
   padding-left: 18px;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.55;
-  color: var(--text-2);
+  color: var(--text);
 }
 
 .word-panel__alt,
@@ -3363,4 +3368,56 @@ rt.rt--known {
   font-size: 13px;
   line-height: 1.5;
   color: var(--text-3);
+}
+
+/* Settings: a way back to where you were. */
+.settings__top {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.settings__back {
+  margin-left: -12px;
+  padding-inline: 12px;
+}
+
+/* A plain text box (no dropdown chevron). */
+.text-input {
+  min-height: 40px;
+  max-width: 100%;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.text-input:focus {
+  outline: 2px solid var(--ink-strong);
+  outline-offset: -1px;
+  border-color: var(--ink-strong);
+}
+
+@media (pointer: coarse) {
+  .text-input {
+    min-height: 44px;
+  }
+}
+
+/* The Review count sits on the icon on phones, so the tab bar stays level. */
+@media (max-width: 719px) {
+  .rail__tab {
+    position: relative;
+  }
+
+  .rail__due {
+    position: absolute;
+    top: 4px;
+    left: calc(50% + 8px);
+    margin: 0;
+    font-size: 11px;
+    line-height: 1;
+  }
 }

@@ -32,7 +32,7 @@ const Key = ({ k }) => (
 // In Anki mode, ankiContext = { sentence, tokens, tokenIndex, translation?, fileName?,
 // timeMs?, video?, cue?, offsetMs?, picture? (Blob), source? (string) } and the main button adds a card to Anki.
 export default function WordPanel({ token, sentence, grammar = [], ankiContext, onSaved, onClose, onOpenSettings }) {
-  const { state, saveWord, removeWord, knowWord, unknowWord, markInAnki } = useStore();
+  const { state, saveWord, removeWord, knowWord, unknowWord, restoreWord, markInAnki } = useStore();
   const [add, setAdd] = useState(null); // null | key of ADD_STATUS | "queued" | { error }
   const [waiting, setWaiting] = useState(0);
   const noAudio = useRef(false);
@@ -75,10 +75,21 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
   }, []);
 
   const [sure, setSure] = useState(false); // very-common notice acknowledged
+  const [justSaved, setJustSaved] = useState(false);
+  const [undo, setUndo] = useState(null); // { text, word } after Remove or I know this on a saved word
   useEffect(() => {
     setAdd(null);
     setSure(false);
+    setJustSaved(false);
+    setUndo(null);
   }, [token.base]);
+
+  // Remove and I know this drop the word's review history, so both can be undone.
+  const dropSaved = (how, text) => {
+    const word = state.words[token.base];
+    if (word) setUndo({ text, word });
+    how(token.base);
+  };
 
   const mark = wordState(state, token.base);
   // "known" only because it's very common: Anki add stays reachable, behind a notice.
@@ -95,6 +106,8 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
       pos: entry.data?.pos || [],
       sentence,
     });
+    setJustSaved(true);
+    setUndo(null);
     onSaved?.(token.base);
   }
 
@@ -234,22 +247,24 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
         {!addToAnki && (mark === "saved" || mark === "due") && (
           <>
             <p className="word-panel__status">
-              {mark === "due"
-                ? "In your review queue, due now."
-                : `In your review queue, next in ${formatInterval(new Date(saved.card.due) - new Date())}.`}
+              {justSaved
+                ? "Saved. It’ll come up in Review."
+                : mark === "due"
+                  ? "In your review queue, due now."
+                  : `In your review queue, next in ${formatInterval(new Date(saved.card.due) - new Date())}.`}
             </p>
-            <button className="btn" {...hot("k")} onClick={() => knowWord(token.base)}>
+            <button className="btn" {...hot("k")} onClick={() => dropSaved(knowWord, "Marked as known.")}>
               <span>I know this</span>
               <Key k="k" />
             </button>
-            <button className="btn btn--quiet" onClick={() => removeWord(token.base)}>
+            <button className="btn btn--quiet" onClick={() => dropSaved(removeWord, "Removed from review.")}>
               Remove
             </button>
           </>
         )}
         {commonOnly && (
           <>
-            <p className="word-panel__status">A very common word, so its furigana is hidden.</p>
+            <p className="word-panel__status">You’ve probably met this one already, so its furigana is hidden.</p>
             {!addToAnki ? (
               <button className="btn btn--primary" {...hot("s")} onClick={handleSave}>
                 <span>Save to review</span>
@@ -275,9 +290,23 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
           <>
             <p className="word-panel__status">Marked as known. Furigana is hidden for it.</p>
             <button className="btn" onClick={() => unknowWord(token.base)}>
-              Not yet
+              Mark as new
             </button>
           </>
+        )}
+        {undo && (mark === "new" || mark === "known") && (
+          <p className="word-panel__status" role="status">
+            {undo.text}{" "}
+            <button
+              className="link"
+              onClick={() => {
+                restoreWord(undo.word);
+                setUndo(null);
+              }}
+            >
+              Undo
+            </button>
+          </p>
         )}
       </div>
     </aside>
