@@ -32,6 +32,7 @@ export async function addCardFromWord({
   context = {},
   video,
   cue,
+  picture,
   offsetMs = 0,
   maps = {},
   onProgress = () => {},
@@ -52,8 +53,8 @@ export async function addCardFromWord({
     if (maps.known?.[word.base] || maps.inDeck?.[word.base]) return "duplicate";
 
     const media = {};
-    if (video && wantsMedia(mapping, "picture", "picture")) {
-      const blob = await d.captureFrame(video);
+    if ((picture || video) && wantsMedia(mapping, "picture", "picture")) {
+      const blob = picture || (await d.captureFrame(video));
       if (blob) media.picture = { data: await blobToBase64(blob), ext: "jpg" };
     }
     if (video && cue && wantsMedia(mapping, "sentenceAudio", "sentenceAudio")) {

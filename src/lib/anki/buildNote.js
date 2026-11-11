@@ -46,7 +46,7 @@ export function buildNote({ deck, model, mapping, word, context = {}, media = {}
   };
 
   for (const [field, e] of entries) {
-    const { sentence, tokens, tokenIndex, translation, fileName, timeMs } = context;
+    const { sentence, tokens, tokenIndex, translation, fileName, timeMs, source } = context;
     let v = "";
     switch (e.role) {
       case "template": v = fillTemplate(e); break;
@@ -56,7 +56,7 @@ export function buildNote({ deck, model, mapping, word, context = {}, media = {}
       case "sentence": v = sentence ? boldWord(sentence, word.surface, tokenOffset(tokens, tokenIndex)) : ""; break;
       case "sentenceFurigana": v = tokens ? sentenceWithFurigana(tokens, tokenIndex) : ""; break;
       case "sentenceTranslation": v = translation ? escapeHtml(translation) : ""; break;
-      case "source": v = fileName ? formatSource(fileName, timeMs ?? 0) : ""; break;
+      case "source": v = source ? escapeHtml(source) : fileName ? formatSource(fileName, timeMs ?? 0) : ""; break;
       case "picture": if (files.picture && !inTemplate("{picture}")) attach("picture", field); break;
       case "sentenceAudio": if (files.audio && !inTemplate("{sentenceAudio}")) attach("audio", field); break;
     }

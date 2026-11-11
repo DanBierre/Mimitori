@@ -30,7 +30,7 @@ const Key = ({ k }) => (
 );
 
 // In Anki mode, ankiContext = { sentence, tokens, tokenIndex, translation?, fileName?,
-// timeMs?, video?, cue?, offsetMs? } and the main button adds a card to Anki.
+// timeMs?, video?, cue?, offsetMs?, picture? (Blob), source? (string) } and the main button adds a card to Anki.
 export default function WordPanel({ token, sentence, grammar = [], ankiContext, onSaved, onClose, onOpenSettings }) {
   const { state, saveWord, removeWord, knowWord, unknowWord, markInAnki } = useStore();
   const [add, setAdd] = useState(null); // null | key of ADD_STATUS | "queued" | { error }
@@ -99,7 +99,7 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
   }
 
   async function handleAdd() {
-    const { video, cue, offsetMs, ...context } = ankiContext;
+    const { video, cue, offsetMs, picture, ...context } = ankiContext;
     const base = token.base;
     const live = () => current.current === base;
     noAudio.current = false;
@@ -111,6 +111,7 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
       context,
       video,
       cue,
+      picture,
       offsetMs,
       maps: state.anki,
       onProgress: (p) => {

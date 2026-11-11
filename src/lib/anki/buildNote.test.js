@@ -98,3 +98,13 @@ test("buildNote collapses runs of <br> and bolds the tapped occurrence", async (
   assert.equal(n.fields.A, "食べる<br><br>eat");
   assert.equal(n.fields.S, "食べて<b>食べ</b>た");
 });
+
+test("source uses context.source when given", () => {
+  const n = buildNote({ deck: "D", model: "M", mapping: lapis, word, context: { source: "風の町 1, p. 12", fileName: "x.mp4", timeMs: 0 } });
+  assert.equal(n.fields.MiscInfo, "風の町 1, p. 12");
+});
+
+test("escapes context.source", () => {
+  const n = buildNote({ deck: "D", model: "M", mapping: lapis, word, context: { source: "a<b" } });
+  assert.equal(n.fields.MiscInfo, "a&lt;b");
+});

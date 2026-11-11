@@ -8,6 +8,7 @@ import {
   boldWord,
   formatMeaning,
   formatSource,
+  formatPageSource,
 } from "./format.js";
 
 test("toBracketFurigana", () => {
@@ -82,4 +83,8 @@ test("brackets in plain text are encoded, furigana brackets stay", () => {
 test("boldWord bolds the tapped occurrence when given an offset", () => {
   assert.equal(boldWord("食べて食べた", "食べ", 3), "食べて<b>食べ</b>た");
   assert.equal(boldWord("食べて食べた", "食べ", 99), "<b>食べ</b>て食べた");
+});
+
+test("formatPageSource", () => {
+  assert.equal(formatPageSource("風の町 1", 12), "風の町 1, p. 12");
 });

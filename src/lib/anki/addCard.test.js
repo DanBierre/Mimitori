@@ -117,3 +117,16 @@ test("other Anki error is returned", async () => {
   const t = setup({ invoke: (a) => { if (a === "addNote") throw new AnkiError("model not found", "anki"); } });
   assert.deepEqual(await t.run(), { error: "model not found" });
 });
+
+test("uses a given picture instead of a video frame", async () => {
+  const t = setup({
+    video: undefined,
+    cue: undefined,
+    picture: new Blob([new Uint8Array([1, 2, 3])]),
+    deps: { captureFrame: async () => { throw new Error("should not capture"); } },
+  });
+  assert.equal(await t.run(), "added");
+  const note = t.calls.find((c) => c.action === "addNote").params.note;
+  assert.equal(note.picture.length, 1);
+  assert.match(note.picture[0].filename, /\.jpg$/);
+});

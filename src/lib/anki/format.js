@@ -47,6 +47,8 @@ export function formatMeaning(glosses, format) {
     : g.join("; ");
 }
 
+export const formatPageSource = (title, page) => `${title}, p. ${page}`;
+
 export function formatSource(fileName, ms) {
   const total = Math.floor(ms / 1000);
   const h = Math.floor(total / 3600);
