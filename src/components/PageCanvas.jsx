@@ -6,7 +6,7 @@ const boxStyle = ([x0, y0, x1, y1]) => ({ left: pct(x0), top: pct(y0), width: pc
 
 // One page, drawn on a canvas, with the boxed lines outlined over it. While `boxing`, dragging draws a new box
 // and onBox(box) gets it (fractions of the page, never a stray click). `float` sits beside the current box.
-export default function PageCanvas({ page, lines, currentId, boxing, fit, pending, onBox, onPick, float }) {
+export default function PageCanvas({ page, lines, currentId, boxing, fit, pending, floatBox, onBox, onPick, float }) {
   const canvasRef = useRef(null);
   const layerRef = useRef(null);
   const [drag, setDrag] = useState(null); // { a, b } while the pointer is down, as { x, y } fractions
@@ -39,8 +39,8 @@ export default function PageCanvas({ page, lines, currentId, boxing, fit, pendin
 
   const current = lines.find((l) => l.id === currentId);
   // The float goes on the side with more room and never over the box.
-  const side = current || pending ? ((current?.box || pending)[0] + (current?.box || pending)[2]) / 2 > 0.5 : false;
-  const anchor = current?.box || pending;
+  const anchor = current?.box || floatBox;
+  const side = anchor ? (anchor[0] + anchor[2]) / 2 > 0.5 : false;
   const live = drag && normBox(drag.a, drag.b);
 
   return (

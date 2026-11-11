@@ -1,4 +1,4 @@
-// Turns picked files into a Book: { key, title, kind, pageCount, rtl, getPage(n), getTextItems(n), close() }.
+// Turns picked files into a Book: { key, title, kind, pageCount, rtl, getPage(n), peekPage(n), getTextItems(n), close() }.
 // Pages are 1-based. getPage resolves to { source, width, height }; getTextItems is null for image books.
 import { listEntries, readEntry } from "./zip.js";
 import { isImageName, pickPages } from "./pages.js";
@@ -69,21 +69,24 @@ export async function openBook(files, deps = {}) {
     kind,
     pageCount: count,
     rtl,
-    async getPage(n) {
+    getPage(n) {
+      // Evict against the page asked for now, at call time: a slow older decode finishing later must not close the page on show.
+      // A pending page that gets evicted is closed when it finishes; nobody waits for that.
+      for (const [k, p] of cache) {
+        if (Math.abs(k - n) > 1) {
+          cache.delete(k);
+          closePage(p);
+        }
+      }
       if (!cache.has(n)) {
         const p = load(n);
         cache.set(n, p);
         p.catch(() => cache.get(n) === p && cache.delete(n)); // a failed page can be tried again
       }
-      const page = await cache.get(n);
-      for (const [k, p] of cache) {
-        if (Math.abs(k - n) > 1) {
-          cache.delete(k);
-          await closePage(p);
-        }
-      }
-      return page;
+      return cache.get(n);
     },
+    // A page decoded on the side (a cover): not cached, nothing evicted. The caller closes page.source when done.
+    peekPage: (n) => load(n),
     getTextItems: async (n) => (pdf ? pdf.textItems(n) : null),
     async close() {
       const all = [...cache.values()].map(closePage);

@@ -1,12 +1,17 @@
 // Book records: the page you were on, direction, fit, and the lines you boxed.
+import { isImageName } from "./pages.js";
+
 // A Line is { id, box, text, from: "pdf" | "ocr", fixed }. Pages are 1-based.
 
 const folderOf = (f) => f.webkitRelativePath?.split("/")[0] || "";
 
 export function bookKey(files) {
   if (files.length === 1) return `${files[0].name}|${files[0].size}|${files[0].lastModified}`;
-  const total = files.reduce((n, f) => n + f.size, 0);
-  return `${folderOf(files[0]) || "images"}|${files.length}|${total}`;
+  // Only images count, so a Thumbs.db or a .mokuro file appearing doesn't turn the book into a new one.
+  const images = files.filter((f) => isImageName(f.webkitRelativePath || f.name));
+  const used = images.length ? images : files;
+  const total = used.reduce((n, f) => n + f.size, 0);
+  return `${folderOf(files[0]) || "images"}|${used.length}|${total}`;
 }
 
 export function bookTitle(files) {

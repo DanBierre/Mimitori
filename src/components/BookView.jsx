@@ -46,6 +46,8 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
   const [tokensByText, setTokensByText] = useState({});
   const [picture, setPicture] = useState(null);
   const waiting = useRef(null); // a box waiting for the reader to download: { box, page, src }
+  const boxedPageRef = useRef(1); // the page the active box was drawn on
+  const [typed, setTyped] = useState("");
   const activeBox = useRef(null); // the box the float is about; an answer for any other box is saved but not shown
 
   // The saved record: page, direction, fit and lines. The first render waits for it.
@@ -147,13 +149,13 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
   }
 
   // Saves a line to the page it was boxed on, which may not be the page showing by now.
-  function finish(text, from, box, boxedPage) {
+  function finish(text, from, box, boxedPage, fixed = false) {
     const clean = text.trim();
     if (!clean) {
       setFloat((f) => (f && f.box === box ? { phase: "empty", box } : f));
       return;
     }
-    const line = { id: newId(), box, text: clean, from, fixed: false };
+    const line = { id: newId(), box, text: clean, from, fixed };
     update((r) => addLine(r, boxedPage, line));
     if (boxedPage === recRef.current.page && activeBox.current === box) {
       setCurrentId(line.id);
@@ -189,12 +191,19 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
     const src = pageData;
     if (!src) return;
     activeBox.current = box;
+    boxedPageRef.current = boxedPage;
     setCurrentId(null);
     setEditing(null);
     setSel(null);
     waiting.current = null;
     setFloat({ phase: "reading", box });
-    const items = await book.getTextItems(boxedPage);
+    let items = null;
+    try {
+      items = await book.getTextItems(boxedPage);
+    } catch {
+      /* no text layer to read: fall back to OCR */
+    }
+    if (activeBox.current !== box) return; // the learner moved on while the text layer loaded
     const text = items ? textInBox(items, box) : "";
     if (text) finish(text, "pdf", box, boxedPage);
     else startOcr(src, box, boxedPage);
@@ -245,6 +254,20 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
     setSel(tokenIndex === null ? null : { lineId, tokenIndex });
   };
 
+  // The reader may be missing (offline, or never allowed), so the learner can always type the line.
+  const typeButton = float && (
+    <button
+      className="btn btn--quiet book__type"
+      onClick={() => {
+        waiting.current = null;
+        setTyped("");
+        setFloat({ phase: "type", box: float.box });
+      }}
+    >
+      Type it instead
+    </button>
+  );
+
   // ----- the float beside the boxed bubble -----
   let floatNode = null;
   if (float) {
@@ -265,6 +288,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
           <button className="btn btn--primary" onClick={ocr.allowDownload}>
             Download
           </button>
+          {typeButton}
         </>
       ) : ocr.status === "error" ? (
         <>
@@ -272,15 +296,47 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
           <button className="btn" onClick={ocr.allowDownload}>
             Retry
           </button>
+          {typeButton}
         </>
       ) : (
         <>
           <p className="book__float-note">Getting the reader… {ocr.modelPct}%</p>
           <progress className="book__progress" max="100" value={ocr.modelPct} />
+          {typeButton}
         </>
       );
+    } else if (float.phase === "type") {
+      floatNode = (
+        <form
+          className="book__fix"
+          onSubmit={(e) => {
+            e.preventDefault();
+            finish(typed, "ocr", float.box, boxedPageRef.current, true);
+          }}
+        >
+          <input
+            className="book__fix-input"
+            lang="ja"
+            autoFocus
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            aria-label="Type the line"
+          />
+          <button className="btn btn--primary" type="submit">
+            Save
+          </button>
+          <button className="btn btn--quiet" type="button" onClick={() => setFloat(null)}>
+            Cancel
+          </button>
+        </form>
+      );
     } else if (float.phase === "empty") {
-      floatNode = <p className="book__float-note">Couldn't read that. Try a tighter box.</p>;
+      floatNode = (
+        <>
+          <p className="book__float-note">Couldn't read that. Try a tighter box.</p>
+          {typeButton}
+        </>
+      );
     } else if (float.phase === "error") {
       floatNode = (
         <>
@@ -297,6 +353,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
               Retry
             </button>
           )}
+          {typeButton}
         </>
       );
     } else if (line) {
@@ -359,7 +416,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
 
   if (!rec) return <p className="note">Opening…</p>;
 
-  const pending = float && float.phase !== "line" ? float.box : null;
+  const pending = float && float.phase !== "line" && float.phase !== "empty" ? float.box : null;
   const forward = rtl ? "←" : "→";
   const backward = rtl ? "→" : "←";
 
@@ -427,6 +484,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
               boxing={boxing}
               fit={fit}
               pending={pending}
+              floatBox={float?.box}
               onBox={onBox}
               onPick={pick}
               float={floatNode}

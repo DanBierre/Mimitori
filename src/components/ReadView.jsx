@@ -87,10 +87,16 @@ export default function ReadView({ onOpenSettings }) {
       if (first) {
         // a small cover from page 1; a failure just leaves the row without one
         const { cropPicture } = await import("../lib/book/crop");
+        // peekPage decodes on the side, so it can't close the page BookView is showing
         next
-          .getPage(1)
-          .then((p) => cropPicture(p.source, p.width, p.height, [0, 0, 1, 1], 192))
-          .then((blob) => putImage(coverKey(next.key), blob))
+          .peekPage(1)
+          .then(async (p) => {
+            try {
+              await putImage(coverKey(next.key), await cropPicture(p.source, p.width, p.height, [0, 0, 1, 1], 192));
+            } finally {
+              p.source.close?.();
+            }
+          })
           .catch(() => {});
       }
     } catch (e) {

@@ -83,3 +83,38 @@ test("getPage keeps at most three decoded pages", async () => {
   await book.close();
   assert.equal(f.closed.length, 4);
 });
+
+test("a slow older page can't close the page now showing", async () => {
+  const closed = [];
+  const waiting = new Map();
+  const deps = {
+    decode: (blob) =>
+      new Promise((resolve) => {
+        const bmp = { name: blob.name, width: 1, height: 1, close: () => closed.push(blob.name) };
+        waiting.set(blob.name, () => resolve(bmp));
+      }),
+  };
+  const files = [1, 2, 3].map((n) => withPath(`${n}.png`, `v/${n}.png`));
+  const book = await openBook(files, deps);
+  const slow = book.getPage(1); // still decoding
+  const fast = book.getPage(3);
+  await new Promise((r) => setTimeout(r)); // let both start decoding
+  waiting.get("3.png")();
+  await fast;
+  waiting.get("1.png")();
+  await slow;
+  await new Promise((r) => setTimeout(r));
+  assert.deepEqual(closed, ["1.png"]); // the old page goes; page 3 stays open
+});
+
+test("peekPage decodes without touching the pages being held", async () => {
+  const f = fakes();
+  const files = [1, 2, 3].map((n) => withPath(`${n}.png`, `v/${n}.png`));
+  const book = await openBook(files, f.deps);
+  await book.getPage(3);
+  const peeked = await book.peekPage(1);
+  assert.equal(peeked.width, 800);
+  assert.equal(f.closed.length, 0);
+  await book.getPage(3);
+  assert.equal(f.decoded.filter((n) => n === "3.png").length, 1); // page 3 was still cached
+});

@@ -38,3 +38,9 @@ test("addLine, updateLine, removeLine never mutate their input", () => {
   assert.deepEqual(r4.lines[3].map((l) => l.id), ["a"]);
   assert.deepEqual(rec.lines, {});
 });
+
+test("bookKey for a folder counts only the images", () => {
+  const imgs = [file("001.jpg", 100, 1, "V/001.jpg"), file("002.jpg", 250, 2, "V/002.jpg")];
+  const extra = [file("Thumbs.db", 9, 3, "V/Thumbs.db"), file("vol.mokuro", 500, 4, "V/vol.mokuro")];
+  assert.equal(bookKey([...imgs, ...extra]), bookKey(imgs));
+});
