@@ -47,6 +47,8 @@ export default function TokenLine({ tokens, selected, onSelect }) {
         key={i}
         className={`word mk mk--${mark}${fresh?.has(token.base) ? " mk--draw" : ""}`}
         aria-pressed={selected === i}
+        // Ruby splits the word for screen readers; give them the word, then its reading.
+        aria-label={token.reading && token.reading !== token.surface ? `${token.surface}, ${token.reading}` : token.surface}
         onClick={() => onSelect(selected === i ? null : i)}
         // Yomitan-style: hold Shift and move the mouse over words to look them up.
         onPointerMove={(e) => {
