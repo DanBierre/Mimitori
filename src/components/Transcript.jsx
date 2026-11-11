@@ -83,9 +83,7 @@ export default function Transcript({ cues, current, onJump, newCounts = [], auto
                 {auto && !edited.includes(i) && <span className="transcript__auto">auto</span>}
                 {newCounts[i] > 0 && (
                   <span className="transcript__new" role="img" aria-label={`${newCounts[i]} new ${newCounts[i] === 1 ? "word" : "words"}`}>
-                    {Array.from({ length: Math.min(newCounts[i], 3) }, (_, k) => (
-                      <i key={k} />
-                    ))}
+                    <i data-n={Math.min(newCounts[i], 3)} />
                   </span>
                 )}
               </button>

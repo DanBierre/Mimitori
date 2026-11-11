@@ -6,7 +6,7 @@ import Icon from "./Icon";
 const TIPS = [
   ["Tap any word", "You'll see its reading, its meaning and how it's conjugated."],
   ["Missed it?", "Press R, or the replay button, to hear the line again."],
-  ["Keep the good ones", "Save a word from its card. With Anki connected, it becomes a card with audio and a picture."],
+  ["Keep the good ones", "Use Save to review on a word's card. With Anki connected, it becomes a card with audio and a picture."],
 ];
 
 const flags = createFlags();

@@ -884,7 +884,7 @@ rt.rt--known {
   bottom: 0;
   width: 2px;
   margin-left: -1px;
-  background: rgb(255 255 255 / 0.18);
+  background: rgb(255 255 255 / 0.38);
   border-radius: 1px;
 }
 
@@ -1435,9 +1435,20 @@ rt.rt--known {
 }
 
 .transcript__new i {
-  width: 3px;
-  height: 3px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+.transcript__new i[data-n="2"] {
+  width: 6px;
+  height: 6px;
+}
+
+.transcript__new i[data-n="3"] {
+  width: 8px;
+  height: 8px;
   background: var(--ink);
 }
 
@@ -1517,6 +1528,10 @@ rt.rt--known {
 
   .watch__top {
     margin-top: 14px;
+  }
+
+  .watch:not(.watch--ready) .watch__top {
+    padding-inline: 0;
   }
 
   .watch__stage,

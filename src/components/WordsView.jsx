@@ -144,7 +144,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
         <div className="words__empty">
           <h2 className="words__empty-title">Your words live here</h2>
           <p>
-            They appear when you tap a word in Read or Watch and press Save or Add to Anki. Words you mark
+            They appear when you tap a word in Read or Watch and press Save to review or Add to Anki. Words you mark
             as known are tracked too, so furigana stays out of your way.
           </p>
           <div className="words__empty-actions">

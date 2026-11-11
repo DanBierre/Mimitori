@@ -30,7 +30,7 @@ export default function Ticks({ counts, cues, current, onSeek }) {
             <i
               key={i}
               className={cls}
-              style={{ left: `${Math.min(100, (c.start / span) * 100)}%`, height: `${Math.min(24, 4 + n * 4)}px` }}
+              style={{ left: `${Math.min(100, (c.start / span) * 100)}%`, height: `${Math.min(24, 8 + n * 4)}px` }}
             />
           );
         })}
