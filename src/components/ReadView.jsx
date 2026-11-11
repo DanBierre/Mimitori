@@ -11,11 +11,17 @@ import { sentenceAround, sentenceContext } from "../lib/sentence";
 import { loadBookRecents, saveBookRecents, coverKey } from "../lib/book/recents";
 import { upsertRecent, droppedKeys } from "../lib/recents";
 import { putImage, getImageUrl, deleteImage } from "../lib/images";
+import { createFlags } from "../lib/firstRun";
+import Icon from "./Icon";
 // The viewer, pdf.js and the book code load only when a book opens.
 const BookView = lazy(() => import("./BookView"));
 
+// Mixed levels on purpose, so even a strong learner meets a few new words.
 const SAMPLE =
-  "今日は友達と一緒に日本語を勉強します。難しい漢字がたくさんありますが、毎日少しずつ読むと、だんだん分かるようになります。";
+  "駅の改札を出ると、雨が降り始めていた。傘を持っていなかったので、近くのコンビニで透明なビニール傘を買った。店員さんは「急に降ってきましたね」と笑っていた。";
+
+const flags = createFlags();
+const MOD_KEY = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘" : "Ctrl";
 
 const FURIGANA_MODES = [
   ["unknown", "New words"],
@@ -60,6 +66,16 @@ export default function ReadView({ onOpenSettings }) {
   const [status, setStatus] = useState("idle"); // idle | loading | error
   const [error, setError] = useState("");
   const [selected, setSelected] = useState(null); // token index
+  const [tip, setTip] = useState(() => !flags.has("read-tip")); // one-off "tap a word" hint
+  const pasteRef = useRef(null);
+
+  function selectWord(i) {
+    setSelected(i);
+    if (tip && i !== null) {
+      flags.set("read-tip");
+      setTip(false);
+    }
+  }
 
   // Books: PDFs, CBZ files and image folders open in BookView in place of the sheet.
   const [book, setBook] = useState(null);
@@ -128,7 +144,10 @@ export default function ReadView({ onOpenSettings }) {
 
   async function handleLookup() {
     const text = input.trim();
-    if (!text) return;
+    if (!text) {
+      pasteRef.current?.focus();
+      return;
+    }
     if (!JAPANESE_REGEX.test(text)) {
       setError("That doesn’t look like Japanese. Paste some Japanese text and try again.");
       setStatus("error");
@@ -190,29 +209,44 @@ export default function ReadView({ onOpenSettings }) {
       <section className="sheet read__sheet" aria-label="Reading sheet">
         {!tokens ? (
           <div className="read__compose">
-            <label className="sheet__label" htmlFor="paste">
-              Paste Japanese
-            </label>
+            <h1 className="read__head">Read real Japanese.</h1>
+            <p className="read__lede" id="paste-hint">
+              Paste anything you’re reading, then tap a word for its reading and meaning.
+            </p>
             <textarea
               id="paste"
+              ref={pasteRef}
               className="read__input"
               lang="ja"
+              aria-label="Japanese text to read"
+              aria-describedby="paste-hint"
               placeholder="ここに日本語を貼り付けてください"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              rows={7}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault();
+                  handleLookup();
+                }
+              }}
+              rows={5}
             />
             <div className="read__compose-actions">
-              <button
-                className="btn btn--primary"
-                onClick={handleLookup}
-                disabled={status === "loading" || !input.trim()}
-              >
+              <button className="btn btn--primary" onClick={handleLookup} disabled={status === "loading"}>
                 {status === "loading" ? "Reading…" : "Read this"}
               </button>
-              <button className="btn btn--quiet" onClick={() => setInput(SAMPLE)}>
-                Use a sample
+              <button
+                className="btn"
+                onClick={() => {
+                  setInput(SAMPLE);
+                  pasteRef.current?.focus();
+                }}
+              >
+                Try a sample
               </button>
+              <span className="read__keys" aria-hidden="true">
+                <kbd>{MOD_KEY}</kbd> <kbd>Enter</kbd> to read
+              </span>
             </div>
             {status === "error" && (
               <p className="note note--error" role="alert">
@@ -220,13 +254,23 @@ export default function ReadView({ onOpenSettings }) {
               </p>
             )}
 
-            <div className="read__open">
-              <button className="btn btn--quiet read__edit" onClick={() => fileInput.current.click()} disabled={opening}>
-                {opening ? "Opening…" : "Open a PDF, CBZ or folder"}
-              </button>
-              <button className="link read__edit read__folder" onClick={() => folderInput.current.click()} disabled={opening}>
-                Choose a folder
-              </button>
+            <p className="read__or">or open a book</p>
+            <div className="read__book">
+              <span className="read__book-icon" aria-hidden="true">
+                <Icon name="read" size={26} />
+              </span>
+              <div className="read__book-text">
+                <p className="read__book-title">Manga or a PDF?</p>
+                <p className="read__book-hint">Drop a CBZ, PDF or folder of pages here. Box a speech bubble to read it.</p>
+              </div>
+              <div className="read__book-actions">
+                <button className="btn" onClick={() => fileInput.current.click()} disabled={opening}>
+                  {opening ? "Opening…" : "Choose a file"}
+                </button>
+                <button className="btn" onClick={() => folderInput.current.click()} disabled={opening}>
+                  Folder
+                </button>
+              </div>
               <input ref={fileInput} type="file" hidden multiple accept=".pdf,.cbz,.zip,image/*" onChange={onPicked} />
               <input ref={folderInput} type="file" hidden webkitdirectory="" onChange={onPicked} />
             </div>
@@ -239,7 +283,7 @@ export default function ReadView({ onOpenSettings }) {
             {recents.length > 0 && (
               <section className="recents recents--books" aria-labelledby="book-recents">
                 <h2 id="book-recents" className="recents__title">
-                  Recent books
+                  Carry on reading
                 </h2>
                 <ul className="recents__list">
                   {recents.map((r) => (
@@ -251,10 +295,10 @@ export default function ReadView({ onOpenSettings }) {
                       <span className="recents__stop">{r.page && r.pageCount ? `p. ${r.page} of ${r.pageCount}` : ""}</span>
                       <button
                         className="btn btn--quiet recents__go row-action"
-                        aria-label={`Carry on with ${r.name}`}
+                        aria-label={`Open ${r.name} again`}
                         onClick={() => fileInput.current.click()}
                       >
-                        Carry on
+                        Open
                       </button>
                     </li>
                   ))}
@@ -297,8 +341,10 @@ export default function ReadView({ onOpenSettings }) {
               </div>
             </div>
 
+            {tip && <p className="read__tip">Tap any word to see its reading and meaning.</p>}
+
             <p className="read__text" lang="ja" style={{ "--read-size": `${size}px` }}>
-              <TokenLine tokens={tokens} selected={selected} onSelect={setSelected} />
+              <TokenLine tokens={tokens} selected={selected} onSelect={selectWord} />
             </p>
 
             {translationEnabled && (

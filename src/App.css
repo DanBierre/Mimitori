@@ -3092,21 +3092,143 @@ rt.rt--known {
 
 
 /* Read: open a book, and the recent books list (the Watch recents, with a portrait cover). */
-.read__open {
-  display: flex;
-  flex-wrap: wrap;
+/* The front door: one centred column, paste first, books second. */
+.read__compose {
+  max-width: 680px;
+  margin-inline: auto;
+  padding-top: 8px;
+}
+
+.read__head {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.read__lede {
+  margin: 0 0 20px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.read__compose .read__input {
+  min-height: 150px;
+}
+
+.read__compose-actions {
   align-items: center;
-  gap: 4px 20px;
-  margin-top: 18px;
 }
 
-.read__folder {
-  min-height: 40px;
+.read__keys {
+  margin-left: auto;
+  font-size: 12px;
   color: var(--text-3);
-  font-size: 14px;
 }
 
-.read--drop .read__sheet {
+.read__keys kbd {
+  padding: 1px 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.read__or {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 36px 0 16px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.read__or::before,
+.read__or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.read__book {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 22px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 4px;
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+
+.read--drop .read__book {
+  border-color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.read__book-icon {
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+}
+
+.read__book-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.read__book-title {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.read__book-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.read__book-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.read__tip {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+@media (max-width: 719px) {
+  .read__book {
+    flex-wrap: wrap;
+  }
+
+  .read__book-icon {
+    display: none;
+  }
+
+  .read__book-actions {
+    flex: 1 0 100%;
+  }
+
+  .read__book-actions .btn {
+    flex: 1;
+  }
+}
+
+@media (hover: none), (max-width: 719px) {
+  .read__keys {
+    display: none;
+  }
+}
+
+/* A file dragged over the reading text (not the front door) lights up the sheet. */
+.read--drop .read__sheet:not(:has(.read__compose)) {
   background: color-mix(in srgb, var(--ink) 6%, transparent);
   outline: 1px dashed var(--ink-strong);
   outline-offset: 8px;

@@ -249,10 +249,10 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
         )}
         {commonOnly && (
           <>
-            <p className="word-panel__status">Treated as known. Furigana is hidden for it.</p>
+            <p className="word-panel__status">A very common word, so its furigana is hidden.</p>
             {!addToAnki ? (
               <button className="btn btn--primary" {...hot("s")} onClick={handleSave}>
-                <span>Save anyway</span>
+                <span>Save to review</span>
                 <Key k="s" />
               </button>
             ) : !sure ? (
