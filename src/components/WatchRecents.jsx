@@ -46,7 +46,7 @@ export default function WatchRecents({ recents, onCarryOn, onSample, sampleLoadi
             {r.coverage !== null && <span className="recents__pct">{r.coverage}% known</span>}
             <span className="recents__stop">{stoppedLabel(r)}</span>
             <button
-              className="btn btn--quiet recents__go"
+              className="btn btn--quiet recents__go row-action"
               aria-label={`Carry on with ${r.name}`}
               onMouseDown={noFocus}
               onClick={() => onCarryOn(r)}
@@ -60,7 +60,7 @@ export default function WatchRecents({ recents, onCarryOn, onSample, sampleLoadi
             <span className="recents__thumb" aria-hidden="true" />
             <span className="recents__name">Sample clip</span>
             <span className="recents__stop">30 s</span>
-            <button className="btn btn--quiet recents__go" onMouseDown={noFocus} onClick={onSample} disabled={sampleLoading}>
+            <button className="btn btn--quiet recents__go row-action" onMouseDown={noFocus} onClick={onSample} disabled={sampleLoading}>
               {sampleLoading ? "Loading…" : "Try it"}
             </button>
           </li>

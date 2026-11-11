@@ -8,6 +8,7 @@ import ReviewView from "./components/ReviewView";
 import WordsView from "./components/WordsView";
 import SettingsView from "./components/SettingsView";
 import Icon from "./components/Icon";
+import { useMarker } from "./lib/useMarker";
 import { createFlags } from "./lib/firstRun";
 import "./App.css";
 
@@ -24,6 +25,7 @@ function Shell() {
   // First visit lands on Watch, where the sample clip is one tap away. After that, Read as before.
   const [tab, setTab] = useState(() => (flags.has("visited") ? "read" : "watch"));
   useEffect(() => flags.set("visited"), []);
+  const railRef = useMarker('[aria-current="page"] .rail__label');
   const today = useReviewToday();
   const { state } = useStore();
   const inAnkiMode = ankiMode(state);
@@ -53,7 +55,8 @@ function Shell() {
           </svg>
           mimitori
         </h1>
-        <nav className="rail" aria-label="Sections">
+        <nav className="rail" aria-label="Sections" ref={railRef}>
+          <span className="marker rail__marker" aria-hidden="true" />
           {TABS.filter((t) => !(inAnkiMode && t.id === "review")).map((t) => (
             <button
               key={t.id}

@@ -3,6 +3,7 @@ import { tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furigana";
 import { translateText, translationEnabled } from "../lib/translate";
 import { useStore } from "../lib/store";
 import TokenLine from "./TokenLine";
+import { useMarker } from "../lib/useMarker";
 import { conjugationParts } from "../lib/conjugation";
 import { canSpeak, speak } from "../lib/speak";
 import WordPanel from "./WordPanel";
@@ -25,6 +26,7 @@ function ankiContext(tokens, i) {
 export default function ReadView({ onOpenSettings }) {
   const { state, setSettings } = useStore();
   const { furigana, size } = state.settings;
+  const furiRef = useMarker('[aria-pressed="true"]');
 
   const [input, setInput] = useState("");
   const [tokens, setTokens] = useState(null);
@@ -108,7 +110,8 @@ export default function ReadView({ onOpenSettings }) {
         ) : (
           <>
             <div className="read__toolbar">
-              <div className="segmented" role="group" aria-label="Furigana">
+              <div className="segmented" role="group" aria-label="Furigana" ref={furiRef}>
+                <span className="marker" aria-hidden="true" />
                 <span className="segmented__label">Furigana</span>
                 {FURIGANA_MODES.map(([value, label]) => (
                   <button

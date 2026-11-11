@@ -6,6 +6,7 @@ import { planBatch, sendBatch } from "../lib/anki/batch";
 import { downloadCsv } from "../lib/exportCsv";
 import { formatInterval } from "../lib/srs";
 import SceneStill from "./SceneStill";
+import { useMarker } from "../lib/useMarker";
 
 const FILTERS = [
   ["all", "All"],
@@ -19,6 +20,7 @@ let batchRunning = false; // survives a tab switch, so a second Send all can't s
 export default function WordsView({ onGoWatch, onGoRead }) {
   const { state, removeWord, knowWord, unknowWord, markInAnki } = useStore();
   const [filter, setFilter] = useState("all");
+  const filterRef = useMarker('[aria-pressed="true"]');
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(null);
   const [batch, setBatch] = useState(null); // null | { running, step, total } | { done: message }
@@ -108,7 +110,8 @@ export default function WordsView({ onGoWatch, onGoRead }) {
     <section className="sheet words" aria-label="Words">
       <p className="words__count">{knownTotal(state)} words known · {savedWords.length} learning</p>
       <div className="words__bar">
-        <div className="segmented" role="group" aria-label="Filter words">
+        <div className="segmented" role="group" aria-label="Filter words" ref={filterRef}>
+          <span className="marker" aria-hidden="true" />
           {FILTERS.map(([value, label]) => (
             <button
               key={value}

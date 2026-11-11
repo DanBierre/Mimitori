@@ -37,6 +37,9 @@
   --font: "Noto Sans JP", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
   --radius: 4px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 150ms;
+  --dur-slide: 380ms;
+  --tint-hover: color-mix(in srgb, var(--text) 5%, transparent);
   --tabbar-h: 64px;
 
   color-scheme: light;
@@ -127,6 +130,64 @@ h3 {
   outline-offset: 2px;
 }
 
+/* ---------- Control motion: one place for every button, link, toggle, swatch and input ---------- */
+
+:where(button, a, input, select, textarea, summary, .inks__dot) {
+  outline: 2px solid transparent;
+  outline-offset: 0;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    outline-color var(--dur-fast) var(--ease-out),
+    outline-offset var(--dur-fast) var(--ease-out);
+}
+
+/* Press: text buttons 0.97, icon buttons 0.94. Not text inputs, sliders, words or full-width rows. */
+button:active:not(:disabled, .word, .transcript__line) {
+  transform: scale(0.97);
+}
+
+button:active:not(:disabled):is(.icon-btn, .ctl-btn, .stepper__btn, .watch__close, .transcript__fix) {
+  transform: scale(0.94);
+}
+
+/* Sliding marker: one element per row, placed by useMarker (--mx --my --mw --mh). */
+.marker {
+  position: absolute;
+  left: var(--mx, 0);
+  top: var(--my, 0);
+  width: var(--mw, 0);
+  height: var(--mh, 0);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  pointer-events: none;
+}
+
+[data-ready] > .marker {
+  transition:
+    left var(--dur-slide) var(--ease-out),
+    top var(--dur-slide) var(--ease-out),
+    width var(--dur-slide) var(--ease-out),
+    height var(--dur-slide) var(--ease-out);
+}
+
+/* Row actions rest quiet on hover-capable pointers; touch and keyboard always see them. */
+@media (hover: hover) {
+  .row-action {
+    opacity: 0;
+  }
+
+  :hover > .row-action,
+  :focus-within > .row-action,
+  .row-action:focus-visible {
+    opacity: 1;
+  }
+}
+
 textarea,
 input {
   caret-color: var(--ink-strong);
@@ -163,5 +224,9 @@ kbd {
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  button:active {
+    transform: none !important;
   }
 }

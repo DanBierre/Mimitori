@@ -387,8 +387,12 @@ Plain and exact; most actions are text.
 
 ### Motion
 - **Curve:** `cubic-bezier(0.22, 1, 0.36, 1)` for every slide and fade.
-- **Durations:** 260ms for tab changes and panels (8px slide), 220ms for pop-ups, 200ms for furigana fading, 300ms for the review progress bar, 120ms for hover colour.
-- **Reduced motion:** all animation and transitions are off.
+- **Tokens:** `--dur-fast` 150ms for every button, link, toggle, swatch and input (colour, background, border, opacity, transform, focus ring); `--dur-slide` 380ms for tab changes (8px slide) and sliding markers. Also 220ms pop-ups, 200ms furigana fade, 300ms review progress bar.
+- **Hover and press:** quiet buttons fade in a 5% text tint (`--tint-hover`); primary goes ink to ink-hover. Press scales to 0.97 (text buttons) or 0.94 (icon buttons); not on the video, sliders, inputs, words or transcript rows.
+- **Focus rings:** fade in and move from 0 to 2px offset over `--dur-fast`.
+- **Sliding markers:** the current-tab hairline and the selected 6% tint in segmented rows are one `.marker` element placed by `useMarker`; it slides over `--dur-slide`, with no animation on first paint.
+- **Row actions:** on hover-capable pointers (Carry on, Fix this line) rest at 0 opacity and appear on row hover or focus-within; always visible on touch.
+- **Reduced motion:** all animation and transitions are off; no press scale, markers jump.
 
 ## Do's and Don'ts
 
