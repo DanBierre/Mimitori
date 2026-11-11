@@ -157,7 +157,9 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
             Show answer
           </button>
         ) : (
-          <div className="grades" role="group" aria-label="How well did you remember it?">
+          <>
+          <p className="review__ask" id="review-ask">How well did you remember it?</p>
+          <div className="grades" role="group" aria-labelledby="review-ask">
             {GRADES.map(([rating, label]) => (
               <button
                 key={rating}
@@ -173,6 +175,7 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
               </button>
             ))}
           </div>
+          </>
         )}
         <p className="review__keys only-fine">
           {revealed ? "1–4 to answer · U to undo" : "Space shows the answer"}

@@ -3595,3 +3595,17 @@ rt.rt--known {
     z-index: 6;
   }
 }
+
+.review__ask {
+  margin: 0 0 10px;
+  font-size: 13px;
+  text-align: center;
+  color: var(--text-2);
+}
+
+/* Phones pin the grade buttons to the bottom edge, away from this line, so the buttons' own labels carry it. */
+@media (max-width: 719px) {
+  .review__ask {
+    display: none;
+  }
+}
