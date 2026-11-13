@@ -1,6 +1,6 @@
 // One thin tick per line, placed at the line's start time across the timeline
 // and taller the more new words it holds. Lines with three or more are inked,
-// the current one is white. Click or tap to jump to the nearest line.
+// the current one is a 2px ink-dark rule. Click or tap to jump to the nearest line.
 // Decorative for assistive tech: the transcript is the accessible way to jump.
 // One element per line; bucket the lines if files reach thousands.
 const HARD = 3;
