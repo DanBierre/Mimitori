@@ -1,33 +1,30 @@
 ---
 name: Mimitori
-description: Quiet precision that is personal; the learner's own progress is the only decoration.
+description: A cool-white reading desk with hairline rules, serif Japanese and one ink blue; a word's state is its mark, never its colour.
 colors:
-  page: "#fbfbfa"
+  page: "#fbfbfc"
   surface: "#ffffff"
-  surface-2: "#f4f4f2"
-  surface-3: "#e7e7ea"
-  line: "#ececef"
-  line-strong: "#cfcfd6"
-  text: "#111114"
-  text-2: "#5c5c65"
-  text-3: "#70707a"
-  page-dark: "#0b0b0d"
-  surface-dark: "#141417"
-  surface-2-dark: "#1c1c20"
-  surface-3-dark: "#2a2a2f"
-  line-dark: "#232328"
-  line-strong-dark: "#3a3a41"
-  text-dark: "#ededef"
-  text-2-dark: "#a1a1aa"
-  text-3-dark: "#85858f"
-  stage: "#0e0e10"
-  stage-on-dark: "#101013"
-  stage-2: "#17171a"
-  stage-3: "#26262b"
-  stage-text: "#ffffff"
-  stage-text-2: "#a8a8b2"
-  ink-indigo: "#5560d8"
-  ink-indigo-dark: "#8b8bff"
+  surface-2: "#f3f4f6"
+  surface-3: "#e3e5ea"
+  line: "#e3e5ea"
+  line-soft: "#eef0f3"
+  line-strong: "#cdd1d8"
+  text: "#15171c"
+  text-2: "#5d6370"
+  text-3: "#6b717d"
+  page-dark: "#111317"
+  surface-dark: "#16191e"
+  surface-2-dark: "#1d2026"
+  surface-3-dark: "#262a31"
+  line-dark: "#262a31"
+  line-soft-dark: "#1d2026"
+  line-strong-dark: "#3a3f48"
+  text-dark: "#eceef2"
+  text-2-dark: "#a3a9b5"
+  text-3-dark: "#858b97"
+  video-frame: "#0d0f12"
+  ink-blue: "#2747d1"
+  ink-blue-dark: "#8ea3ff"
   ink-pine: "#1f8a70"
   ink-pine-dark: "#34c29e"
   ink-teal: "#0e7490"
@@ -36,63 +33,64 @@ colors:
   ink-amber-dark: "#f0a24b"
   ink-violet: "#8b5cf6"
   ink-violet-dark: "#a78bfa"
-  ink-strong: "color-mix(in srgb, #5560d8 86%, #000)"
+  ink-strong: "color-mix(in srgb, ink 90%, #000)"
+  mark: "color-mix(in srgb, ink 16%, transparent)"
+  mark-strong: "color-mix(in srgb, ink 30%, transparent)"
   ink-on-light: "#ffffff"
-  ink-on-dark: "#0b0b10"
-  due: "#c26a06"
-  due-dark: "#fbbf24"
-  due-under-amber: "#be185d"
-  due-under-amber-dark: "#f472b6"
+  ink-on-dark: "#111317"
   danger: "#c4321e"
   danger-dark: "#ff7a66"
 typography:
   display:
-    fontFamily: "Noto Sans JP, system-ui, -apple-system, Segoe UI, Hiragino Sans, Yu Gothic UI, sans-serif"
+    fontFamily: "Newsreader, Noto Serif JP, Hiragino Mincho ProN, Yu Mincho, Georgia, serif"
     fontSize: "72px"
     fontWeight: 400
     lineHeight: 1
-    fontFeature: "\"palt\", \"tnum\""
   headline:
-    fontFamily: "Noto Sans JP, system-ui, sans-serif"
+    fontFamily: "Newsreader, Noto Serif JP, serif"
     fontSize: "56px"
     fontWeight: 400
-    lineHeight: 1.25
-    fontFeature: "\"palt\""
-  cue:
-    fontFamily: "Noto Sans JP, system-ui, sans-serif"
-    fontSize: "clamp(22px, 30px, 36px)"
-    fontWeight: 500
-    lineHeight: 2.15
-    letterSpacing: "0.01em"
-    fontFeature: "\"palt\""
-  title:
-    fontFamily: "Noto Sans JP, system-ui, sans-serif"
-    fontSize: "26px"
-    fontWeight: 500
-    lineHeight: 1.3
-    fontFeature: "\"palt\""
-  reading:
-    fontFamily: "Noto Sans JP, system-ui, sans-serif"
-    fontSize: "24px"
+    lineHeight: 1.2
+  term:
+    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontSize: "40px"
     fontWeight: 400
-    lineHeight: 2.25
-    letterSpacing: "0.02em"
-    fontFeature: "\"palt\""
+    lineHeight: 1.2
+  cue:
+    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontSize: "clamp(22px, read-size + 6px, 40px)"
+    fontWeight: 400
+    lineHeight: 1.95
+    letterSpacing: "0.01em"
+  reading:
+    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontSize: "clamp(22px, read-size + 6px, 40px)"
+    fontWeight: 400
+    lineHeight: 1.95
+    letterSpacing: "0.01em"
   figure:
-    fontFamily: "Noto Sans JP, system-ui, sans-serif"
-    fontSize: "23px"
-    fontWeight: 500
-    lineHeight: 1
-    letterSpacing: "-0.01em"
-    fontFeature: "\"palt\", \"tnum\""
-  heading:
-    fontFamily: "Noto Sans JP, system-ui, sans-serif"
-    fontSize: "22px"
-    fontWeight: 500
-    lineHeight: 1.55
-    fontFeature: "\"palt\""
+    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontSize: "26px"
+    fontWeight: 400
+    lineHeight: 1.2
+  entry:
+    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontSize: "19px"
+    fontWeight: 400
+    lineHeight: 1.4
+  meaning:
+    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontSize: "16px"
+    fontWeight: 400
+    lineHeight: 1.5
+  margin-note:
+    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.5
+    fontStyle: italic
   body:
-    fontFamily: "Noto Sans JP, system-ui, sans-serif"
+    fontFamily: "Noto Sans JP, system-ui, -apple-system, Segoe UI, Hiragino Sans, Yu Gothic UI, sans-serif"
     fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.55
@@ -102,32 +100,23 @@ typography:
     fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.6
-    fontFeature: "\"palt\""
   label:
     fontFamily: "Noto Sans JP, system-ui, sans-serif"
     fontSize: "13px"
     fontWeight: 400
-    lineHeight: 1.55
-    fontFeature: "\"palt\", \"tnum\""
-  caption:
-    fontFamily: "Noto Sans JP, system-ui, sans-serif"
-    fontSize: "12px"
-    fontWeight: 400
-    lineHeight: 1.5
-    fontFeature: "\"palt\", \"tnum\""
-  key:
-    fontFamily: "Noto Sans JP, system-ui, sans-serif"
+    lineHeight: 1.6
+  index:
+    fontFamily: "IBM Plex Mono, ui-monospace, Cascadia Mono, Consolas, monospace"
     fontSize: "11px"
     fontWeight: 500
-    lineHeight: 1.5
+  mono:
+    fontFamily: "IBM Plex Mono, ui-monospace, Cascadia Mono, Consolas, monospace"
+    fontSize: "12px"
+    fontWeight: 400
 rounded:
-  pane: "0px"
-  chip: "2px"
-  swatch: "3px"
-  control: "4px"
-  float: "6px"
+  control: "0px"
+  float: "4px"
 spacing:
-  hair: "2px"
   xs: "4px"
   sm: "8px"
   md: "12px"
@@ -149,272 +138,202 @@ components:
     rounded: "{rounded.control}"
     padding: "0 16px"
     height: "40px"
-  button-default-hover:
-    backgroundColor: "{colors.surface-2}"
-  button-quiet:
-    backgroundColor: "transparent"
-    textColor: "{colors.text-2}"
-    typography: "{typography.ui}"
-    rounded: "{rounded.control}"
-    padding: "0 16px"
-    height: "40px"
   segmented-option:
-    backgroundColor: "transparent"
     textColor: "{colors.text-2}"
     typography: "{typography.ui}"
     rounded: "{rounded.control}"
     padding: "0 12px"
     height: "36px"
   segmented-option-selected:
-    backgroundColor: "color-mix(in srgb, #5560d8 6%, transparent)"
-    textColor: "{colors.ink-strong}"
-  nav-tab:
-    textColor: "{colors.text-2}"
-    rounded: "{rounded.control}"
-    padding: "0 12px"
-  nav-tab-current:
-    textColor: "{colors.ink-strong}"
-  word-card:
+    textColor: "{colors.text}"
+  readout-row:
+    textColor: "{colors.text}"
+    typography: "{typography.meaning}"
+    padding: "8px 10px 8px 0"
+  readout-row-selected:
+    backgroundColor: "{colors.mark}"
+  word-panel:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.text}"
     rounded: "{rounded.float}"
-    width: "280px"
-  menu-row:
-    backgroundColor: "transparent"
+    padding: "0 18px 16px"
+  popover:
+    backgroundColor: "{colors.surface}"
     textColor: "{colors.text}"
-    typography: "{typography.ui}"
-    rounded: "{rounded.pane}"
-    padding: "0 14px"
-    height: "36px"
-  menu-row-primary:
-    backgroundColor: "color-mix(in srgb, #5560d8 7%, transparent)"
-    textColor: "{colors.ink-strong}"
-  stage:
-    backgroundColor: "{colors.stage}"
-    textColor: "{colors.stage-text}"
-    rounded: "{rounded.control}"
-  stage-control:
-    backgroundColor: "transparent"
-    textColor: "{colors.stage-text-2}"
-    rounded: "{rounded.control}"
-    size: "44px"
-  transcript-row:
-    backgroundColor: "transparent"
+    rounded: "{rounded.float}"
+    width: "340px"
+    padding: "0 16px 16px"
+  transcript-line:
     textColor: "{colors.text-2}"
-    typography: "{typography.ui}"
-    padding: "9px 6px"
-    height: "44px"
-  transcript-row-current:
-    backgroundColor: "color-mix(in srgb, #5560d8 6%, transparent)"
+    typography: "{typography.label}"
+    padding: "8px 4px"
+  transcript-line-current:
+    backgroundColor: "color-mix(in srgb, ink 6%, transparent)"
     textColor: "{colors.text}"
-  input-text:
-    backgroundColor: "transparent"
-    textColor: "{colors.text}"
-    typography: "{typography.ui}"
-    rounded: "{rounded.control}"
-    padding: "0 12px"
-    height: "40px"
-  toggle:
-    backgroundColor: "transparent"
-    rounded: "{rounded.control}"
-    size: "18px"
-  toggle-checked:
-    backgroundColor: "{colors.ink-strong}"
-    textColor: "{colors.ink-on-light}"
 ---
 
 # Design System: Mimitori
 
 ## Overview
 
-**Creative North Star: "The Learner's Own Ink"**
+**Creative North Star: "The Lexicon"**
 
-Mimitori is a near-bare, exact, calm workspace. The page is almost white, the type is almost black, and the only colour that means anything is the ink the learner picked for themselves. That ink marks the words they saved, the one main action on a screen, and their progress. Nothing else is decorated: the text itself gets cleaner as the learner improves, because furigana falls away from words they know.
+Mimitori reads like a dictionary page on a cool white desk. The type is ink, the rules are hairlines, and the Japanese is set in a serif. One accent, ink blue, does all the pointing. Light and dark follow the device, Watch included. Only the video frame stays dark.
 
-Hierarchy comes from size and space, never from heavy weight, boxes or colour blocks. Screens are edge-to-edge panes divided by hairlines. Only things that float (the word card, pop-ups) carry a shadow and a 6px corner. The Watch player always sits on a dark stage, whatever the device theme, with no boxes inside it: the line is set large and centred, the controls are one bare row, and a tick timeline under the video shows where the hard lines are.
+Words carry their state in their mark, not in a colour. A new word gets a soft marker. A saved word gets a dotted ink underline. A known word is plain. The learner can read the line without a colour key.
 
-The one hand-made touch is the brushed underline: a slightly uneven stroke under saved and due words and along the coverage bar. It is the only imperfect geometry in an otherwise exact system, and it is reserved for the learner's progress.
+The signature is the Instrument readout. Small mono numbers 1 to 9 sit beside each unknown word in the Watch line. The same numbers head the rows of a table under the video (word, reading, meaning, state). Keys 1 to 9 pick a word. The number ties the word in the line, its row and its entry together.
 
 **Key Characteristics:**
-- Near-white page, near-black text, a fine neutral scale; light and dark follow the device.
-- One accent, "your ink", chosen from five; it recolours the whole app at once.
-- Noto Sans JP with proportional kana (palt); weights 400 and 500 only.
-- Hairlines, not cards; shadow only on floating things.
-- Brushed, uneven underlines mark saved words, due words and coverage.
-- Watch always plays on a dark stage with no inner boxes.
-- Motion is one curve, a short slide or fade, and it switches off under reduced motion.
+- Cool white page, ink type; light and dark follow the device.
+- One accent, ink blue by default. The learner can pick Pine, Teal, Amber or Violet instead.
+- Serif for Japanese lines, words and meanings. Sans for UI. Mono for timecodes, counts and keys.
+- Hairline rules, not cards. A heavy 2px rule opens each entry.
+- Word state is the mark: marker, dotted underline or plain.
+- Square corners on controls. Floating surfaces get 4px and the one shadow.
 
 ## Colors
 
-A monochrome neutral scale carries the whole interface; the learner's ink is the single accent, and due has its own signal colour.
+A cool neutral scale carries the page. Ink is the only accent.
 
 ### Primary
-- **Your Ink** (one of five pairs; indigo `ink-indigo` / `ink-indigo-dark` by default): the learner picks it in Settings, and the app sets the light value for the light page and the lighter partner for dark mode and the Watch stage. Used only for saved-word underlines, the main action, the current tab, selection tints, the coverage bar, inked ticks and density dots.
-- **The Five Inks**: Indigo, Pine, Teal, Amber, Violet (`ink-*` and `ink-*-dark` in the frontmatter). Each dark partner is lighter so it reads on near-black.
-- **Strong Ink** (`ink-strong`, the chosen ink mixed 86% with black on the light page; the plain ink in dark mode): every place ink is used as text or as a filled button background, so ink text and filled buttons reach 4.5:1 for all five inks.
-- **Ink On Fill** (`ink-on-light` / `ink-on-dark`): text on a filled ink button; white on the light page, near-black in dark mode.
-
-### Secondary
-- **Due Amber** (`due` / `due-dark`): words due for review, and the due count beside the Review tab (mixed 75% with text there). It is a signal, not a second accent.
-- **Due Rose** (`due-under-amber` / `due-under-amber-dark`): replaces Due Amber when the learner's ink is Amber, so due never looks like a saved word.
-
-### Tertiary
-- **Error Red** (`danger` / `danger-dark`): error notes only.
+- **Ink blue** (`ink-blue` `#2747d1`; dark `ink-blue-dark` `#8ea3ff`): the default ink. The store sets it as `--ink-l` (light) and `--ink-d` (dark). Pine, Teal, Amber and Violet replace it as a pair when the learner picks one in Settings.
+- **Strong ink** (`ink-strong`, the ink mixed 90% with black on light; the plain ink on dark): ink as text, as a filled button, the focus ring and the caret. Ink text and filled buttons reach 4.5:1 for every ink.
+- **Mark** (`mark`, ink at 16% light / 18% dark) and **Mark strong** (30% / 34%): the word markers, the selected readout row and the hover marker.
+- **Ink on fill** (`ink-on-light` `#ffffff`, `ink-on-dark` `#111317`): text on a filled ink button.
 
 ### Neutral
-- **Page** (`page` / `page-dark`): the background of every screen and of the top and bottom bars.
-- **Surface** (`surface` / `surface-dark`): floating things only (word card, pop-ups) and the inline edit field.
-- **Surface 2** (`surface-2` / `surface-2-dark`): hover fill for buttons, rows and icon buttons; the Anki field chip.
-- **Surface 3** (`surface-3` / `surface-3-dark`): scrollbar thumbs and the deepest neutral fill.
-- **Hairline** (`line` / `line-dark`): every divider between panes, rows and sections.
-- **Strong Hairline** (`line-strong` / `line-strong-dark`): outlines of inputs, default buttons, toggles, keys and dashed draft tags; the coverage bar's rail.
-- **Text, Text 2, Text 3** (`text`, `text-2`, `text-3` and dark partners): primary copy; secondary copy and idle controls; captions, timestamps and counts.
-- **Stage** (`stage`, `stage-on-dark`, `stage-2`, `stage-3`, `stage-text`, `stage-text-2`): the Watch player. The stage re-points the page tokens (text, ink) to its own values, so anything inside reads on near-black; the word card and tips reset them back to the page theme.
+- **Page** (`page` `#fbfbfc`; dark `#111317`): every screen and the bars.
+- **Surface** (`surface`): floating things only (word sheet, popovers).
+- **Surface 2 and 3**: fills for hover and the deepest neutral.
+- **Hairline** (`line`): every rule between rows and sections. **Line soft** is the lighter rule between table rows. **Line strong** outlines buttons, inputs and keys.
+- **Text, Text 2, Text 3**: main copy; secondary copy and idle controls; captions, timecodes, counts. Text 3 is `#6b717d`, darker than the mock's `#8a8f99`, to keep contrast.
+- **Video frame** (`video-frame` `#0d0f12`): the letterbox behind the video and the empty drop frame. It is the only dark that ignores the device theme.
+- **Danger** (`danger`): error notes only.
 
 ### Named Rules
-**The Your-Ink-Only Rule.** Ink appears only on saved words, the one main action, the current place (tab, line, option) and progress. If a use isn't one of those, it is neutral.
+**The Mark-Not-Colour Rule.** Word state is shown by the mark: New is a soft marker (`mark`, lower 40% of the line); In Anki, saved and due are a dotted 2px ink underline; Known is plain; Selected is `mark-strong` plus a 2px ink rule. No per-state hues.
 
-**The Strong-Ink Rule.** Ink as text or as a filled background always uses Strong Ink; raw ink is for marks, ticks, dots, hairline underlines and tints.
+**The One-Ink Rule.** Ink points at the current place, the main action, the entry numbers and progress. Everything else is neutral.
 
-**The Due-Is-Not-Ink Rule.** Due keeps its own colour and moves to rose when the learner's ink is amber. Never let due and saved share a hue.
+**The Strong-Ink Rule.** Ink as text or as a filled background uses Strong ink. Raw ink is for markers, underlines, ticks and tints.
 
-**The Six-Percent Rule.** Selected is ink text with a 1px ink underline, or a 6% ink tint behind it (7% on the word card's main row). No solid selected fills.
+**The Device Rule.** Light and dark follow `prefers-color-scheme`. Watch follows too. Only the video frame is always dark.
 
 ## Typography
 
-**Body Font:** Noto Sans JP (with system-ui, -apple-system, Segoe UI, Hiragino Sans, Yu Gothic UI, sans-serif)
-
-**Character:** One family for everything, Japanese and English alike, with proportional kana spacing (palt) on. It reads as exact and modern, never as a study app or calligraphy.
+**Serif:** Newsreader, then Noto Serif JP (Newsreader has no kana, so Japanese falls through), Hiragino Mincho ProN, Yu Mincho, Georgia.
+**Sans:** Noto Sans JP with system-ui fallbacks, `palt` on.
+**Mono:** IBM Plex Mono, only for timecodes, counts and keys.
 
 ### Hierarchy
-- **Display** (400, 72px, 1): the number of words due on the Review start screen. Large but light.
-- **Headline** (400, 56px, 1.25): the word on the review card.
-- **Cue** (500, scales 22–36px with the learner's size setting, default 30px, 2.15): the current subtitle line on the Watch stage, centred, with room for ruby.
-- **Title** (400, 56px, 1.2; 40px on phones, one step down for words over five characters): the word on the word card, with its reading and part of speech quietly beneath.
-- **Reading** (400, 24px by default and learner-adjustable, 2.25, 0.02em): pasted text in Read.
-- **Figure** (500, 23px, 1, tabular): the coverage percentage under the stage.
-- **Heading** (500, 22px): screen titles (Settings) and the Watch greeting; section headings drop to 16px, empty-state titles to 18px, the drop prompt to 20px.
-- **Body** (400, 16px, 1.55): default copy.
-- **UI** (400, 14px): buttons, menu rows, transcript lines, notes, glosses.
-- **Label** (400, 13px, tabular): meta rows, segmented labels, control-bar text, progress counts.
-- **Caption** (400, 12px, tabular): timestamps, phone tab labels, table headers, grammar notes.
-- **Key** (500, 11px): keyboard keys on word-card rows.
-- **Furigana** (400, 0.48em of its base, Text 2): ruby over unknown words only.
+- **Display** (serif 400, 72px): the due count on the Review start screen.
+- **Headline** (serif 400, 56px): the word on the Review card, and the Today figure.
+- **Term** (serif 400, 40px; 32px for long words, 28px on phones): the word at the head of the word card.
+- **Cue and Reading** (serif 400, Read size plus 6px, clamped 22 to 40px, line height 1.95): the Watch line and pasted text in Read. The learner sets the size.
+- **Figure** (serif 400, 26px): the percentage and counts at the top of Read and under the video.
+- **Entry word** (serif 19px) and **Meaning** (serif 16px): readout rows and entry glosses.
+- **Margin note** (serif italic 15px, Strong ink, beside a hairline): grammar and alternatives in the word card.
+- **Body** (sans 400, 16px) and **UI** (sans 14px): copy, buttons, rows. **Label** (sans 13px): meta, transcript lines.
+- **Index** (mono 500, 11px, Strong ink): the 1 to 9 numbers. **Mono** (12px, Text 3): timecodes, counts, keys, table state.
 
 ### Named Rules
-**The Two-Weight Rule.** Weights are 400 and 500 only. Headings, strong and bold all render at 500. The biggest numbers on screen are 400.
+**The Two-Weight Rule.** Weights are 400 and 500 only. Headings and bold render at 500. Large serif numbers are 400.
 
-**The Tabular Rule.** Every count, time, percentage and interval uses tabular numbers.
-
-**The Falling-Furigana Rule.** Furigana shows only on words the learner doesn't know. Marking a word known fades its reading out on every line at once (200ms); under reduced motion it simply disappears.
+**The Mono-Is-Data Rule.** Mono carries numbers, keys and the short labels that sit with them (table heads, "words you know", "2 new"). Never sentences.
 
 ## Layout
 
-Screens are edge-to-edge panes separated by hairlines, with content held to a calm measure: Read 760px, Words 820px, Settings 720px, Review 520px, Watch up to 1400px.
+Screens are panes divided by hairlines, held to a calm measure: Read 760px, Words 820px, Watch up to 1400px.
 
-- **Phone (under 720px):** a 52px top bar with the name, content padded 16px, and a 64px bottom tab bar (plus safe area). On Watch, the transcript sits below the stage and toggles from the control row; the word card is a bottom sheet 8px from the edges.
-- **Tablet (720px and up):** the tab bar becomes a quiet row of text links beside the name; content padding grows to 28px / 32px. On Watch the word card anchors above the tapped word (280px wide).
-- **Desktop (1100px and up):** Watch becomes a two-column grid, stage plus a 300px transcript divided by a hairline, both filling the viewport height. Read opens its word card as a 340px side panel.
-- **Rhythm:** spacing runs in small steps (2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32px). Sections in Settings are 32px apart and start with a hairline and 20px of space.
-- **Touch:** every control grows to at least 44px on coarse pointers; keyboard hints hide on touch screens.
+- **Phone (under 720px):** a 52px top bar and a 64px bottom tab bar (plus safe area). The word sheet floats 8px from the edges above the tab bar.
+- **Tablet (720px and up):** the tabs become a quiet text row beside the name. The word panel floats near the text.
+- **Desktop (1100px and up):** Watch becomes the player column plus a 340px side column: the entry on top, the transcript under it. In Read the entry sits beside the text. On desktop the entry is bare, with no surface or shadow.
+- **Touch:** controls grow to at least 44px; key hints hide.
+- **Rhythm:** steps of 4, 8, 12, 16, 24, 32px.
 
 ## Elevation & Depth
 
-The system is flat. Depth comes from hairlines and from the dark stage sitting against the light page. A shadow appears only on something that floats over other content.
+The page is flat. Rules, not shadows, separate things. A shadow appears only on a surface that floats.
 
 ### Shadow Vocabulary
-- **Float** (`box-shadow: 0 1px 2px rgb(0 0 0 / 0.1), 0 22px 44px -18px rgb(0 0 0 / 0.5)`; dark: `0 2px 6px rgb(0 0 0 / 0.4), 0 18px 40px -14px rgb(0 0 0 / 0.8)`): the word card and pop-ups (timing, shortcuts).
+- **Pop** (light: `0 1px 2px rgb(0 0 0 / 0.08), 0 22px 44px -20px rgb(0 0 0 / 0.4)`; dark: `0 2px 6px rgb(0 0 0 / 0.4), 0 18px 40px -14px rgb(0 0 0 / 0.8)`): the floating word sheet and popovers.
 
-### Named Rules
-**The Only-Floating-Things Rule.** If it doesn't sit above other content, it has no shadow. Panes, rows, buttons and the stage are flat.
+**The Only-Floating-Things Rule.** No shadow on anything that does not float over content.
 
 ## Shapes
 
-Corners are small and exact. Controls are 4px-radius rectangles or plain text; floating things are 6px at most; panes and menu rows are square (0px), and the Anki field chip is 2px. Ink swatches in Settings are 12px squares at 3px. The only circles are the transcript's density dots.
+Controls, rows, tabs, the segmented filter, toggles, the video frame and keys are square (`--radius: 0`). The floating word sheet and popovers are 4px. The only other rounded shapes are 1px bars in the Today chart.
 
-Borders are 1px hairlines. A dashed hairline means "draft" or "drop here": the file drop zone, the "draft" tag on made subtitles and the auto-timed tag in the transcript.
+Borders are 1px hairlines. Emphasis is a 2px rule, never a box.
 
-**The Brushed Mark.** Saved and due words carry a 7px-tall, slightly uneven stroke under them, drawn as a mask so its colour stays a token (ink for saved, due colour for due). The same stroke fills the coverage bar. It is never replaced by a straight underline or perfect geometry.
+**The Heavy-Rule Rule.** A 2px Text-coloured rule opens each entry: the word card head, the readout table, the popover head, the Review answer. A 2px ink rule marks the current item: the selected word, the current transcript line (left edge), the chosen segment and the current tab.
 
 ## Components
 
 ### Buttons
-Plain and exact; most actions are text.
-- **Shape:** 4px rectangle, 40px tall (48px for wide, 44px on touch), 16px side padding, 14px text.
-- **Primary:** Strong Ink fill, white text (near-black in dark mode); one per screen at most.
-- **Default:** transparent with a Strong Hairline outline; hover fills Surface 2.
-- **Quiet:** no outline, Text 2; hover lifts to Text.
-- **Disabled:** 45% opacity.
-- **Icon buttons:** 36px square (44px on touch), Text 2, hover Surface 2.
+- **Primary:** Strong ink fill, ink-on-fill text, 40px tall, 16px padding, square. One per screen.
+- **Default:** transparent, line-strong outline, hover 5% text tint.
+- **Disabled:** 45% opacity. Icon buttons shrink to 0.94 on press, text buttons to 0.97.
 
 ### Segmented Filter
-- **Style:** a row of plain text buttons 2px apart, each 36px tall, 4px radius, Text 2, with an optional label in front.
-- **State:** the chosen option is Strong Ink text on a 6% ink tint; counts sit beside it in Text 3, tabular.
+Plain text options, 36px tall, Text 2. The chosen option is Text with a 2px ink rule under it, moved by one sliding marker.
 
-### Toggles
-- **Style:** 18px squares at 4px with a Strong Hairline border; checked fills with ink and shows a drawn tick in Ink On Fill. Never a capsule switch.
-
-### Inputs / Fields
-- **Style:** transparent, Strong Hairline outline, 4px radius, 40px tall.
-- **Focus:** a 2px ink outline and an ink border; the caret is ink. Focus rings everywhere are 2px ink, 2px offset.
+### Toggles and Inputs
+- **Toggle:** 18px square, line-strong border, checked fills with ink and a drawn tick. Never a capsule.
+- **Input:** transparent, line-strong outline, square, 40px. Focus is a 2px Strong ink ring with 2px offset.
 
 ### Navigation
-- **Phone:** a fixed bottom tab bar on the page colour with a hairline above; icon over a 12px label, Text 2; the current tab turns ink. The Review tab shows its due count.
-- **Tablet and desktop:** the same tabs as a quiet text row beside the logo (15px). The current tab is Strong Ink with a 1px ink underline 9px below; icons are hidden. Settings sits on the right as an icon button.
+Phone: bottom tab bar, 12px labels, current tab in Text. Tablet and up: text links beside the name. The current tab sits on a 2px Text rule over the header hairline. The Review tab shows its due count in mono.
 
-### Watch Stage (signature)
-- **Stage:** always dark, 4px corners, video on top with its top corners rounded and no inner boxes.
-- **Ticks:** a 24px strip under the video, one 2px tick per line at its start time, 8px tall plus 4px per new word (max 24px). Ticks are 38% white; lines with three or more new words are inked; the current line is a 3px white tick. Clicking jumps to the nearest line.
-- **Cue:** the current line large and centred in the Cue style, translation below it in 14px Stage Text 2; a pressed word gets a 30% ink tint.
-- **Controls:** one bare row of 44px icon buttons and text chips in Stage Text 2, hover to white; groups split by an 18px hairline. A pressed toggle is ink text; a pressed text chip is white with a 1px ink underline.
-- **Meta row:** under the stage, separated by a hairline: the coverage figure, its label, a 96px brushed ink bar over a hairline rail, the new-word count, and a dashed "draft" tag on made subtitles.
+### Word Marks (signature)
+- **New:** `linear-gradient(transparent 60%, mark 60%)`; hover uses `mark-strong`.
+- **In Anki, saved, due:** `underline dotted` ink, 2px thick, 0.32em offset. A saved word inks in over 420ms.
+- **Known:** no mark.
+- **Selected:** `mark-strong` plus `inset 0 -2px 0 ink`.
+- **Index number:** a mono 500 Strong ink number, 0.32em of the line size (10px minimum), after each not-yet-known word in the Watch line.
 
-### Transcript
-- **Rows:** plain ruled rows (hairline above each), at least 44px tall, timestamp in Caption, text in UI at Text 2. The current row is Text on a 6% ink tint.
-- **Density dot:** on the right, a dot that grows with new words: 4px at 60% ink, 6px for two, 8px solid ink for three or more.
-- **Foot:** under a hairline, the review note and the local-only line in 12px Text 2.
+### Readout (signature)
+A full-width table under the video, opened by a 2px Text rule. Columns are number, word (serif 19px), reading (sans 14px, Text 2), meaning (serif 16px) and state (mono 12px, Text 3). Header cells are mono 10px, uppercase and tracked, with a hairline under them. Row rules are Line soft. Hover is a 5% tint. The selected row is `mark` with its state in Strong ink. Clicking a row, or pressing 1 to 9, opens the entry.
 
-### Word Card (command menu)
-- **Shape:** Surface, hairline border, 6px radius, Float shadow; slides in 8px on the curve. Anchored above the tapped word with a small pointer on tablet and up; a bottom sheet on phones. On the stage it switches back to page-theme colours.
-- **Head:** the word in Title, reading and form in 12–13px Text 3, a 36px speak button.
-- **Actions:** ruled menu rows (square, 36px, 44px on touch) with their keyboard key on the right in Key style. The main row (add) is Strong Ink on a 7% tint; the others are plain, hover Surface 2. Keys hide on touch screens.
+### Word Panel (entry)
+- **Head:** 2px Text rule, then the serif Term, its reading and part of speech in italic serif.
+- **Body:** serif meanings, then italic ink margin notes for grammar and alternatives, then a row of square buttons (the main one filled in Strong ink) with their mono keys inside. The entry shows the word's index number when it came from a numbered line.
+- **Surface:** bare beside the text on desktop. On phones and tablets: Surface, 1px hairline, 4px corners, Pop shadow, 260ms slide.
 
-### Review Grades
-- **Style:** four outlined 4px tiles (60px tall) with label and interval. "Good" is the one main answer: ink border, Strong Ink text, 6% ink tint.
+### Popover
+Surface, hairline, 4px, Pop shadow, 340px wide. It opens with a 2px Text rule.
 
-### Empty States
-- **Style:** centred, no illustration: an 18–20px title, one or two lines of 14px Text 2, then one or two buttons. The Watch drop zone is a dashed 4px panel with a single line icon in Text 3; dragging over it turns the border ink and adds a 6% tint.
+### Read Header
+At the top of Read: `% words you know`, new words, and saved or in-Anki counts. Figures are serif 26px over mono 12px labels. A 4px bar shows coverage in Text on Line soft. A hairline closes the row.
+
+### Watch
+- **Video frame:** the one dark element, `video-frame` behind the video. The page around it follows the device.
+- **Line:** serif cue, left-aligned, under a mono timecode and line count, with the index numbers. A pressed word takes the Selected mark. The translation sits under it in sans, Text 2.
+- **Transcript:** ruled rows. Timecodes are mono 11px, Text 3; new-word counts read "2 new" in mono Strong ink; draft lines say "auto" in italic serif. The current row has 6% ink, a 2px ink rule on its left edge and an ink timecode.
+- **Review grades:** four square outlined tiles. "Good" is the one filled in Strong ink.
 
 ### Motion
-- **Curve:** `cubic-bezier(0.22, 1, 0.36, 1)` for every slide and fade.
-- **Tokens:** `--dur-fast` 150ms for every button, link, toggle, swatch and input (colour, background, border, opacity, transform, focus ring); `--dur-slide` 380ms for tab changes (8px slide) and sliding markers. Also 220ms pop-ups, 200ms furigana fade, 300ms review progress bar.
-- **Hover and press:** quiet buttons fade in a 5% text tint (`--tint-hover`); primary goes ink to ink-hover. Press scales to 0.97 (text buttons) or 0.94 (icon buttons); not on the video, sliders, inputs, words or transcript rows.
-- **Focus rings:** fade in and move from 0 to 2px offset over `--dur-fast`.
-- **Sliding markers:** the current-tab hairline and the selected 6% tint in segmented rows are one `.marker` element placed by `useMarker`; it slides over `--dur-slide`, with no animation on first paint.
-- **Row actions:** on hover-capable pointers (Carry on, Fix this line) rest at 0 opacity and appear on row hover or focus-within; always visible on touch.
-- **Reduced motion:** all animation and transitions are off; no press scale, markers jump.
+- **Curve:** `cubic-bezier(0.22, 1, 0.36, 1)`.
+- **Timing:** 150ms for controls, 380ms for the sliding marker, 220ms and 260ms for popovers and the word sheet.
+- **Reduced motion:** all animation and transitions off.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** use the learner's ink only for saved words, the one main action, the current place and progress.
-- **Do** use Strong Ink whenever ink is text or a filled background.
-- **Do** switch due to rose when the learner's ink is amber.
-- **Do** build hierarchy with size and space, at weights 400 and 500 only.
-- **Do** divide screens with 1px hairlines and keep panes edge to edge.
-- **Do** mark saved and due words, and coverage, with the brushed uneven stroke.
-- **Do** keep the Watch stage dark in both themes, with nothing boxed inside it.
-- **Do** give controls 4px corners and floating things 6px at most.
-- **Do** use tabular numbers for every count, time and percentage.
-- **Do** make every control at least 44px on touch screens.
-- **Do** turn off all motion under reduced motion.
+- **Do** show word state with the mark: marker, dotted underline, plain, or marker plus 2px rule.
+- **Do** open every entry with a 2px rule and divide the rest with hairlines.
+- **Do** set Japanese lines, words and meanings in the serif; UI in sans; only timecodes, counts and keys in mono.
+- **Do** keep weights at 400 and 500.
+- **Do** keep controls square and floating surfaces at 4px with the one shadow.
+- **Do** keep light and dark following the device, including Watch.
+- **Do** give every unknown word in the Watch line its index number, and keep keys 1 to 9 working.
+- **Do** make controls at least 44px on touch.
 
 ### Don't:
-- **Don't** put a shadow on anything that doesn't float.
-- **Don't** wrap content in resting cards or tinted boxes; use a hairline.
-- **Don't** use weights above 500.
-- **Don't** introduce a second accent or decorate with colour blocks; due and error are signals only.
-- **Don't** use study-app decoration: mascots, streaks, torii, sakura or brush fonts.
-- **Don't** build stat-tile dashboards; progress is a quiet line of text and the brushed bar.
-- **Don't** replace the brushed mark with a straight underline or a highlighter fill.
-- **Don't** borrow anything from Shoji: no warm cream paper, no Murecho, no vertical side labels, no vermilion, no ensō or seals, no capsule (pill) switches or ink-well controls.
+- **Don't** colour words by state or use per-item colours.
+- **Don't** use resting cards, tinted boxes or pill chips.
+- **Don't** add a second accent. Ink, plus danger for errors, is all there is.
+- **Don't** use mascots, streak flames, sakura, torii or brush fonts.
+- **Don't** borrow from Shoji: cream paper, vermilion, Murecho, seals or ensō.
+- **Don't** use weights above 500, or shadows on flat surfaces.
