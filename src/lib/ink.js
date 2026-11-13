@@ -1,7 +1,7 @@
 // "Your ink": the one accent colour the learner picks. `light` is for the
 // light page, `dark` the lighter partner for dark mode and the Watch stage.
 export const INKS = [
-  { id: "indigo", name: "Indigo", light: "#5560d8", dark: "#8b8bff" },
+  { id: "indigo", name: "Ink blue", light: "#2747d1", dark: "#8ea3ff" },
   { id: "pine", name: "Pine", light: "#1f8a70", dark: "#34c29e" },
   { id: "teal", name: "Teal", light: "#0e7490", dark: "#2fb8d0" },
   { id: "amber", name: "Amber", light: "#b45309", dark: "#f0a24b" },

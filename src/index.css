@@ -1,41 +1,43 @@
-/* Tokens. Light by default, dark when the device asks; the Watch stage is
-   always dark (--stage-*). One accent, "your ink", chosen in Settings: the
-   store sets --ink-l (light page) and --ink-d (dark page / stage) on the root.
-   Amber stays the signal for words due. --ink-hover and --ink-on style filled ink buttons. */
+/* Tokens: Lexicon. Cool white page, ink type, hairline rules, one accent.
+   Light by default, dark when the device asks; Watch follows the device too.
+   The accent is "your ink" (ink blue unless the learner picks another): the
+   store sets --ink-l (light page) and --ink-d (dark page) on the root.
+   Word state is shown by the mark (--mark, --mark-strong), never by colour. */
 :root {
-  --ink-l: #5560d8;
-  --ink-d: #8b8bff;
-  --ink-page: var(--ink-l);
-  --ink: var(--ink-page);
+  --ink-l: #2747d1;
+  --ink-d: #8ea3ff;
+  --ink: var(--ink-l);
   /* Darkened a touch so ink text and filled buttons reach 4.5:1 for every ink. */
-  --ink-strong: color-mix(in srgb, var(--ink) 86%, #000);
+  --ink-strong: color-mix(in srgb, var(--ink) 90%, #000);
   --ink-soft: color-mix(in srgb, var(--ink) 9%, var(--surface));
+  --mark: color-mix(in srgb, var(--ink) 16%, transparent);
+  --mark-strong: color-mix(in srgb, var(--ink) 30%, transparent);
 
-  --bg: #fbfbfa;
+  --bg: #fbfbfc;
   --surface: #ffffff;
-  --surface-2: #f4f4f2;
-  --surface-3: #e7e7ea;
-  --line: #ececef;
-  --line-strong: #cfcfd6;
-  --text: #111114;
-  --text-2: #5c5c65;
-  --text-3: #70707a;
-  --ink-strong-page: var(--ink-strong);
+  --surface-2: #f3f4f6;
+  --surface-3: #e3e5ea;
+  --line: #e3e5ea;
+  --line-soft: #eef0f3;
+  --line-strong: #cdd1d8;
+  --text: #15171c;
+  --text-2: #5d6370;
+  --text-3: #6b717d;
   --ink-hover: color-mix(in srgb, var(--ink-strong) 88%, #000);
   --ink-on: #ffffff;
-  --due: #c26a06;
+  --due: var(--ink-strong);
   --danger: #c4321e;
-  --shadow-pop: 0 1px 2px rgb(0 0 0 / 0.1), 0 22px 44px -18px rgb(0 0 0 / 0.5);
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / 0.08), 0 22px 44px -20px rgb(0 0 0 / 0.4);
 
-  --stage: #0e0e10;
-  --stage-2: #17171a;
-  --stage-3: #26262b;
-  --stage-line: #26262b;
-  --stage-text: #ffffff;
-  --stage-text-2: #a8a8b2;
+  /* Behind the video itself (letterbox), and the drop stage's empty frame. */
+  --stage: #0d0f12;
 
   --font: "Noto Sans JP", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
-  --radius: 4px;
+  /* Japanese lines, words and meanings. Newsreader has no kana, so Japanese falls through to Noto Serif JP. */
+  --serif: "Newsreader", "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+  /* Only for timecodes, counts and keys. */
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --radius: 0px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-fast: 150ms;
   --dur-slide: 380ms;
@@ -45,35 +47,27 @@
   color-scheme: light;
 }
 
-/* Amber ink would look like due amber, so due turns rose for that learner. */
-:root[data-ink="amber"] {
-  --due: #be185d;
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
-    --ink-page: var(--ink-d);
+    --ink: var(--ink-d);
     --ink-strong: var(--ink);
-    --bg: #0b0b0d;
-    --surface: #141417;
-    --surface-2: #1c1c20;
-    --surface-3: #2a2a2f;
-    --line: #232328;
-    --line-strong: #3a3a41;
-    --text: #ededef;
-    --text-2: #a1a1aa;
-    --text-3: #85858f;
+    --mark: color-mix(in srgb, var(--ink) 18%, transparent);
+    --mark-strong: color-mix(in srgb, var(--ink) 34%, transparent);
+    --bg: #111317;
+    --surface: #16191e;
+    --surface-2: #1d2026;
+    --surface-3: #262a31;
+    --line: #262a31;
+    --line-soft: #1d2026;
+    --line-strong: #3a3f48;
+    --text: #eceef2;
+    --text-2: #a3a9b5;
+    --text-3: #858b97;
     --ink-hover: color-mix(in srgb, var(--ink) 85%, #fff);
-    --ink-on: #0b0b10;
-    --due: #fbbf24;
+    --ink-on: #111317;
     --danger: #ff7a66;
-      --shadow-pop: 0 2px 6px rgb(0 0 0 / 0.4), 0 18px 40px -14px rgb(0 0 0 / 0.8);
-    --stage: #101013;
+    --shadow-pop: 0 2px 6px rgb(0 0 0 / 0.4), 0 18px 40px -14px rgb(0 0 0 / 0.8);
     color-scheme: dark;
-  }
-
-  :root[data-ink="amber"] {
-    --due: #f472b6;
   }
 }
 
@@ -162,7 +156,7 @@ button:active:not(:disabled):is(.icon-btn, .ctl-btn, .stepper__btn, .watch__clos
   top: var(--my, 0);
   width: var(--mw, 0);
   height: var(--mh, 0);
-  border-radius: 4px;
+  border-radius: var(--radius);
   background: color-mix(in srgb, var(--ink) 6%, transparent);
   pointer-events: none;
 }
@@ -203,10 +197,14 @@ kbd {
   min-width: 1.6em;
   padding: 0 5px;
   border: 1px solid var(--line-strong);
-  border-radius: 4px;
-  font-family: var(--font);
-  font-size: 12px;
+  border-bottom-width: 2px;
+  border-radius: 0;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
   line-height: 1.5;
+  text-align: center;
 }
 
 .sr-only {
