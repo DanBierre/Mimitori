@@ -70,6 +70,25 @@
   color-scheme: dark;
 }
 
+/* Switching light and dark: one calm cross-fade of the whole page (View Transitions; instant where not supported). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The sun or moon turns in as it swaps. */
+.app__theme svg {
+  animation: theme-icon 380ms var(--ease-out);
+}
+
+@keyframes theme-icon {
+  from {
+    opacity: 0;
+    transform: rotate(-60deg) scale(0.7);
+  }
+}
+
 * {
   box-sizing: border-box;
 }

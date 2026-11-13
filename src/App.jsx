@@ -10,6 +10,7 @@ import SettingsView from "./components/SettingsView";
 import Icon from "./components/Icon";
 import { useMarker } from "./lib/useMarker";
 import { createFlags } from "./lib/firstRun";
+import { isDark } from "./lib/ink";
 import "./App.css";
 
 const TABS = [
@@ -35,8 +36,9 @@ function Shell() {
   const backLabel = TABS.find((t) => t.id === prevTab)?.label ?? "Read";
   const railRef = useMarker('[aria-current="page"] .rail__label');
   const today = useReviewToday();
-  const { state } = useStore();
+  const { state, setSettings } = useStore();
   const inAnkiMode = ankiMode(state);
+  const dark = isDark(state.settings.theme);
   const { queueCount, refreshQueue } = useAnki(inAnkiMode && tab !== "settings"); // keeps known words fresh; Settings runs its own
 
   // Send waiting cards when the app gains focus and every 30 s while any wait.
@@ -86,6 +88,14 @@ function Shell() {
           ))}
         </nav>
         <div className="app__side">
+          <button
+            className="icon-btn app__theme"
+            aria-label={dark ? "Switch to light" : "Switch to dark"}
+            title={dark ? "Switch to light" : "Switch to dark"}
+            onClick={() => setSettings({ theme: dark ? "light" : "dark" })}
+          >
+            <Icon key={dark ? "sun" : "moon"} name={dark ? "sun" : "moon"} size={19} />
+          </button>
           <button
             className="icon-btn"
             aria-label={tab === "settings" ? `Close settings, back to ${backLabel}` : "Settings"}

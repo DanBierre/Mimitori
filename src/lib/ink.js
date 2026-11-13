@@ -17,14 +17,28 @@ export const THEMES = [
   { id: "device", name: "Match device" },
 ];
 
+export const isDark = (choice) =>
+  choice === "dark" || (choice === "device" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)").matches));
+
 // Sets data-theme="light|dark" on the root; for "device" it keeps following the system. Returns a cleanup.
-export function applyTheme(choice, root = document.documentElement) {
+// With `fade`, a change cross-fades the whole page (View Transitions), unless the learner asks for less motion.
+export function applyTheme(choice, root = document.documentElement, fade = false) {
+  const set = (animate) => {
+    const next = isDark(choice) ? "dark" : "light";
+    if (root.dataset.theme === next) return;
+    const swap = () => {
+      root.dataset.theme = next;
+    };
+    const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (animate && document.startViewTransition && !calm) document.startViewTransition(swap);
+    else swap();
+  };
+  set(fade);
   const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
-  const set = () => (root.dataset.theme = choice === "dark" || (choice === "device" && mq?.matches) ? "dark" : "light");
-  set();
   if (choice !== "device" || !mq) return () => {};
-  mq.addEventListener("change", set);
-  return () => mq.removeEventListener("change", set);
+  const follow = () => set(true);
+  mq.addEventListener("change", follow);
+  return () => mq.removeEventListener("change", follow);
 }
 
 export function applyInk(id, root = document.documentElement) {

@@ -3,7 +3,7 @@
 // reading settings. Everything lives in localStorage on the device; sync and
 // accounts are a later layer.
 
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useReducer } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from "react";
 import { becameKnown, dailyQueue, gradeCard, newCard } from "./srs";
 import { deleteImage } from "./images";
 import { loadCommon } from "./common";
@@ -129,7 +129,13 @@ export function StoreProvider({ children }) {
 
   useEffect(() => persist(state), [state]);
   useLayoutEffect(() => applyInk(state.settings.ink), [state.settings.ink]);
-  useLayoutEffect(() => applyTheme(state.settings.theme), [state.settings.theme]);
+  // The first apply is instant (index.html already set it before paint); later changes cross-fade.
+  const themed = useRef(false);
+  useLayoutEffect(() => {
+    const off = applyTheme(state.settings.theme, undefined, themed.current);
+    themed.current = true;
+    return off;
+  }, [state.settings.theme]);
   useEffect(() => {
     loadCommon().then(() => dispatch({ type: "commonReady" }));
   }, []);

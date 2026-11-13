@@ -284,7 +284,7 @@ Plain text options, 36px tall, Text 2. The chosen option is Text with a 2px ink 
 - **Input:** transparent, line-strong outline, square, 40px. Focus is a 2px Strong ink ring with 2px offset.
 
 ### Navigation
-Phone: bottom tab bar, 12px labels, current tab in Text. Tablet and up: text links beside the name. The current tab sits on a 2px Text rule over the header hairline. The Review tab shows its due count in mono.
+Phone: bottom tab bar, 12px labels, current tab in Text. Tablet and up: text links beside the name. The current tab sits on a 2px Text rule over the header hairline. The Review tab shows its due count in mono. A sun or moon button beside Settings switches light and dark in one tap; the whole page cross-fades over 380ms (View Transitions, instant where unsupported or with reduced motion) and the icon turns in. Switching tabs slides the new page in 8px with a fade.
 
 ### Word Marks (signature)
 - **New:** `linear-gradient(transparent 60%, mark 60%)`; hover uses `mark-strong`.
