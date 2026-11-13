@@ -22,6 +22,7 @@ import WatchTips from "./WatchTips";
 import WatchRecents from "./WatchRecents";
 import WatchToday from "./WatchToday";
 import Transcript from "./Transcript";
+import Readout from "./Readout";
 import MakeSubtitles from "./MakeSubtitles";
 import { transcriptKey } from "../lib/transcribe/state";
 import { useTranscribe } from "../lib/transcribe/useTranscribe";
@@ -49,19 +50,25 @@ const ERRORS = {
 const DIFFERENT = "That's a different file, so it starts from the beginning.";
 const RESTING_TICKS = [6, 17, 24, 38, 52, 61, 77, 90];
 
-// True from 720px up (tablet and desktop), where the empty Watch is a player-shaped stage.
-function useWide() {
-  const q = "(min-width: 720px)";
-  const [wide, setWide] = useState(() => window.matchMedia?.(q).matches ?? true);
+// 720px up (tablet and desktop): the empty Watch is a player-shaped stage.
+// 1100px up (desktop): the word's entry sits in the side column, above the transcript.
+function useMedia(q) {
+  const [on, setOn] = useState(() => window.matchMedia?.(q).matches ?? true);
   useEffect(() => {
     const mq = window.matchMedia?.(q);
     if (!mq) return;
-    const on = () => setWide(mq.matches);
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-  return wide;
+    const sync = () => setOn(mq.matches);
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [q]);
+  return on;
 }
+
+// Video time of a line, to the tenth: 4:55.2
+const stamp = (ms) => {
+  const s = Math.max(0, ms) / 1000;
+  return `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, "0")}`;
+};
 
 const hasJapanese = (cues) => cues.some((c) => JAPANESE_REGEX.test(c.text));
 
@@ -91,7 +98,8 @@ export default function WatchView({ active, onOpenSettings }) {
   const [readings, setReadings] = useState("idle"); // idle | loading | ready | error
   const [retry, setRetry] = useState(0);
 
-  const wide = useWide();
+  const wide = useMedia("(min-width: 720px)");
+  const desk = useMedia("(min-width: 1100px)");
   const [recents, setRecents] = useState(loadRecents);
   const pickerRef = useRef(null);
   const pending = useRef(null); // a Carry on row waiting for the learner to pick its file
@@ -492,7 +500,7 @@ export default function WatchView({ active, onOpenSettings }) {
 
   // Keyboard shortcuts, only while Watch is showing and never while typing.
   const keysRef = useRef(null);
-  keysRef.current = { togglePlay, replay, step, nudge, toggleFocus, focus };
+  keysRef.current = { togglePlay, replay, step, nudge, toggleFocus, focus, pick: (n) => picks[n] !== undefined && selectWord(picks[n]) };
   useEffect(() => {
     if (!active) return;
     const onKey = (e) => {
@@ -519,6 +527,8 @@ export default function WatchView({ active, onOpenSettings }) {
       // Esc leaves the full-window fallback (real fullscreen handles Esc itself), otherwise closes the shortcuts.
       if (e.key === "Escape" && k.focus && !document.fullscreenElement) actions.Escape = k.toggleFocus;
       else if (e.key === "Escape") return setHelpOpen(false);
+      // 1–9 pick the numbered words in the line.
+      if (/^[1-9]$/.test(e.key)) actions[e.key] = () => k.pick(Number(e.key) - 1);
       const action = actions[e.key];
       if (!action) return;
       e.preventDefault();
@@ -597,6 +607,24 @@ export default function WatchView({ active, onOpenSettings }) {
   const lineTokens = current !== -1 ? tokens[current] : null;
   const secondCue = second && showSecondLine && secondCurrent !== -1 ? second.cues[secondCurrent] : null;
   const selectedToken = selection ? tokens[selection.cue]?.[selection.token] : null;
+  // Words in the line you don't know yet, numbered 1–9 on the line, in the readout and on the entry.
+  const picks = (lineTokens || [])
+    .flatMap((tk, i) => (tk.isWord && wordState(state, tk.base) !== "known" ? [i] : []))
+    .slice(0, 9);
+  const selectedNumber = selection && selection.cue === current ? picks.indexOf(selection.token) + 1 : 0;
+
+  const entry = selectedToken && (
+    <WordPanel
+      token={selectedToken}
+      index={selectedNumber || undefined}
+      sentence={primary.cues[selection.cue].text.replace(/\n/g, "")}
+      grammar={conjugationParts(tokens[selection.cue], selection.token)}
+      ankiContext={ankiContext()}
+      onOpenSettings={onOpenSettings}
+      onSaved={(base) => captureFrame(videoRef.current).then((blob) => blob && putImage(base, blob))}
+      onClose={closeCard}
+    />
+  );
 
   // What the Anki card needs from the line the word came from.
   function ankiContext() {
@@ -722,6 +750,18 @@ export default function WatchView({ active, onOpenSettings }) {
 
           {primary && (
             <div className="watch__lines" ref={linesRef} style={{ "--read-size": `${size}px` }}>
+              <p className="watch__cue-meta" aria-hidden="true">
+                {cue ? (
+                  <>
+                    <span>{stamp(cue.start + offset)}</span>
+                    <span>
+                      {current + 1} / {primary.cues.length}
+                    </span>
+                  </>
+                ) : (
+                  " "
+                )}
+              </p>
               <p className="watch__line" lang="ja" aria-live="polite">
                 {!cue ? (
                   listening ? (
@@ -736,6 +776,7 @@ export default function WatchView({ active, onOpenSettings }) {
                     tokens={lineTokens}
                     selected={selection?.cue === current ? selection.token : null}
                     onSelect={selectWord}
+                    numbered={picks}
                   />
                 ) : (
                   cue.text
@@ -743,17 +784,9 @@ export default function WatchView({ active, onOpenSettings }) {
               </p>
               {second && showSecondLine && <p className="watch__second">{secondCue ? secondCue.text : ""}</p>}
 
-              {selectedToken && (
+              {entry && !(desk && !focus) && (
                 <div className="watch__card" style={{ "--anchor-x": `${anchorX}px` }}>
-                  <WordPanel
-                    token={selectedToken}
-                    sentence={primary.cues[selection.cue].text.replace(/\n/g, "")}
-                    grammar={conjugationParts(tokens[selection.cue], selection.token)}
-                    ankiContext={ankiContext()}
-                    onOpenSettings={onOpenSettings}
-                    onSaved={(base) => captureFrame(videoRef.current).then((blob) => blob && putImage(base, blob))}
-                    onClose={closeCard}
-                  />
+                  {entry}
                 </div>
               )}
             </div>
@@ -830,6 +863,37 @@ export default function WatchView({ active, onOpenSettings }) {
 
         </section>
 
+        {ready && picks.length > 0 && (
+          <div className="watch__readout">
+            <Readout
+              tokens={lineTokens}
+              picks={picks}
+              selected={selection?.cue === current ? selection.token : null}
+              onSelect={selectWord}
+            />
+            <p className="watch__keys only-fine" aria-hidden="true">
+              <span>
+                <kbd>{showReview ? "S" : "A"}</kbd> {showReview ? "save to review" : "add to Anki"}
+              </span>
+              <span>
+                <kbd>K</kbd> I know it
+              </span>
+              <span>
+                <kbd>1</kbd>–<kbd>9</kbd> pick a word
+              </span>
+              <span>
+                <kbd>R</kbd> replay
+              </span>
+              <span>
+                <kbd>←</kbd> <kbd>→</kbd> line
+              </span>
+              <span>
+                <kbd>?</kbd> all keys
+              </span>
+            </p>
+          </div>
+        )}
+
         {ready && !focus && (
           <p className="watch__meta">
             {coverage !== null && readings === "ready" && (
@@ -895,6 +959,7 @@ export default function WatchView({ active, onOpenSettings }) {
 
       {ready && (
         <aside className="watch__side" aria-label="Transcript">
+          {entry && desk && !focus && <div className="watch__entry">{entry}</div>}
           <div className="watch__side-head">
             <strong>Transcript</strong>
             <span>{primary.cues.length} lines</span>

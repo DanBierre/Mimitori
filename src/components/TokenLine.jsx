@@ -5,7 +5,8 @@ import { useStore, wordState } from "../lib/store";
 // setting) and tappable content words. Shared by Read and Watch.
 const SAVED = new Set(["saved", "inAnki", "due"]);
 
-export default function TokenLine({ tokens, selected, onSelect }) {
+// `numbered` (Watch): token indexes that carry a small 1–9, matching the readout rows.
+export default function TokenLine({ tokens, selected, onSelect, numbered }) {
   const { state } = useStore();
   const { furigana } = state.settings;
 
@@ -42,10 +43,11 @@ export default function TokenLine({ tokens, selected, onSelect }) {
         )
       : token.surface;
     if (!token.isWord) return <span key={i}>{inner}</span>;
+    const n = numbered ? numbered.indexOf(i) + 1 : 0;
     return (
       <button
         key={i}
-        className={`word mk mk--${mark}${fresh?.has(token.base) ? " mk--draw" : ""}`}
+        className={`word mk mk--${mark}${fresh?.has(token.base) ? " mk--draw" : ""}${n ? " word--idx" : ""}`}
         aria-pressed={selected === i}
         // Ruby splits the word for screen readers; give them the word, then its reading.
         aria-label={token.reading && token.reading !== token.surface ? `${token.surface}, ${token.reading}` : token.surface}
@@ -56,6 +58,11 @@ export default function TokenLine({ tokens, selected, onSelect }) {
         }}
       >
         {inner}
+        {n > 0 && (
+          <span className="word__idx" aria-hidden="true">
+            {n}
+          </span>
+        )}
       </button>
     );
   });

@@ -31,7 +31,7 @@ const Key = ({ k }) => (
 
 // In Anki mode, ankiContext = { sentence, tokens, tokenIndex, translation?, fileName?,
 // timeMs?, video?, cue?, offsetMs?, picture? (Blob), source? (string) } and the main button adds a card to Anki.
-export default function WordPanel({ token, sentence, grammar = [], ankiContext, onSaved, onClose, onOpenSettings }) {
+export default function WordPanel({ token, index, sentence, grammar = [], ankiContext, onSaved, onClose, onOpenSettings }) {
   const { state, saveWord, removeWord, knowWord, unknowWord, restoreWord, markInAnki } = useStore();
   const [add, setAdd] = useState(null); // null | key of ADD_STATUS | "queued" | { error }
   const [waiting, setWaiting] = useState(0);
@@ -153,14 +153,18 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
       </button>
 
       <div className="word-panel__head">
-        <span className={`word-panel__term${token.base.length > 5 ? " word-panel__term--long" : ""} mk mk--${mark}`}>{token.base}</span>
-        {(reading || entry.data?.pos.length > 0) && (
-          <span className="word-panel__reading">
-            {[reading, entry.data?.pos.join(", ")].filter(Boolean).join(" · ")}
+        {index && (
+          <span className="word-panel__idx" aria-hidden="true">
+            {index}
           </span>
         )}
-        {token.base !== token.surface && (
-          <span className="word-panel__form">as written: {token.surface}</span>
+        <span className={`word-panel__term${token.base.length > 5 ? " word-panel__term--long" : ""}`} lang="ja">
+          {token.base}
+        </span>
+        {reading && (
+          <span className="word-panel__reading" lang="ja">
+            {reading}
+          </span>
         )}
         {canSpeak() && (
           <button className="icon-btn word-panel__say" onClick={() => speak(token.base)} aria-label="Say it" title="Say it">
@@ -168,28 +172,30 @@ export default function WordPanel({ token, sentence, grammar = [], ankiContext, 
           </button>
         )}
       </div>
-
-      {grammar.length > 0 && (
-        <p className="word-panel__grammar" aria-label={`${token.base}: ${grammar.join(", ")}`}>
-          {grammar.map((g) => (
-            <span key={g}>{g}</span>
-          ))}
+      {entry.data?.pos.length > 0 && <p className="word-panel__pos">{entry.data.pos.join(", ")}</p>}
+      {token.base !== token.surface && (
+        <p className="word-panel__form">
+          as written: <span lang="ja">{token.surface}</span>
         </p>
       )}
 
       {entry.status === "loading" && <p className="word-panel__note">Looking up…</p>}
 
       {entry.status === "ready" && (
-        <div className="word-panel__body">
-          <ol className="word-panel__glosses">
-            {entry.data.glosses.map((g, i) => (
-              <li key={i}>{g}</li>
-            ))}
-          </ol>
-          {entry.data.alternatives.length > 0 && (
-            <p className="word-panel__alt">
-              Also read {entry.data.alternatives.map((a) => `${a.reading} (${a.glosses[0]})`).join(", ")}
-            </p>
+        <ol className="word-panel__glosses">
+          {entry.data.glosses.map((g, i) => (
+            <li key={i}>{g}</li>
+          ))}
+        </ol>
+      )}
+
+      {(grammar.length > 0 || entry.data?.alternatives.length > 0) && (
+        <div className="word-panel__notes">
+          {grammar.length > 0 && (
+            <p aria-label={`${token.base}: ${grammar.join(", ")}`}>{grammar.join(" · ")}</p>
+          )}
+          {entry.data?.alternatives.length > 0 && (
+            <p>Also read {entry.data.alternatives.map((a) => `${a.reading} (${a.glosses[0]})`).join(", ")}</p>
           )}
         </div>
       )}

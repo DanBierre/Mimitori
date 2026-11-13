@@ -87,8 +87,8 @@ export default function Transcript({ cues, current, onJump, newCounts = [], auto
                 </span>
                 {auto && !edited.includes(i) && <span className="transcript__auto">auto</span>}
                 {newCounts[i] > 0 && (
-                  <span className="transcript__new" role="img" aria-label={`${newCounts[i]} new ${newCounts[i] === 1 ? "word" : "words"}`}>
-                    <i data-n={Math.min(newCounts[i], 3)} />
+                  <span className="transcript__new" aria-label={`${newCounts[i]} new ${newCounts[i] === 1 ? "word" : "words"}`}>
+                    {newCounts[i]} new
                   </span>
                 )}
               </button>

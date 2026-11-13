@@ -197,6 +197,7 @@ export const SHORTCUTS = [
   ["R", "Replay the line"],
   ["← →", "Previous / next line"],
   ["[ ]", "Subtitles 0.1 s earlier / later"],
+  ["1–9", "Pick a numbered word in the line"],
   ["A / S", "Add or save the tapped word"],
   ["K", "Mark the tapped word as known"],
   ["Esc", "Close the word card"],
