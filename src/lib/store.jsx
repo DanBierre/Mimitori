@@ -152,10 +152,17 @@ export function StoreProvider({ children }) {
       knowWord: (base) => {
         dispatch({ type: "know", base });
         deleteImage(base);
+        knownChanged();
       },
-      unknowWord: (base) => dispatch({ type: "unknow", base }),
+      unknowWord: (base) => {
+        dispatch({ type: "unknow", base });
+        knownChanged();
+      },
       // The scene still was already deleted with the word, so an undone word comes back without it.
-      restoreWord: (word) => dispatch({ type: "restore", word }),
+      restoreWord: (word) => {
+        dispatch({ type: "restore", word });
+        knownChanged();
+      },
       grade: (base, rating) => dispatch({ type: "grade", base, rating }),
       setSettings: (patch) => dispatch({ type: "settings", patch }),
       setWatchSettings: (patch) => dispatch({ type: "watch", patch }),
@@ -179,8 +186,16 @@ export function useStore() {
 // Today's review: capped at 20 (see dailyQueue); the rest stay due and wait.
 export function useReviewToday() {
   const { state } = useStore();
-  return useMemo(() => dailyQueue(Object.values(state.words)), [state.words]);
+  const { known, inDeck } = state.anki;
+  // Words Anki already has are reviewed there, not here.
+  return useMemo(
+    () => dailyQueue(Object.values(state.words).filter((w) => !known[w.base] && !inDeck[w.base])),
+    [state.words, known, inDeck]
+  );
 }
+
+// Tells useAnki the known words changed so it can push to Anki soon.
+const knownChanged = () => typeof window !== "undefined" && window.dispatchEvent(new Event("mimitori-known-changed"));
 
 export function knownTotal(state) {
   return new Set([...Object.keys(state.known), ...Object.keys(state.anki.known)]).size;

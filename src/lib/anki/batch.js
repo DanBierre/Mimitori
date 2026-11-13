@@ -16,6 +16,19 @@ export function planBatch(words, state, common = commonSet()) {
   return { send, skip };
 }
 
+// The send wrapper both batch callers use: addCardFromWord, then markInAnki on success.
+export const sendSaved = ({ anki, settings, markInAnki, add }) => async (word, maps) => {
+  const result = await add({
+    anki,
+    settings,
+    word: { base: word.base, surface: word.surface, reading: word.reading, glosses: word.glosses || [] },
+    context: { sentence: word.sentence },
+    maps,
+  });
+  if (result === "added" || result === "queued") markInAnki(word.base);
+  return result;
+};
+
 // Sends one word at a time. `send(word, maps)` wraps addCardFromWord.
 export async function sendBatch({ words, send, onStep, maps = { known: {}, inDeck: {} } }) {
   const out = { added: 0, queued: 0, skipped: 0, failed: 0, stopped: null };

@@ -87,6 +87,7 @@ test("fetchDeckWords reads all models, guessing unmapped ones", async () => {
   ];
   const anki = {
     async invoke(action, params) {
+      if (action === "findCards") return [];
       if (action === "findNotes") return params.query.includes("ivl") ? [] : notes.map((n) => n.noteId);
       return notes.filter((n) => params.notes.includes(n.noteId));
     },
@@ -108,6 +109,7 @@ test("fetchDeckWords uses one guessed mapping per model for mature and other not
   const notes = [mk(1, "犬", "いぬ", "dog"), mk(2, "猫", "ねこ", "cat"), mature];
   const anki = {
     async invoke(action, params) {
+      if (action === "findCards") return [];
       if (action === "findNotes") return params.query.includes("ivl") ? [3] : [1, 2, 3];
       return notes.filter((n) => params.notes.includes(n.noteId));
     },
@@ -128,6 +130,7 @@ test("fetchDeckWords reports progress per batch", async () => {
   const ids = Array.from({ length: 1200 }, (_, i) => i + 1);
   const anki = {
     async invoke(action, params) {
+      if (action === "findCards") return [];
       if (action === "findNotes") return params.query.includes("ivl") ? [] : ids;
       return params.notes.map((id) => ({ noteId: id, modelName: "M", fields: { Front: { value: "x", order: 0 } } }));
     },
@@ -142,6 +145,7 @@ test("readAllDecks skips a missing deck and keeps the others", async () => {
   const anki = {
     async invoke(action, params) {
       if (action === "deckNames") return ["Test", "Other"];
+      if (action === "findCards") return [];
       if (action === "findNotes") return params.query.includes("ivl") ? [] : params.query.includes("Gone") ? [] : [1];
       return [note];
     },
@@ -151,4 +155,21 @@ test("readAllDecks skips a missing deck and keeps the others", async () => {
   assert.deepEqual(out.missing, ["Gone"]);
   assert.deepEqual(out.deckNotes, ["Gone wasn't found in Anki"]);
   assert.deepEqual(out.merged.inDeck, { 猫: true });
+});
+
+test("fetchDeckWords: a suspended note is known, a note gone from the deck is absent", async () => {
+  const mk = (id, w) => ({ noteId: id, modelName: "M", cards: [id * 10], fields: { Front: { value: w, order: 0 } } });
+  let ids = [1, 2];
+  const anki = {
+    async invoke(action, params) {
+      if (action === "findNotes") return params.query.includes("ivl") ? [] : ids;
+      if (action === "findCards") return [10];
+      return ids.map((i) => mk(i, i === 1 ? "犬" : "猫"));
+    },
+  };
+  const cfg = { deck: "D", model: "M", mapping: { Front: { role: "expression" } } };
+  assert.deepEqual((await fetchDeckWords(anki, cfg)).known, { 犬: true });
+  ids = [2]; // 犬 deleted in Anki
+  const out = await fetchDeckWords(anki, cfg);
+  assert.deepEqual(out, { known: {}, inDeck: { 猫: true }, notes: 1, words: 1 });
 });

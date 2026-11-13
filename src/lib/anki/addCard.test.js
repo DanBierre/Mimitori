@@ -48,7 +48,7 @@ const actions = (calls) => calls.map((c) => c.action);
 test("added: media stored before addNote and stripped from the note", async () => {
   const t = setup();
   assert.equal(await t.run(), "added");
-  assert.deepEqual(actions(t.calls).filter((a) => a !== "modelFieldNames"), ["addNote"]);
+  assert.deepEqual(actions(t.calls).filter((a) => a !== "modelFieldNames" && a !== "findNotes"), ["addNote"]);
   const note = t.calls.find((c) => c.action === "addNote").params.note;
   assert.equal(note.storeMedia, undefined);
   assert.equal(note.picture.length, 1);
@@ -109,7 +109,7 @@ test("audio fails: still added, noAudio reported", async () => {
 test("Read save (no video): no media calls", async () => {
   const t = setup({ video: undefined, cue: undefined });
   assert.equal(await t.run({ video: undefined, cue: undefined }), "added");
-  assert.deepEqual(actions(t.calls), ["modelFieldNames", "addNote"]);
+  assert.deepEqual(actions(t.calls), ["modelFieldNames", "findNotes", "addNote"]);
   assert.deepEqual(t.progress, []);
 });
 
@@ -129,4 +129,28 @@ test("uses a given picture instead of a video frame", async () => {
   const note = t.calls.find((c) => c.action === "addNote").params.note;
   assert.equal(note.picture.length, 1);
   assert.match(note.picture[0].filename, /\.jpg$/);
+});
+
+test("unreachable: a queued card with the same base is a duplicate", async () => {
+  const t = setup({
+    invoke: () => { throw new AnkiError("down", "unreachable"); },
+    deps: { listQueue: async () => [{ base: "犬" }] },
+  });
+  assert.equal(await t.run(), "duplicate");
+  assert.equal(t.queued.length, 0);
+});
+
+test("reachable: a note with this word in the deck is a duplicate (query escaped)", async () => {
+  const t = setup({ invoke: (a) => (a === "findNotes" ? [7] : undefined) });
+  assert.equal(await t.run({ word: { ...word, base: 'a_b"' } }), "duplicate");
+  const q = t.calls.find((c) => c.action === "findNotes").params.query;
+  assert.equal(q, String.raw`"deck:Test" "Word:a\_b\""`);
+  assert.ok(!actions(t.calls).includes("addNote"));
+});
+test("reachable: no hit adds; no expression field skips the check", async () => {
+  const t = setup({ invoke: (a) => (a === "findNotes" ? [] : undefined) });
+  assert.equal(await t.run(), "added");
+  const none = setup({ settings: { ...settings, mapping: { Pic: { role: "picture" } } } });
+  await none.run();
+  assert.ok(!actions(none.calls).includes("findNotes"));
 });

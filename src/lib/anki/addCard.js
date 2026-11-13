@@ -6,7 +6,8 @@ import { buildNote } from "./buildNote.js";
 import { fieldListChanged } from "./fieldRoles.js";
 import { recordLine } from "../media/clip.js";
 import { captureFrame } from "../images.js";
-import { enqueue } from "./queue.js";
+import { enqueue, listQueue } from "./queue.js";
+import { deckQuery } from "./known.js";
 
 // Blob -> base64 without the "data:" prefix (what AnkiConnect wants).
 export async function blobToBase64(blob) {
@@ -20,7 +21,7 @@ export async function blobToBase64(blob) {
 const wantsMedia = (mapping, role, slot) =>
   Object.values(mapping).some((e) => e.role === role || (e.role === "template" && e.template?.includes(`{${slot}}`)));
 
-const realDeps = { recordLine, captureFrame, enqueue, now: () => Date.now() };
+const realDeps = { recordLine, captureFrame, enqueue, listQueue, now: () => Date.now() };
 
 // Returns "added" | "duplicate" | "queued" | "changed" | { error }.
 // maps: { known, inDeck } from state.anki. Audio failure still adds the card
@@ -51,6 +52,21 @@ export async function addCardFromWord({
     }
 
     if (maps.known?.[word.base] || maps.inDeck?.[word.base]) return "duplicate";
+
+    // One card per word: a queued card or a note with this word already counts.
+    if (!reachable) {
+      if ((await d.listQueue().catch(() => [])).some((q) => q.base === word.base)) return "duplicate";
+    } else {
+      const esc = word.base.replace(/[\\"*_:]/g, "\\$&");
+      for (const [field, m] of Object.entries(mapping)) {
+        if (m.role !== "expression") continue;
+        // Anki dropping out here is fine: addNote below queues the card.
+        const hit = await anki.invoke("findNotes", { query: `${deckQuery(deck)} "${field}:${esc}"` }).catch((e) => {
+          if (e?.kind !== "unreachable") throw e;
+        });
+        if (Array.isArray(hit) && hit.length) return "duplicate";
+      }
+    }
 
     const media = {};
     if ((picture || video) && wantsMedia(mapping, "picture", "picture")) {

@@ -53,20 +53,22 @@ test("hasWordField needs expression or template", () => {
   assert.equal(hasWordField({}), false);
 });
 
-test("wordState: app state beats Anki, Anki known beats inDeck", () => {
+test("wordState: Anki known/inDeck beat saved", () => {
   const now = new Date();
   const due = { ...newCard(), due: new Date(now.getTime() - 1000) };
   const later = { ...newCard(), due: new Date(now.getTime() + 86400000) };
   const base = {
     known: { k: true },
-    words: { d: { card: due }, s: { card: later } },
-    anki: { known: { k: true, d: true, s: true, a: true }, inDeck: { i: true, a: true } },
+    words: { d: { card: due }, s: { card: later }, p: { card: due }, q: { card: due } },
+    anki: { known: { k: true, a: true, q: true }, inDeck: { i: true, a: true, p: true } },
   };
   assert.equal(wordState(base, "k", now), "known");
   assert.equal(wordState(base, "d", now), "due");
   assert.equal(wordState(base, "s", now), "saved");
   assert.equal(wordState(base, "a", now), "known");
   assert.equal(wordState(base, "i", now), "inAnki");
+  assert.equal(wordState(base, "p", now), "inAnki"); // saved and in Anki's deck
+  assert.equal(wordState(base, "q", now), "known"); // saved and known in Anki
   assert.equal(wordState(base, "z", now), "new");
 });
 

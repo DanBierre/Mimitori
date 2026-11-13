@@ -45,12 +45,13 @@ export const mergeDeckNotes = (prev, next) => [
   ...new Set([...prev.filter((n) => n.endsWith("wasn't found in Anki")), ...next]),
 ];
 
-// Notes of one deck with their word, tags and whether the card is mature.
+// Notes of one deck with their word, tags, whether the card is mature and whether all cards are suspended.
 // Notes with no word are left out. Independent of the store.
 export async function readDeckNotes(anki, { deck, model, mapping }, onProgress) {
   const base = deckQuery(deck);
   const ids = await anki.invoke("findNotes", { query: base });
   const matureIds = new Set(await anki.invoke("findNotes", { query: `${base} prop:ivl>=21` }));
+  const susp = new Set(await anki.invoke("findCards", { query: `${base} is:suspended` }));
   const infos = [];
   for (let i = 0; i < ids.length; i += 500) {
     infos.push(...(await anki.invoke("notesInfo", { notes: ids.slice(i, i + 500) })));
@@ -69,7 +70,14 @@ export async function readDeckNotes(anki, { deck, model, mapping }, onProgress) 
     }
     for (const n of notes) {
       const word = wordFromNote(flat(n), map);
-      if (word) out.push({ noteId: n.noteId, word, tags: n.tags ?? [], cards: n.cards ?? [], mature: matureIds.has(n.noteId) });
+      if (word) out.push({
+          noteId: n.noteId,
+          word,
+          tags: n.tags ?? [],
+          cards: n.cards ?? [],
+          mature: matureIds.has(n.noteId),
+          suspended: (n.cards ?? []).length > 0 && n.cards.every((id) => susp.has(id)),
+        });
     }
   }
   return out;
@@ -83,7 +91,7 @@ export async function fetchDeckWords(anki, cfg, onProgress) {
   });
   const known = {};
   const inDeck = {};
-  for (const n of list) (n.mature ? known : inDeck)[n.word] = true;
+  for (const n of list) (n.mature || n.suspended ? known : inDeck)[n.word] = true;
   for (const w of Object.keys(known)) delete inDeck[w];
   return { known, inDeck, notes, words: list.length };
 }

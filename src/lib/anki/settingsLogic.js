@@ -63,13 +63,13 @@ export const lowConfidence = (g) => !g || g.confidence < 0.7;
 export const hasWordField = (mapping) =>
   Object.values(mapping).some((m) => m.role === "expression" || m.role === "template");
 
-// "known" | "due" | "saved" | "inAnki" | "new". The app's own state wins over Anki's.
+// "known" | "due" | "saved" | "inAnki" | "new". Known (app or Anki) first, then Anki's deck beats "saved".
 export function wordState(state, base, now = new Date(), common = commonSet()) {
   if (state.known[base]) return "known";
-  const word = state.words[base];
-  if (word) return isDue(word.card, now) ? "due" : "saved";
   if (state.anki.known[base]) return "known";
   if (state.anki.inDeck[base]) return "inAnki";
+  const word = state.words[base];
+  if (word) return isDue(word.card, now) ? "due" : "saved";
   return state.settings?.commonKnown !== false && common.has(base) ? "known" : "new";
 }
 

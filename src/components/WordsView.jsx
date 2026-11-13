@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ankiMode, knownTotal, useStore, wordState } from "../lib/store";
 import { anki } from "../lib/anki/useAnki";
 import { addCardFromWord } from "../lib/anki/addCard";
-import { planBatch, sendBatch } from "../lib/anki/batch";
+import { planBatch, sendBatch, sendSaved } from "../lib/anki/batch";
 import { downloadCsv } from "../lib/exportCsv";
 import { formatInterval } from "../lib/srs";
 import SceneStill from "./SceneStill";
@@ -107,17 +107,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
       words,
       maps: state.anki,
       onStep: (step, total) => setBatch({ running: true, step, total }),
-      send: async (word, maps) => {
-        const result = await addCardFromWord({
-          anki,
-          settings: state.settings.anki,
-          word: { base: word.base, surface: word.surface, reading: word.reading, glosses: word.glosses || [] },
-          context: { sentence: word.sentence },
-          maps,
-        });
-        if (result === "added" || result === "queued") markInAnki(word.base);
-        return result;
-      },
+      send: sendSaved({ anki, settings: state.settings.anki, markInAnki, add: addCardFromWord }),
     });
     if (r.queued) window.dispatchEvent(new Event("anki-queue-changed"));
     const skipped = skip.length + r.skipped;
