@@ -1134,7 +1134,6 @@ rt.rt--known {
   justify-content: space-between;
   gap: 4px 8px;
   padding: 2px 0 8px;
-  border-bottom: 1px solid var(--line);
 }
 
 .ctl__group {
@@ -1920,14 +1919,17 @@ rt.rt--known {
   align-items: baseline;
   gap: 10px;
   margin: 0;
+  font-family: var(--serif);
   font-size: 26px;
+  font-weight: 400;
   letter-spacing: -0.01em;
 }
 
 .review__count {
+  font-family: var(--serif);
   font-size: 72px;
+  font-weight: 400;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
 }
 
 .review__unit {
@@ -1945,9 +1947,9 @@ rt.rt--known {
   display: grid;
   gap: 8px;
   margin-bottom: 16px;
-  font-size: 13px;
+  font-family: var(--mono);
+  font-size: 12px;
   color: var(--text-2);
-  font-variant-numeric: tabular-nums;
 }
 
 .review__bar {
@@ -1973,6 +1975,8 @@ rt.rt--known {
 
 .review__term {
   margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
   font-size: 56px;
   line-height: 1.25;
 }
@@ -1992,7 +1996,8 @@ rt.rt--known {
 
 .review__sentence {
   margin: 14px 0 0;
-  font-size: 17px;
+  font-family: var(--serif);
+  font-size: 18px;
   line-height: 1.8;
   color: var(--text-2);
 }
@@ -2004,6 +2009,8 @@ rt.rt--known {
 
 .review__answer {
   margin-top: 6px;
+  padding-top: 14px;
+  border-top: 2px solid var(--text);
 }
 
 .review__reading {
@@ -2014,7 +2021,8 @@ rt.rt--known {
 
 .review__meaning {
   margin: 12px 0 0;
-  font-size: 17px;
+  font-family: var(--serif);
+  font-size: 20px;
 }
 
 .review__answer .review__sentence {
@@ -2046,13 +2054,23 @@ rt.rt--known {
 
 /* "Good" is the one main answer. */
 .grade--3 {
-  border-color: var(--ink);
-  background: color-mix(in srgb, var(--ink) 6%, var(--bg));
-  color: var(--ink-strong);
+  border-color: var(--ink-strong);
+  background: var(--ink-strong);
+  color: var(--ink-on);
 }
 
 .grade--3:hover {
-  background: color-mix(in srgb, var(--ink) 12%, var(--bg));
+  background: var(--ink-hover);
+}
+
+.grade--3 kbd {
+  border-color: currentColor;
+  color: inherit;
+}
+
+.grade--3 .grade__interval {
+  color: inherit;
+  opacity: 0.8;
 }
 
 .grade__label {
@@ -2067,9 +2085,9 @@ rt.rt--known {
 }
 
 .grade__interval {
-  font-size: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
   color: var(--text-2);
-  font-variant-numeric: tabular-nums;
 }
 
 @media (hover: hover) and (min-width: 720px) {
@@ -2104,9 +2122,9 @@ rt.rt--known {
 
 .words__count {
   margin: 0 0 14px;
-  font-size: 13px;
+  font-family: var(--mono);
+  font-size: 12px;
   color: var(--text-3);
-  font-variant-numeric: tabular-nums;
 }
 
 /* One header bar: filter, search, then the export buttons on the right. */
@@ -2152,7 +2170,9 @@ rt.rt--known {
 
 .words__empty-title {
   margin: 0 0 8px;
-  font-size: 18px;
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
 }
 
 .words__empty p {
@@ -2180,7 +2200,7 @@ rt.rt--known {
 }
 
 .words__row {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .words__summary {
@@ -2200,13 +2220,14 @@ rt.rt--known {
 }
 
 .words__summary:hover {
-  background: var(--surface-2);
+  background: var(--tint-hover);
 }
 
 .words__term {
   position: relative;
   display: inline-block;
-  font-size: 18px;
+  font-family: var(--serif);
+  font-size: 20px;
 }
 
 .words__reading {
@@ -2219,14 +2240,15 @@ rt.rt--known {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 14px;
+  font-family: var(--serif);
+  font-size: 16px;
 }
 
 .words__state {
-  font-size: 12px;
-  color: var(--text-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 719px) {
@@ -2251,7 +2273,8 @@ rt.rt--known {
 
 .words__sentence {
   margin: 0;
-  font-size: 16px;
+  font-family: var(--serif);
+  font-size: 17px;
   line-height: 1.8;
   color: var(--text-2);
 }
@@ -2279,7 +2302,9 @@ rt.rt--known {
 
 .settings__title {
   margin: 0;
-  font-size: 22px;
+  font-family: var(--serif);
+  font-size: 34px;
+  letter-spacing: -0.01em;
 }
 
 .settings__section {
@@ -2289,7 +2314,9 @@ rt.rt--known {
 
 .settings__heading {
   margin: 0 0 4px;
-  font-size: 16px;
+  font-family: var(--serif);
+  font-size: 21px;
+  font-weight: 400;
 }
 
 .settings__steps {
@@ -2347,7 +2374,7 @@ rt.rt--known {
 .inks__swatch {
   width: 12px;
   height: 12px;
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 .inks__name {
@@ -2437,8 +2464,12 @@ rt.rt--known {
 }
 
 .settings__table th {
-  font-size: 12px;
-  color: var(--text-2);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
 }
 
 .settings__sample {
@@ -2463,10 +2494,11 @@ rt.rt--known {
 }
 
 .settings__chip {
-  padding: 1px 7px;
-  border-radius: 2px;
-  background: var(--surface-2);
+  padding: 0 1px;
+  border-bottom: 1px solid var(--line-strong);
   color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
 }
 
 .settings__failed {
@@ -2569,8 +2601,8 @@ rt.rt--known {
   .watch-drop--stage {
     align-content: center;
     box-sizing: border-box;
-    aspect-ratio: 16 / 9;
-    max-height: max(400px, calc(100dvh - 330px));
+    width: 100%;
+    height: max(360px, calc(100dvh - 400px));
     max-width: none;
     margin: 0;
     padding: 24px;
@@ -2639,7 +2671,7 @@ rt.rt--known {
   align-items: center;
   gap: 4px 18px;
   min-height: 48px;
-  padding: 8px 6px;
+  padding: 8px 0;
   border-top: 1px solid var(--line);
   font-size: 14px;
 }
@@ -2698,7 +2730,7 @@ rt.rt--known {
 
 /* Today: the right column while nothing is loaded. */
 .today__review {
-  margin: 4px 6px 0;
+  margin: 4px 0 0;
   font-size: 14px;
   color: var(--text-2);
 }
@@ -2706,22 +2738,22 @@ rt.rt--known {
 .today__known {
   display: grid;
   gap: 6px;
-  margin: 28px 6px 0;
+  margin: 28px 0 0;
   font-size: 13px;
   color: var(--text-3);
 }
 
 .today__fig {
+  font-family: var(--serif);
   font-size: 56px;
   font-weight: 400;
   line-height: 1;
   letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
   color: var(--text);
 }
 
 .today__saved {
-  margin: 20px 6px 0;
+  margin: 20px 0 0;
   font-size: 14px;
   color: var(--text-2);
 }
@@ -2732,14 +2764,17 @@ rt.rt--known {
 }
 
 .today__week {
-  margin: 32px 6px 0;
+  margin: 32px 0 0;
   padding-top: 14px;
   border-top: 1px solid var(--line);
 }
 
 .today__week-title {
   margin: 0 0 12px;
-  font-size: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--text-3);
 }
 
@@ -2756,8 +2791,8 @@ rt.rt--known {
   display: grid;
   justify-items: center;
   gap: 4px;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
+  font-family: var(--mono);
+  font-size: 11px;
   color: var(--text-3);
 }
 
@@ -3535,7 +3570,8 @@ rt.rt--known {
 
 .words__glosses {
   margin: 0 0 8px;
-  font-size: 14px;
+  font-family: var(--serif);
+  font-size: 17px;
   line-height: 1.55;
   color: var(--text);
 }
