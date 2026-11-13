@@ -10,6 +10,23 @@ export const INKS = [
 
 export const inkById = (id) => INKS.find((i) => i.id === id) || INKS[0];
 
+// Light is the Lexicon page and the default; Dark is the night version; Device follows the system.
+export const THEMES = [
+  { id: "light", name: "Light" },
+  { id: "dark", name: "Dark" },
+  { id: "device", name: "Match device" },
+];
+
+// Sets data-theme="light|dark" on the root; for "device" it keeps following the system. Returns a cleanup.
+export function applyTheme(choice, root = document.documentElement) {
+  const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+  const set = () => (root.dataset.theme = choice === "dark" || (choice === "device" && mq?.matches) ? "dark" : "light");
+  set();
+  if (choice !== "device" || !mq) return () => {};
+  mq.addEventListener("change", set);
+  return () => mq.removeEventListener("change", set);
+}
+
 export function applyInk(id, root = document.documentElement) {
   const ink = inkById(id);
   root.style.setProperty("--ink-l", ink.light);

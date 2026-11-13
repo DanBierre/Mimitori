@@ -7,7 +7,7 @@ import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRedu
 import { becameKnown, dailyQueue, gradeCard, newCard } from "./srs";
 import { deleteImage } from "./images";
 import { loadCommon } from "./common";
-import { applyInk } from "./ink";
+import { applyInk, applyTheme } from "./ink";
 export { ankiMode, wordState } from "./anki/settingsLogic";
 
 // Old app name kept on purpose: renaming the key would wipe saved words and settings.
@@ -22,6 +22,7 @@ const DEFAULT_STATE = {
     size: 26,
     commonKnown: true, // treat very common words as known
     ink: "indigo", // the learner's accent colour
+    theme: "light", // light (the default look) | dark | device
     name: "", // optional, for the Watch greeting
     ambient: true, // soft light from the video on the Watch stage
     watch: { autoPause: false, speed: 1, showSecondLine: true },
@@ -128,6 +129,7 @@ export function StoreProvider({ children }) {
 
   useEffect(() => persist(state), [state]);
   useLayoutEffect(() => applyInk(state.settings.ink), [state.settings.ink]);
+  useLayoutEffect(() => applyTheme(state.settings.theme), [state.settings.theme]);
   useEffect(() => {
     loadCommon().then(() => dispatch({ type: "commonReady" }));
   }, []);

@@ -178,14 +178,14 @@ components:
 
 **Creative North Star: "The Lexicon"**
 
-Mimitori reads like a dictionary page on a cool white desk. The type is ink, the rules are hairlines, and the Japanese is set in a serif. One accent, ink blue, does all the pointing. Light and dark follow the device, Watch included. Only the video frame stays dark.
+Mimitori reads like a dictionary page on a cool white desk. The type is ink, the rules are hairlines, and the Japanese is set in a serif. One accent, ink blue, does all the pointing. Light is the default look on every device. Dark is a choice in Settings (Theme: Light, Dark or Match device), and Watch follows it too. Only the video frame stays dark.
 
 Words carry their state in their mark, not in a colour. A new word gets a soft marker. A saved word gets a dotted ink underline. A known word is plain. The learner can read the line without a colour key.
 
 The signature is the Instrument readout. Small mono numbers 1 to 9 sit beside each unknown word in the Watch line. The same numbers head the rows of a table under the video (word, reading, meaning, state). Keys 1 to 9 pick a word. The number ties the word in the line, its row and its entry together.
 
 **Key Characteristics:**
-- Cool white page, ink type; light and dark follow the device.
+- Cool white page, ink type. Light by default; Dark or Match device in Settings.
 - One accent, ink blue by default. The learner can pick Pine, Teal, Amber or Violet instead.
 - Serif for Japanese lines, words and meanings. Sans for UI. Mono for timecodes, counts and keys.
 - Hairline rules, not cards. A heavy 2px rule opens each entry.
@@ -218,7 +218,7 @@ A cool neutral scale carries the page. Ink is the only accent.
 
 **The Strong-Ink Rule.** Ink as text or as a filled background uses Strong ink. Raw ink is for markers, underlines, ticks and tints.
 
-**The Device Rule.** Light and dark follow `prefers-color-scheme`. Watch follows too. Only the video frame is always dark.
+**The Light-First Rule.** Light is the default. The store sets `data-theme="dark"` on the root only when the learner picks Dark, or picks Match device and the device is dark. Watch follows the same setting. Only the video frame is always dark.
 
 ## Typography
 
@@ -308,7 +308,7 @@ Surface, hairline, 4px, Pop shadow, 340px wide. It opens with a 2px Text rule.
 At the top of Read: `% words you know`, new words, and saved or in-Anki counts. Figures are serif 26px over mono 12px labels. A 4px bar shows coverage in Text on Line soft. A hairline closes the row.
 
 ### Watch
-- **Video frame:** the one dark element, `video-frame` behind the video. The page around it follows the device.
+- **Video frame:** the one dark element, `video-frame` behind the video. The page around it follows the Theme setting.
 - **Line:** serif cue, left-aligned, under a mono timecode and line count, with the index numbers. A pressed word takes the Selected mark. The translation sits under it in sans, Text 2.
 - **Transcript:** ruled rows. Timecodes are mono 11px, Text 3; new-word counts read "2 new" in mono Strong ink; draft lines say "auto" in italic serif. The current row has 6% ink, a 2px ink rule on its left edge and an ink timecode.
 - **Review grades:** four square outlined tiles. "Good" is the one filled in Strong ink.
@@ -326,7 +326,7 @@ At the top of Read: `% words you know`, new words, and saved or in-Anki counts. 
 - **Do** set Japanese lines, words and meanings in the serif; UI in sans; only timecodes, counts and keys in mono.
 - **Do** keep weights at 400 and 500.
 - **Do** keep controls square and floating surfaces at 4px with the one shadow.
-- **Do** keep light and dark following the device, including Watch.
+- **Do** keep light as the default, with Dark and Match device in Settings, Watch included.
 - **Do** give every unknown word in the Watch line its index number, and keep keys 1 to 9 working.
 - **Do** make controls at least 44px on touch.
 

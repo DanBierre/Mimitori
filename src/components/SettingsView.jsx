@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ankiMode, useStore } from "../lib/store";
-import { INKS, inkById } from "../lib/ink";
+import { INKS, THEMES, inkById } from "../lib/ink";
 import { anki, useAnki } from "../lib/anki/useAnki";
 import { guessFieldRoles, ROLES } from "../lib/anki/fieldRoles";
 import { listFailed, retryFailed } from "../lib/anki/queue";
@@ -144,6 +144,24 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
                 />
                 <span className="inks__swatch" style={{ background: ink.light }} aria-hidden="true" />
                 <span className="inks__name" aria-hidden="true">{ink.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="settings__row" role="radiogroup" aria-labelledby="theme-label">
+          <span id="theme-label" className="settings__label">Theme</span>
+          <div className="inks__dots">
+            {THEMES.map((t) => (
+              <label key={t.id} className="inks__dot">
+                <input
+                  type="radio"
+                  name="theme"
+                  value={t.id}
+                  aria-label={t.name}
+                  checked={(state.settings.theme || "light") === t.id}
+                  onChange={() => setSettings({ theme: t.id })}
+                />
+                <span className="inks__name" aria-hidden="true">{t.name}</span>
               </label>
             ))}
           </div>

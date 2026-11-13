@@ -47,28 +47,27 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ink: var(--ink-d);
-    --ink-strong: var(--ink);
-    --mark: color-mix(in srgb, var(--ink) 18%, transparent);
-    --mark-strong: color-mix(in srgb, var(--ink) 34%, transparent);
-    --bg: #111317;
-    --surface: #16191e;
-    --surface-2: #1d2026;
-    --surface-3: #262a31;
-    --line: #262a31;
-    --line-soft: #1d2026;
-    --line-strong: #3a3f48;
-    --text: #eceef2;
-    --text-2: #a3a9b5;
-    --text-3: #858b97;
-    --ink-hover: color-mix(in srgb, var(--ink) 85%, #fff);
-    --ink-on: #111317;
-    --danger: #ff7a66;
-    --shadow-pop: 0 2px 6px rgb(0 0 0 / 0.4), 0 18px 40px -14px rgb(0 0 0 / 0.8);
-    color-scheme: dark;
-  }
+/* Dark: chosen in Settings (Theme), or the device when Theme is "Match device". The store sets data-theme. */
+:root[data-theme="dark"] {
+  --ink: var(--ink-d);
+  --ink-strong: var(--ink);
+  --mark: color-mix(in srgb, var(--ink) 18%, transparent);
+  --mark-strong: color-mix(in srgb, var(--ink) 34%, transparent);
+  --bg: #111317;
+  --surface: #16191e;
+  --surface-2: #1d2026;
+  --surface-3: #262a31;
+  --line: #262a31;
+  --line-soft: #1d2026;
+  --line-strong: #3a3f48;
+  --text: #eceef2;
+  --text-2: #a3a9b5;
+  --text-3: #858b97;
+  --ink-hover: color-mix(in srgb, var(--ink) 85%, #fff);
+  --ink-on: #111317;
+  --danger: #ff7a66;
+  --shadow-pop: 0 2px 6px rgb(0 0 0 / 0.4), 0 18px 40px -14px rgb(0 0 0 / 0.8);
+  color-scheme: dark;
 }
 
 * {

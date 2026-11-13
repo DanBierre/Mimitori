@@ -39,7 +39,7 @@ Name: **Mimitori** (耳取り, "catching it by ear"; a play on 聞き取り). Ch
   - Banned: mascots, streak flames, sakura or torii, per-item rainbow colours, card-and-pill kits.
 - Dan's signature design philosophy (shared across his apps; each app keeps its own visual identity): calm, nothing shouts; hierarchy from size and spacing, not bold, boxes or colour blocks; hairlines, not cards; shadow only on things that float; one accent used sparingly; hand-made, imperfect marks for progress; lots of space; light and dark by device.
 - Entirely separate from Dan's Shoji app: no warm cream paper, no Murecho, no vertical side labels, no vermilion, no ensō or seals, no capsule ink-well controls.
-- Follows the device light/dark setting everywhere, Watch included; only the video frame itself stays dark.
+- Light is the default look everywhere, Watch included (Dan, 14 November 2026: following a dark device made it look unchanged). Dark and Match device are a Theme choice in Settings. Only the video frame itself stays dark.
 
 ## Evidence on Hand
 Working prototype in src/ and worker/. No users, testimonials, benchmarks, or pricing data exist; none may be fabricated.
