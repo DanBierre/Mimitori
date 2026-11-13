@@ -1,9 +1,6 @@
 // Reads one cropped bubble at a time with manga-ocr, in the browser. Nothing is uploaded:
 // the only network fetch is the model from Hugging Face, once; the browser keeps it after that.
 import { OCR_MODEL, OCR_REVISION, pickOcrRuntime, cleanOcr, wholeSequenceInputs } from "./ocr.js";
-// Same pinned onnxruntime-web files as the Whisper worker (see transcribe.worker.js).
-import ortMjs from "onnxruntime-web/ort-wasm-simd-threaded.asyncify.mjs?url";
-import ortWasm from "onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url";
 
 let pipePromise = null;
 let queue = Promise.resolve(); // one bubble at a time
@@ -30,7 +27,8 @@ function loadModel() {
   pipePromise ??= (async () => {
     const { pipeline, env, Tensor } = await import("@huggingface/transformers");
     env.allowLocalModels = false;
-    env.backends.onnx.wasm.wasmPaths = { mjs: ortMjs, wasm: ortWasm };
+    // ONNX runtime comes from jsdelivr, pinned by transformers to its own onnxruntime-web version.
+    // Self-hosting it put a 26 MB file in dist, over Cloudflare's 25 MiB per-file limit.
     const { device, dtype } = pickOcrRuntime();
     const files = new Map();
     let lastPct = -1;

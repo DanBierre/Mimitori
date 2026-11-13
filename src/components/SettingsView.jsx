@@ -5,6 +5,7 @@ import { anki, useAnki } from "../lib/anki/useAnki";
 import { guessFieldRoles, ROLES } from "../lib/anki/fieldRoles";
 import { listFailed, retryFailed } from "../lib/anki/queue";
 import Icon from "./Icon";
+import { backupCounts, downloadBackup, parseBackup, restoreBackup } from "../lib/backup";
 import { ROLE_LABELS, buildMapping, flatFields, hasWordField, lowConfidence, pickSampleQuery, templateParts } from "../lib/anki/settingsLogic";
 
 const STATUS_TEXT = {
@@ -58,6 +59,8 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
   const [checking, setChecking] = useState(false);
   const [checkError, setCheckError] = useState("");
   const [failed, setFailed] = useState([]);
+  const [pending, setPending] = useState(null); // a parsed backup waiting for "Replace"
+  const [backupError, setBackupError] = useState("");
 
   // Re-sync when the decks or tagging change (after the new settings have rendered).
   const syncKey = JSON.stringify([cfg.readDecks, cfg.tagKnown]);
@@ -110,6 +113,19 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
     setCheckError("");
     setAnkiSettings({ mapping, fieldList: draft.fieldNames });
     setDraft(null);
+  }
+
+  async function pickBackup(e) {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    setPending(null);
+    try {
+      setPending(parseBackup(await file.text()));
+      setBackupError("");
+    } catch (err) {
+      setBackupError(err.message);
+    }
   }
 
   const ready = Boolean(cfg.deck && cfg.model && Object.keys(cfg.mapping).length);
@@ -378,6 +394,32 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
               ))}
             </ul>
           </>
+        )}
+      </div>
+
+      <div className="settings__section">
+        <h3 className="settings__heading">Backup</h3>
+        <p className="note">
+          Your words live on this device only. Save a backup now and then, and keep it somewhere safe. It holds your saved words, review history, known words and settings.
+        </p>
+        <div className="settings__row">
+          <button className="btn" onClick={() => downloadBackup(state)}>Save a backup</button>
+          <label className="btn btn--quiet">
+            Restore from a backup
+            <input type="file" accept=".json,application/json" className="sr-only" onChange={pickBackup} />
+          </label>
+        </div>
+        {backupError && <p className="note note--error">{backupError}</p>}
+        {pending && (
+          <div role="alert">
+            <p className="note">
+              This replaces everything here ({backupCounts(state).saved} saved, {backupCounts(state).known} known) with the backup ({backupCounts(pending).saved} saved, {backupCounts(pending).known} known). Save a backup first if you're not sure.
+            </p>
+            <div className="settings__row">
+              <button className="btn btn--primary" onClick={() => { restoreBackup(pending); location.reload(); }}>Replace</button>
+              <button className="btn btn--quiet" onClick={() => setPending(null)}>Cancel</button>
+            </div>
+          </div>
         )}
       </div>
     </section>

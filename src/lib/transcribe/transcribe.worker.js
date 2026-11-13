@@ -3,10 +3,6 @@
 import { downmix, createResampler } from "./audio.js";
 import { toCues, dropJunk } from "./clean.js";
 import { createWindower, pickRuntime, MODEL_ID } from "./windows.js";
-// ONNX runtime files. transformers.js would otherwise fetch these from jsdelivr.
-// This is transformers' own pinned onnxruntime-web, resolved through it; the build fails loudly if that changes.
-import ortMjs from "onnxruntime-web/ort-wasm-simd-threaded.asyncify.mjs?url";
-import ortWasm from "onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url";
 
 let asrPromise = null;
 let activeJob = null;
@@ -38,7 +34,8 @@ function loadModel(jobId, gpu) {
   asrPromise ??= (async () => {
     const { pipeline, env } = await import("@huggingface/transformers");
     env.allowLocalModels = false;
-    env.backends.onnx.wasm.wasmPaths = { mjs: ortMjs, wasm: ortWasm };
+    // ONNX runtime comes from jsdelivr, pinned by transformers to its own onnxruntime-web version.
+    // Self-hosting it put a 26 MB file in dist, over Cloudflare's 25 MiB per-file limit.
     const { device, dtype } = pickRuntime(gpu);
     const files = new Map();
     let lastPct = -1;

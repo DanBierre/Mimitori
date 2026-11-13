@@ -10,8 +10,7 @@ import { loadCommon } from "./common";
 import { applyInk, applyTheme } from "./ink";
 export { ankiMode, wordState } from "./anki/settingsLogic";
 
-// Old app name kept on purpose: renaming the key would wipe saved words and settings.
-const STORAGE_KEY = "nihongo-reader:v1";
+import { STORAGE_KEY } from "./backup";
 
 const DEFAULT_STATE = {
   words: {}, // keyed by dictionary form
