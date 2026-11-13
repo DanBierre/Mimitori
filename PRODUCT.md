@@ -29,10 +29,17 @@ Pasted or imported Japanese text is tokenized locally (kuromoji.js, dictionary i
 
 ## Brand Commitments
 Name: **Mimitori** (耳取り, "catching it by ear"; a play on 聞き取り). Chosen by Dan on 11 November 2026, replacing the placeholder "Nihongo Reader". Domain: **mimitori.com** (registered on Cloudflare, 11 November 2026). No logo or voice commitments exist yet.
-- Look: "Quiet precision, personal" (chosen by Dan on 11 November 2026, replacing the 10 November player look he found plain). Sleek and near-bare like Linear or Things; the learner's own progress is the only decoration; the learner picks their accent ink. No decorative themes.
+- Look: **Lexicon × Instrument** (locked by Dan on 14 November 2026, replacing "Quiet precision, personal"; mock in `docs/design/lexicon-instrument.html`). A clean reference-dictionary page with an instrument's word-by-word readout. Professional with its own flavour, not "super Japanese".
+  - Cool white page `#fbfbfc`, ink `#15171c`, dark page `#111317`. One accent, ink blue `#2747d1` (dark `#8ea3ff`); the learner can still pick another ink in Settings.
+  - Serif (Newsreader with Noto Serif JP) for Japanese lines, words and meanings; Noto Sans JP for the interface; IBM Plex Mono only for timecodes, counts and keys. Weights 400 and 500 only.
+  - Hairline rules, not cards. A heavy 2px rule opens each entry. Italic ink margin notes.
+  - Word state is the mark, never colour: new words get a soft marker, words in Anki (or saved) a dotted underline, known words nothing, the selected word a strong marker on a 2px rule.
+  - Small numbers 1–9 tie each new word in a Watch line to its readout row and its entry; keys 1–9 pick a word.
+  - Read shows "% words you know" at the top.
+  - Banned: mascots, streak flames, sakura or torii, per-item rainbow colours, card-and-pill kits.
 - Dan's signature design philosophy (shared across his apps; each app keeps its own visual identity): calm, nothing shouts; hierarchy from size and spacing, not bold, boxes or colour blocks; hairlines, not cards; shadow only on things that float; one accent used sparingly; hand-made, imperfect marks for progress; lots of space; light and dark by device.
 - Entirely separate from Dan's Shoji app: no warm cream paper, no Murecho, no vertical side labels, no vermilion, no ensō or seals, no capsule ink-well controls.
-- Follows the device light/dark setting; Watch always sits on a dark stage.
+- Follows the device light/dark setting everywhere, Watch included; only the video frame itself stays dark.
 
 ## Evidence on Hand
 Working prototype in src/ and worker/. No users, testimonials, benchmarks, or pricing data exist; none may be fabricated.
