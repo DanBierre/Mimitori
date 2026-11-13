@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furigana";
 import { translateText, translationEnabled } from "../lib/translate";
-import { useStore } from "../lib/store";
+import { ankiMode, useStore, wordState } from "../lib/store";
 import TokenLine from "./TokenLine";
 import { useMarker } from "../lib/useMarker";
 import { conjugationParts } from "../lib/conjugation";
@@ -214,6 +214,23 @@ export default function ReadView({ onOpenSettings }) {
   const selectedToken = tokens && selected !== null ? tokens[selected] : null;
   const panelOpen = Boolean(selectedToken);
 
+  // How much of this text you already know, and how many different words are new or already kept.
+  const stats = useMemo(() => {
+    if (!tokens) return null;
+    let all = 0;
+    let known = 0;
+    const fresh = new Set();
+    const kept = new Set();
+    for (const t of tokens) {
+      if (!t.isWord) continue;
+      all++;
+      const s = wordState(state, t.base);
+      if (s === "known") known++;
+      else (s === "new" ? fresh : kept).add(t.base);
+    }
+    return { pct: all ? Math.round((known / all) * 100) : 0, fresh: fresh.size, kept: kept.size };
+  }, [tokens, state]);
+
   if (book) {
     return (
       <Suspense fallback={<p className="note">Opening…</p>}>
@@ -353,6 +370,23 @@ export default function ReadView({ onOpenSettings }) {
           </div>
         ) : (
           <>
+            <div className="read__stats">
+              <div>
+                <b>{stats.pct}%</b>
+                words you know
+                <span className="read__cov" role="img" aria-label={`${stats.pct} percent known`}>
+                  <i style={{ width: `${stats.pct}%` }} />
+                </span>
+              </div>
+              <div>
+                <b>{stats.fresh}</b>
+                new {stats.fresh === 1 ? "word" : "words"}
+              </div>
+              <div>
+                <b>{stats.kept}</b>
+                {ankiMode(state) ? "in Anki" : "saved"}
+              </div>
+            </div>
             <div className="read__toolbar">
               <div className="segmented" role="group" aria-label="Furigana" ref={furiRef}>
                 <span className="marker" aria-hidden="true" />
