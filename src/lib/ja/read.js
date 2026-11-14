@@ -100,7 +100,7 @@ export default {
   // Book viewer
   "Couldn't download the reader. Check your connection.": "読み取りモデルをダウンロードできませんでした。接続を確認してください。",
   "Not enough space to save the reader. Free some disk space and try again.": "読み取りモデルを保存する空きがありません。ディスクの空きを増やしてもう一度試してください。",
-  "Couldn't read that. Try a tighter box.": "読み取れませんでした。もう少し狭く囲んでみてください。",
+  "Couldn’t read that. Try a tighter box.": "読み取れませんでした。もう少し狭く囲んでみてください。",
   "Type it instead": "代わりに入力",
   "This browser is slow at reading bubbles.": "このブラウザは吹き出しの読み取りが遅めです。",
   "This page is a picture, not text, so reading it needs a one-off download, about {mb} MB. It then works offline.": "このページはテキストではなく画像なので、読み取りには一度だけ約{mb} MBのダウンロードが必要です。その後はオフラインで使えます。",
@@ -128,7 +128,7 @@ export default {
   Page: "ページ",
   "of {count}": "／{count}",
   Close: "閉じる",
-  "This page didn't load.": "このページを読み込めませんでした。",
+  "This page didn’t load.": "このページを読み込めませんでした。",
   "Try again": "もう一度試す",
   "Loading page…": "ページを読み込んでいます…",
   "Page {page} of {count}": "{page}ページ／全{count}ページ",

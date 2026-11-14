@@ -134,8 +134,8 @@ export default function WordsView({ onGoWatch, onGoRead }) {
         r.stopped === "changed"
           ? t("Your note type changed. Check the field matching.")
           : t("Added {n}. Skipped {skipped} (already in Anki or very common).", { n: r.added + r.queued, skipped }) +
-            (r.queued ? " " + t("{n} will go in when Anki's open.", { n: r.queued }) : "") +
-            (r.failed ? " " + t("{n} couldn't be added.", { n: r.failed }) : ""),
+            (r.queued ? " " + t("{n} will go in when Anki’s open.", { n: r.queued }) : "") +
+            (r.failed ? " " + t("{n} couldn’t be added.", { n: r.failed }) : ""),
     });
   }
 

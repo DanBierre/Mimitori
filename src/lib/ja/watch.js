@@ -52,7 +52,6 @@ export default {
   "Show the tips again": "ヒントをもう一度見る",
   "save to review": "復習に保存",
   "add to Anki": "Ankiに追加",
-  "I know it": "知っている",
   "pick a word": "単語を選ぶ",
   replay: "もう一度",
   line: "行",

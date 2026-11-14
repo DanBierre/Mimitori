@@ -885,7 +885,7 @@ export default function WatchView({ active, onOpenSettings }) {
                 <kbd>{showReview ? "S" : "A"}</kbd> {showReview ? tr("save to review") : tr("add to Anki")}
               </span>
               <span>
-                <kbd>K</kbd> {tr("I know it")}
+                <kbd>K</kbd> {tr("I know this")}
               </span>
               <span>
                 <kbd>1</kbd>–<kbd>9</kbd> {tr("pick a word")}

@@ -239,7 +239,7 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
         <>
           <p className="review__big">{t("Review is empty")}</p>
           <p className="review__sub">
-            {t("Words you save in Read or Watch show up here, spaced so you see each one just before you'd forget it.")}{" "}
+            {t("Words you save in Read or Watch show up here, spaced so you see each one just before you’d forget it.")}{" "}
             {t("Tap a word and choose “Save to review”.")}
           </p>
           <div className="review__actions">

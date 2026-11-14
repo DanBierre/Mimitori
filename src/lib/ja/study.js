@@ -30,7 +30,7 @@ export default {
   "{n} saved words are scheduled.": "保存済みの{n}単語は、復習が予定されています。",
   "Read more": "もっと読む",
   "Review is empty": "復習はまだありません",
-  "Words you save in Read or Watch show up here, spaced so you see each one just before you'd forget it.":
+  "Words you save in Read or Watch show up here, spaced so you see each one just before you’d forget it.":
     "「読む」や「観る」で保存した単語がここに出ます。忘れる頃を見計らって、ちょうどよい間隔で表示されます。",
   "Tap a word and choose “Save to review”.": "単語をタップして「復習に保存」を選んでください。",
   "Open Read": "「読む」を開く",
@@ -48,8 +48,8 @@ export default {
   "Removed {word}.": "{word}を削除しました。",
   "Your note type changed. Check the field matching.": "ノートタイプが変わりました。フィールドの対応を確認してください。",
   "Added {n}. Skipped {skipped} (already in Anki or very common).": "{n}件追加、{skipped}件スキップ（Anki登録済み、またはごく一般的な単語）。",
-  "{n} will go in when Anki's open.": "{n}件はAnkiを開いたときに追加されます。",
-  "{n} couldn't be added.": "{n}件は追加できませんでした。",
+  "{n} will go in when Anki’s open.": "{n}件はAnkiを開いたときに追加されます。",
+  "{n} couldn’t be added.": "{n}件は追加できませんでした。",
   "Filter words": "単語を絞り込む",
   "Search words or meanings": "単語や意味を検索",
   "Search words": "単語を検索",
@@ -88,8 +88,8 @@ export default {
   never: "未同期",
   "just now": "たった今",
   "{m} min ago": "{m}分前",
-  "{deck} wasn't found in Anki": "Ankiに{deck}が見つかりませんでした",
-  "Couldn't find the word field in {deck}": "{deck}に単語のフィールドが見つかりませんでした",
+  "{deck} wasn’t found in Anki": "Ankiに{deck}が見つかりませんでした",
+  "Couldn’t find the word field in {deck}": "{deck}に単語のフィールドが見つかりませんでした",
   "Role for {field}": "{field}の役割",
   "Layout (as detected)": "レイアウト（自動検出）",
   "Leave empty": "空欄のまま",
@@ -163,15 +163,15 @@ export default {
   "Reading {deck}… {done} of {total}": "{deck}を読み込み中… {done}/{total}",
   "Decks to read": "読み込むデッキ",
   "Tag words I know in Anki": "既知の単語にAnkiでタグを付ける",
-  "Adds a mimitori-known tag to cards in {deck} for words you've marked known here. Only that deck, nothing else is changed.":
+  "Adds a mimitori-known tag to cards in {deck} for words you’ve marked known here. Only that deck, nothing else is changed.":
     "ここで既知にした単語のカードに、{deck}内でmimitori-knownタグを付けます。変更するのはそのデッキだけです。",
   "Treat very common words as known": "ごく一般的な単語は既知として扱う",
-  "About 2,000 everyday words like 何, する and いる. They won't get furigana or be suggested for Anki.":
+  "About 2,000 everyday words like 何, する and いる. They won’t get furigana or be suggested for Anki.":
     "何、する、いるなど、日常的な約2,000語です。ふりがなは付かず、Ankiにも提案されません。",
   "Nothing waiting for Anki.": "Ankiへの送信待ちはありません。",
   "{n} card is waiting for Anki. They go in when Anki's open.": "{n}枚のカードがAnkiへの送信待ちです。Ankiを開いたときに追加されます。",
   "{n} cards are waiting for Anki. They go in when Anki's open.": "{n}枚のカードがAnkiへの送信待ちです。Ankiを開いたときに追加されます。",
-  "{n} couldn't be sent:": "{n}件は送信できませんでした：",
+  "{n} couldn’t be sent:": "{n}件は送信できませんでした：",
   "Your note type changed since this card was saved.": "このカードを保存してから、ノートタイプが変わりました。",
   Retry: "再試行",
   Backup: "バックアップ",
@@ -179,7 +179,7 @@ export default {
     "単語はこの端末の中だけに保存されています。ときどきバックアップを取って、安全な場所に保管してください。保存した単語、復習の履歴、既知の単語、設定が入っています。",
   "Save a backup": "バックアップを保存",
   "Restore from a backup": "バックアップから復元",
-  "This replaces everything here ({a} saved, {b} known) with the backup ({c} saved, {d} known). Save a backup first if you're not sure.":
+  "This replaces everything here ({a} saved, {b} known) with the backup ({c} saved, {d} known). Save a backup first if you’re not sure.":
     "ここにあるものがすべて、バックアップの内容に置き換わります（現在：保存{a}・既知{b}、バックアップ：保存{c}・既知{d}）。迷うときは、先にバックアップを保存してください。",
   Replace: "置き換える",
 };
