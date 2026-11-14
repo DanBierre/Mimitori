@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMarker } from "../lib/useMarker";
 import { useStore, useT, wordState } from "../lib/store";
 import { coverageOf } from "../lib/coverage";
 import { tokenizeWithReadings } from "../lib/furigana";
@@ -26,7 +27,7 @@ const OCR_ERRORS = {
   "model-download": "Couldn't download the reader. Check your connection.",
   storage: "Not enough space to save the reader. Free some disk space and try again.",
 };
-const ocrError = (code) => OCR_ERRORS[code] || "Couldn't read that. Try a tighter box.";
+const ocrError = (code) => OCR_ERRORS[code] || "Couldn’t read that. Try a tighter box.";
 
 // The book viewer: toolbar, the page with its boxes, and a side column with this page's lines and the word card.
 // ReadView closes the book (book.close()) when onClose runs.
@@ -39,6 +40,8 @@ export default function BookView({ book, onClose, onOpenSettings, onPage, onCove
   const [rec, setRec] = useState(null);
   const recRef = useRef(null);
   const rootRef = useRef(null);
+  const dirRef = useMarker('[aria-pressed="true"]');
+  const fitRef = useMarker('[aria-pressed="true"]');
   const [pageData, setPageData] = useState(null);
   const [pageError, setPageError] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -369,7 +372,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage, onCove
     } else if (float.phase === "empty") {
       floatNode = (
         <>
-          <p className="book__float-note">{t("Couldn't read that. Try a tighter box.")}</p>
+          <p className="book__float-note">{t("Couldn’t read that. Try a tighter box.")}</p>
           {typeButton}
         </>
       );
@@ -471,7 +474,8 @@ export default function BookView({ book, onClose, onOpenSettings, onPage, onCove
           >
             {boxing ? t("Boxing on") : t("Box a line")} <kbd>B</kbd>
           </button>
-          <div className="segmented" role="group" aria-label={t("Reading direction")}>
+          <div className="segmented" role="group" aria-label={t("Reading direction")} ref={dirRef}>
+            <span className="marker" aria-hidden="true" />
             <button className="segmented__btn" aria-pressed={rtl} onClick={() => update((r) => ({ ...r, rtl: true }))}>
               {t("Right to left")}
             </button>
@@ -479,7 +483,8 @@ export default function BookView({ book, onClose, onOpenSettings, onPage, onCove
               {t("Left to right")}
             </button>
           </div>
-          <div className="segmented book__fit" role="group" aria-label={t("Fit")}>
+          <div className="segmented book__fit" role="group" aria-label={t("Fit")} ref={fitRef}>
+            <span className="marker" aria-hidden="true" />
             <button className="segmented__btn" aria-pressed={fit === "height"} onClick={() => update((r) => ({ ...r, fit: "height" }))}>
               {t("Fit height")}
             </button>
@@ -539,7 +544,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage, onCove
           </button>
           {pageError ? (
             <div className="book__fail">
-              <p>{t("This page didn't load.")}</p>
+              <p>{t("This page didn’t load.")}</p>
               <button className="btn" onClick={() => setRetry((n) => n + 1)}>
                 {t("Try again")}
               </button>
