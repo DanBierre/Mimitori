@@ -383,17 +383,22 @@
   cursor: pointer;
 }
 
-.word:hover {
-  background: linear-gradient(transparent 60%, color-mix(in srgb, currentColor 9%, transparent) 60%);
+/* Every mark is a line under the word, never a block behind it: blocks read as boxes under furigana. */
+.word:hover,
+.word.mk--new,
+.words__term.mk--new {
+  text-decoration: underline solid color-mix(in srgb, currentColor 22%, transparent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.32em;
 }
 
 .word.mk--new,
 .words__term.mk--new {
-  background: linear-gradient(transparent 60%, var(--mark) 60%);
+  text-decoration-color: var(--mark-strong);
 }
 
 .word.mk--new:hover {
-  background: linear-gradient(transparent 60%, var(--mark-strong) 60%);
+  text-decoration-color: color-mix(in srgb, var(--ink) 60%, transparent);
 }
 
 .word.mk--saved,
@@ -420,8 +425,9 @@
 }
 
 .word[aria-pressed="true"] {
-  background: linear-gradient(transparent 60%, var(--mark-strong) 60%);
-  box-shadow: inset 0 -2px 0 var(--ink);
+  text-decoration: underline solid var(--ink);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 0.32em;
 }
 
 /* Index numbers tie a word in the line to its readout row and its entry (keys 1–9). */

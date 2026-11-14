@@ -180,7 +180,7 @@ components:
 
 Mimitori reads like a dictionary page on a cool white desk. The type is ink, the rules are hairlines, and the Japanese is set in a serif. One accent, ink blue, does all the pointing. Light is the default look on every device. Dark is a choice in Settings (Theme: Light, Dark or Match device), and Watch follows it too. Only the video frame stays dark.
 
-Words carry their state in their mark, not in a colour. A new word gets a soft marker. A saved word gets a dotted ink underline. A known word is plain. The learner can read the line without a colour key.
+Words carry their state in their mark, not in a colour. A new word gets a soft solid underline. A saved word gets a dotted ink underline. A known word is plain. The learner can read the line without a colour key.
 
 The signature is the Instrument readout. Small mono numbers 1 to 9 sit beside each unknown word in the Watch line. The same numbers head the rows of a table under the video (word, reading, meaning, state). Keys 1 to 9 pick a word. The number ties the word in the line, its row and its entry together.
 
@@ -189,7 +189,7 @@ The signature is the Instrument readout. Small mono numbers 1 to 9 sit beside ea
 - One accent, ink blue by default. The learner can pick Pine, Teal, Amber or Violet instead.
 - Serif for Japanese lines, words and meanings. Sans for UI. Mono for timecodes, counts and keys.
 - Hairline rules, not cards. A heavy 2px rule opens each entry.
-- Word state is the mark: marker, dotted underline or plain.
+- Word state is the mark: soft underline, dotted underline or plain. Marks are lines, never blocks behind the text.
 - Square corners on controls. Floating surfaces get 4px and the one shadow.
 
 ## Colors
@@ -212,7 +212,7 @@ A cool neutral scale carries the page. Ink is the only accent.
 - **Danger** (`danger`): error notes only.
 
 ### Named Rules
-**The Mark-Not-Colour Rule.** Word state is shown by the mark: New is a soft marker (`mark`, lower 40% of the line); In Anki, saved and due are a dotted 2px ink underline; Known is plain; Selected is `mark-strong` plus a 2px ink rule. No per-state hues.
+**The Mark-Not-Colour Rule.** Word state is shown by the mark: New is a soft solid 2px underline (`mark-strong`); In Anki, saved and due are a dotted 2px ink underline; Known is plain; Selected is a solid 3px ink underline. No per-state hues.
 
 **The One-Ink Rule.** Ink points at the current place, the main action, the entry numbers and progress. Everything else is neutral.
 
