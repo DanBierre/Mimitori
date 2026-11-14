@@ -34,5 +34,9 @@ export function textInBox(items, [bx0, by0, bx1, by1]) {
   const lines = vertical
     ? group([...inside].sort((a, b) => cx(b) - cx(a)), 0).map((l) => l.items.sort((a, b) => a.box[1] - b.box[1]))
     : group([...inside].sort((a, b) => cy(a) - cy(b)), 1).map((l) => l.items.sort((a, b) => a.box[0] - b.box[0]));
-  return lines.flat().map((i) => i.str).join("");
+  return fixRadicals(lines.flat().map((i) => i.str).join(""));
 }
+
+// Many PDFs map kanji to look-alike Kangxi radicals or compatibility ideographs (⾬ for 雨, ⽇ for 日),
+// which the dictionary and furigana don't know. NFKC turns just those back into the normal kanji.
+export const fixRadicals = (s) => s.replace(/[⼀-⿟⺀-⻿豈-﫿]/g, (c) => c.normalize("NFKC"));

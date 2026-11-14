@@ -35,3 +35,8 @@ test("empty box gives empty string", () => {
   assert.equal(textInBox([it("あ", [0.8, 0.8, 0.9, 0.9])], [0, 0, 0.2, 0.2]), "");
   assert.equal(textInBox([], ALL), "");
 });
+
+test("look-alike radicals from PDFs read as normal kanji", () => {
+  const items = [it("⾬が降る。⽇曜日", [0.1, 0.1, 0.5, 0.15])];
+  assert.equal(textInBox(items, ALL), "雨が降る。日曜日");
+});
