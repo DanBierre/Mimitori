@@ -4,6 +4,7 @@ import { INKS, THEMES, inkById } from "../lib/ink";
 import { anki, useAnki } from "../lib/anki/useAnki";
 import { guessFieldRoles, ROLES } from "../lib/anki/fieldRoles";
 import { listFailed, retryFailed } from "../lib/anki/queue";
+import { deckQuery } from "../lib/anki/known";
 import Icon from "./Icon";
 import { backupCounts, downloadBackup, parseBackup, restoreBackup } from "../lib/backup";
 import { ROLE_LABELS, buildMapping, flatFields, hasWordField, lowConfidence, pickSampleQuery, templateParts } from "../lib/anki/settingsLogic";
@@ -98,7 +99,7 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
     setCheckError("");
     try {
       const fieldNames = await anki.invoke("modelFieldNames", { modelName: cfg.model });
-      const inDeck = await anki.invoke("findNotes", { query: `"deck:${cfg.deck}" "note:${cfg.model}"` });
+      const inDeck = await anki.invoke("findNotes", { query: `${deckQuery(cfg.deck)} "note:${cfg.model}"` });
       const { query, scope } = pickSampleQuery({ deckCount: inDeck.length, deck: cfg.deck, model: cfg.model });
       const ids = scope === "deck" ? inDeck : await anki.invoke("findNotes", { query });
       const infos = ids.length ? await anki.invoke("notesInfo", { notes: ids.slice(-20) }) : [];

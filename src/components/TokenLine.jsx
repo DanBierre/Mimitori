@@ -22,8 +22,12 @@ export default function TokenLine({ tokens, selected, onSelect, numbered }) {
     const added = Object.keys(marks).filter((b) => (prev[b] === "new" || prev[b] === "known") && SAVED.has(marks[b]));
     if (!added.length) return;
     setFresh(new Set(added));
-    setTimeout(() => setFresh(null), 600);
   });
+  useEffect(() => {
+    if (!fresh) return;
+    const id = setTimeout(() => setFresh(null), 600);
+    return () => clearTimeout(id);
+  }, [fresh]);
 
   return tokens.map((token, i) => {
     const mark = token.isWord ? wordState(state, token.base) : "plain";

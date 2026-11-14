@@ -1,7 +1,7 @@
 import { furiganaSegments } from "../furigana.js";
 
 export function escapeHtml(s) {
-  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\[/g, "&#91;").replace(/\]/g, "&#93;");
+  return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\[/g, "&#91;").replace(/\]/g, "&#93;");
 }
 
 // Anki bracket syntax: base text runs back to the previous space (or `>`),
@@ -18,7 +18,7 @@ export function toBracketFurigana(segments) {
 }
 
 export function wordFurigana(base, reading) {
-  return toBracketFurigana(furiganaSegments(base, reading));
+  return toBracketFurigana(furiganaSegments(base, reading ?? ""));
 }
 
 export function sentenceWithFurigana(tokens, highlight) {

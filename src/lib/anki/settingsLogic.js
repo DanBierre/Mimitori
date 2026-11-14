@@ -3,6 +3,7 @@
 
 import { isDue } from "../srs.js";
 import { commonSet } from "../common.js";
+import { deckQuery } from "./known.js";
 
 export const ROLE_LABELS = {
   expression: "Word",
@@ -78,7 +79,7 @@ export function wordState(state, base, now = new Date(), common = commonSet()) {
 export const MIN_DECK_SAMPLES = 5;
 export function pickSampleQuery({ deckCount, deck, model }) {
   return deckCount >= MIN_DECK_SAMPLES
-    ? { query: `"deck:${deck}" "note:${model}"`, scope: "deck" }
+    ? { query: `${deckQuery(deck)} "note:${model}"`, scope: "deck" }
     : { query: `"note:${model}"`, scope: "collection" };
 }
 

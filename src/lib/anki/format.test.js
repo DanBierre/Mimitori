@@ -88,3 +88,8 @@ test("boldWord bolds the tapped occurrence when given an offset", () => {
 test("formatPageSource", () => {
   assert.equal(formatPageSource("風の町 1", 12), "風の町 1, p. 12");
 });
+
+test("a word with no reading leaves the field empty, not 'undefined'", () => {
+  assert.equal(escapeHtml(undefined), "");
+  assert.ok(!wordFurigana("雨", undefined).includes("undefined"));
+});
