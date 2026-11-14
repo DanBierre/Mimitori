@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useReviewToday, useStore } from "../lib/store";
+import { useReviewToday, useStore, useT } from "../lib/store";
 import { previewIntervals, Rating } from "../lib/srs";
 import SceneStill from "./SceneStill";
 
@@ -26,6 +26,7 @@ function SentenceWithWord({ sentence, surface, base }) {
 
 export default function ReviewView({ onGoRead, onGoWatch }) {
   const { state, grade, restoreWord } = useStore();
+  const t = useT();
   const { queue: due, waiting } = useReviewToday();
 
   const [phase, setPhase] = useState("idle"); // idle | running | done
@@ -101,10 +102,10 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
   if (phase === "running" && word) {
     const intervals = previewIntervals(word.card);
     return (
-      <section className="sheet review" aria-label="Review">
+      <section className="sheet review" aria-label={t("Review")}>
         <div className="review__progress">
           <span>
-            {reviewed} done · {queue.length} left
+            {t("{done} done · {left} left", { done: reviewed, left: queue.length })}
           </span>
           <span className="review__bar" aria-hidden="true">
             <span style={{ transform: `scaleX(${reviewed / (reviewed + queue.length)})` }} />
@@ -112,11 +113,11 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
           <span className="review__links">
             {last && (
               <button className="link" onClick={undoLast}>
-                Undo
+                {t("Undo")}
               </button>
             )}
             <button className="link" onClick={() => setPhase("done")}>
-              End
+              {t("End")}
             </button>
           </span>
         </div>
@@ -141,7 +142,7 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
               {word.glosses.length > 0 ? (
                 <p className="review__meaning">{word.glosses.join("; ")}</p>
               ) : (
-                <p className="note">No meaning saved for this word.</p>
+                <p className="note">{t("No meaning saved for this word.")}</p>
               )}
               {word.sentence && (
                 <p className="review__sentence" lang="ja">
@@ -154,31 +155,31 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
 
         {!revealed ? (
           <button className="btn btn--primary btn--wide" onClick={() => setRevealed(true)}>
-            Show answer
+            {t("Show answer")}
           </button>
         ) : (
           <>
-          <p className="review__ask" id="review-ask">How well did you remember it?</p>
+          <p className="review__ask" id="review-ask">{t("How well did you remember it?")}</p>
           <div className="grades" role="group" aria-labelledby="review-ask">
             {GRADES.map(([rating, label]) => (
               <button
                 key={rating}
                 ref={rating === Rating.Good ? goodRef : undefined}
                 className={`grade grade--${rating}`}
-                aria-label={`${label}, next in ${intervals[rating]}`}
+                aria-label={t("{grade}, next in {when}", { grade: t(label), when: t(intervals[rating]) })}
                 onClick={() => answer(rating)}
               >
                 <span className="grade__label">
-                  {label} <kbd>{rating}</kbd>
+                  {t(label)} <kbd>{rating}</kbd>
                 </span>
-                <span className="grade__interval">{intervals[rating]}</span>
+                <span className="grade__interval">{t(intervals[rating])}</span>
               </button>
             ))}
           </div>
           </>
         )}
         <p className="review__keys only-fine">
-          {revealed ? "1–4 to answer · U to undo" : "Space shows the answer"}
+          {revealed ? t("1–4 to answer · U to undo") : t("Space shows the answer")}
         </p>
       </section>
     );
@@ -186,21 +187,21 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
 
   if (phase === "done") {
     return (
-      <section className="sheet review review--center" aria-label="Review finished">
-        <p className="review__big">Done</p>
-        <p className="review__sub">{reviewed} {reviewed === 1 ? "review" : "reviews"}. Words you keep getting right fade from the page on their own.</p>
+      <section className="sheet review review--center" aria-label={t("Review finished")}>
+        <p className="review__big">{t("Done")}</p>
+        <p className="review__sub">{t(reviewed === 1 ? "{n} review. Words you keep getting right fade from the page on their own." : "{n} reviews. Words you keep getting right fade from the page on their own.", { n: reviewed })}</p>
         <div className="review__actions">
           <button className="btn btn--primary" onClick={onGoRead}>
-            Read something new
+            {t("Read something new")}
           </button>
           {last && (
             <button className="btn btn--quiet" onClick={undoLast}>
-              Undo last answer
+              {t("Undo last answer")}
             </button>
           )}
           {due.length > 0 && (
             <button className="btn btn--quiet" onClick={begin}>
-              Keep going ({due.length} left)
+              {t("Keep going ({n} left)", { n: due.length })}
             </button>
           )}
         </div>
@@ -209,40 +210,40 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
   }
 
   return (
-    <section className="sheet review review--center" aria-label="Review">
+    <section className="sheet review review--center" aria-label={t("Review")}>
       {due.length > 0 ? (
         <>
           <p className="review__big">
             <span className="review__count">{due.length}</span>
-            <span className="review__unit">to review today.</span>
+            <span className="review__unit">{t("to review today.")}</span>
           </p>
-          {waiting > 0 && <p className="review__sub">The other {waiting} can wait.</p>}
+          {waiting > 0 && <p className="review__sub">{t("The other {n} can wait.", { n: waiting })}</p>}
           <button className="btn btn--primary btn--wide" onClick={begin}>
-            Review {due.length} {due.length === 1 ? "word" : "words"}
+            {t(due.length === 1 ? "Review {n} word" : "Review {n} words", { n: due.length })}
           </button>
         </>
       ) : totalWords > 0 ? (
         <>
-          <p className="review__big">Nothing to review today.</p>
+          <p className="review__big">{t("Nothing to review today.")}</p>
           <p className="review__sub">
             {waiting > 0
-              ? `The other ${waiting} can wait.`
-              : `${totalWords} saved ${totalWords === 1 ? "word is" : "words are"} scheduled.`}
+              ? t("The other {n} can wait.", { n: waiting })
+              : t(totalWords === 1 ? "{n} saved word is scheduled." : "{n} saved words are scheduled.", { n: totalWords })}
           </p>
           <button className="btn" onClick={onGoRead}>
-            Read more
+            {t("Read more")}
           </button>
         </>
       ) : (
         <>
-          <p className="review__big">Review is empty</p>
+          <p className="review__big">{t("Review is empty")}</p>
           <p className="review__sub">
-            Words you save in Read or Watch show up here, spaced so you see each one just before you'd forget it.
-            Tap a word and choose “Save to review”.
+            {t("Words you save in Read or Watch show up here, spaced so you see each one just before you'd forget it.")}{" "}
+            {t("Tap a word and choose “Save to review”.")}
           </p>
           <div className="review__actions">
-            <button className="btn btn--primary" onClick={onGoRead}>Open Read</button>
-            <button className="btn btn--quiet" onClick={onGoWatch}>Open Watch</button>
+            <button className="btn btn--primary" onClick={onGoRead}>{t("Open Read")}</button>
+            <button className="btn btn--quiet" onClick={onGoWatch}>{t("Open Watch")}</button>
           </div>
         </>
       )}

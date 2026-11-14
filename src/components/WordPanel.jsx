@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { lookupWord } from "../lib/dict";
-import { ankiMode, useStore, wordState } from "../lib/store";
+import { ankiMode, useStore, useT, wordState } from "../lib/store";
 import { anki } from "../lib/anki/useAnki";
 import { addCardFromWord } from "../lib/anki/addCard";
 import { listQueue } from "../lib/anki/queue";
@@ -33,6 +33,7 @@ const Key = ({ k }) => (
 // timeMs?, video?, cue?, offsetMs?, picture? (Blob), source? (string) } and the main button adds a card to Anki.
 export default function WordPanel({ token, index, sentence, grammar = [], ankiContext, onSaved, onClose, onOpenSettings }) {
   const { state, saveWord, removeWord, knowWord, unknowWord, restoreWord, markInAnki } = useStore();
+  const t = useT();
   const [add, setAdd] = useState(null); // null | key of ADD_STATUS | "queued" | { error }
   const [waiting, setWaiting] = useState(0);
   const noAudio = useRef(false);
@@ -144,11 +145,11 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
   }
 
   const addStatus =
-    add === "queued" ? `Waiting for Anki (${waiting})` : typeof add === "object" && add ? add.error : ADD_STATUS[add];
+    add === "queued" ? t("Waiting for Anki ({n})", { n: waiting }) : typeof add === "object" && add ? t(add.error) : ADD_STATUS[add] ? t(ADD_STATUS[add]) : ADD_STATUS[add];
 
   return (
-    <aside className="word-panel" ref={rootRef} aria-label={`Word: ${token.base}`}>
-      <button className="word-panel__close icon-btn" onClick={onClose} aria-label="Close word card">
+    <aside className="word-panel" ref={rootRef} aria-label={t("Word: {word}", { word: token.base })}>
+      <button className="word-panel__close icon-btn" onClick={onClose} aria-label={t("Close word card")}>
         <Icon name="close" size={18} />
       </button>
 
@@ -167,7 +168,7 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
           </span>
         )}
         {canSpeak() && (
-          <button className="icon-btn word-panel__say" onClick={() => speak(token.base)} aria-label="Say it" title="Say it">
+          <button className="icon-btn word-panel__say" onClick={() => speak(token.base)} aria-label={t("Say it")} title={t("Say it")}>
             <Icon name="speak" size={18} />
           </button>
         )}
@@ -175,11 +176,11 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
       {entry.data?.pos.length > 0 && <p className="word-panel__pos">{entry.data.pos.join(", ")}</p>}
       {token.base !== token.surface && (
         <p className="word-panel__form">
-          as written: <span lang="ja">{token.surface}</span>
+          {t("as written:")} <span lang="ja">{token.surface}</span>
         </p>
       )}
 
-      {entry.status === "loading" && <p className="word-panel__note">Looking up…</p>}
+      {entry.status === "loading" && <p className="word-panel__note">{t("Looking up…")}</p>}
 
       {entry.status === "ready" && (
         <ol className="word-panel__glosses">
@@ -192,18 +193,17 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
       {(grammar.length > 0 || entry.data?.alternatives.length > 0) && (
         <div className="word-panel__notes">
           {grammar.length > 0 && (
-            <p aria-label={`${token.base}: ${grammar.join(", ")}`}>{grammar.join(" · ")}</p>
+            <p aria-label={`${token.base}: ${grammar.map((g) => t(g)).join(", ")}`}>{grammar.map((g) => t(g)).join(" · ")}</p>
           )}
           {entry.data?.alternatives.length > 0 && (
-            <p>Also read {entry.data.alternatives.map((a) => `${a.reading} (${a.glosses[0]})`).join(", ")}</p>
+            <p>{t("Also read {list}", { list: entry.data.alternatives.map((a) => `${a.reading} (${a.glosses[0]})`).join(", ") })}</p>
           )}
         </div>
       )}
 
       {entry.status === "missing" && (
         <p className="word-panel__note">
-          Meanings aren’t installed yet. Run <code>npm run build:dict</code> once to add the offline
-          dictionary. You can still save this word.
+          {t("Meanings aren’t installed yet. Run")} <code>npm run build:dict</code> {t("once to add the offline dictionary. You can still save this word.")}
         </p>
       )}
 
@@ -215,7 +215,7 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
               <>
                 {" "}
                 <button className="btn btn--quiet" onClick={onOpenSettings}>
-                  Settings
+                  {t("Settings")}
                 </button>
               </>
             )}
@@ -223,9 +223,9 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
         )}
         {mark === "inAnki" && (
           <>
-            {!add && <p className="word-panel__status">In your Anki deck</p>}
+            {!add && <p className="word-panel__status">{t("In your Anki deck")}</p>}
             <button className="btn" {...hot("k")} onClick={() => knowWord(token.base)}>
-              <span>I know this</span>
+              <span>{t("I know this")}</span>
               <Key k="k" />
             </button>
           </>
@@ -238,15 +238,15 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
               onClick={addToAnki ? handleAdd : handleSave}
               disabled={add === "adding" || add === "recording" || (addToAnki && entry.status === "loading")}
             >
-              <span>{addToAnki ? "Add to Anki" : "Save to review"}</span>
+              <span>{addToAnki ? t("Add to Anki") : t("Save to review")}</span>
               <Key k={addToAnki ? "a" : "s"} />
             </button>
             <button className="btn" {...hot("k")} onClick={() => knowWord(token.base)}>
-              <span>I know this</span>
+              <span>{t("I know this")}</span>
               <Key k="k" />
             </button>
             {addToAnki && entry.status === "missing" && (
-              <p className="word-panel__note">No meaning found — the card will have an empty meaning.</p>
+              <p className="word-panel__note">{t("No meaning found — the card will have an empty meaning.")}</p>
             )}
           </>
         )}
@@ -254,38 +254,38 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
           <>
             <p className="word-panel__status">
               {justSaved
-                ? "Saved. It’ll come up in Review."
+                ? t("Saved. It’ll come up in Review.")
                 : mark === "due"
-                  ? "In your review queue, due now."
-                  : `In your review queue, next in ${formatInterval(new Date(saved.card.due) - new Date())}.`}
+                  ? t("In your review queue, due now.")
+                  : t("In your review queue, next in {when}.", { when: t(formatInterval(new Date(saved.card.due) - new Date())) })}
             </p>
-            <button className="btn" {...hot("k")} onClick={() => dropSaved(knowWord, "Marked as known.")}>
-              <span>I know this</span>
+            <button className="btn" {...hot("k")} onClick={() => dropSaved(knowWord, t("Marked as known."))}>
+              <span>{t("I know this")}</span>
               <Key k="k" />
             </button>
-            <button className="btn btn--quiet" onClick={() => dropSaved(removeWord, "Removed from review.")}>
-              Remove
+            <button className="btn btn--quiet" onClick={() => dropSaved(removeWord, t("Removed from review."))}>
+              {t("Remove")}
             </button>
           </>
         )}
         {commonOnly && (
           <>
-            <p className="word-panel__status">You’ve probably met this one already, so its furigana is hidden.</p>
+            <p className="word-panel__status">{t("You’ve probably met this one already, so its furigana is hidden.")}</p>
             {!addToAnki ? (
               <button className="btn btn--primary" {...hot("s")} onClick={handleSave}>
-                <span>Save to review</span>
+                <span>{t("Save to review")}</span>
                 <Key k="s" />
               </button>
             ) : !sure ? (
               <button className="btn btn--primary" {...hot("a")} onClick={() => setSure(true)}>
-                <span>Add to Anki</span>
+                <span>{t("Add to Anki")}</span>
                 <Key k="a" />
               </button>
             ) : (
               <>
-                <p className="word-panel__note" role="status">This is a very common word.</p>
+                <p className="word-panel__note" role="status">{t("This is a very common word.")}</p>
                 <button className="btn btn--primary" {...hot("a")} autoFocus onClick={handleAdd} disabled={add === "adding" || add === "recording" || entry.status === "loading"}>
-                  <span>Add anyway</span>
+                  <span>{t("Add anyway")}</span>
                   <Key k="a" />
                 </button>
               </>
@@ -294,9 +294,9 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
         )}
         {mark === "known" && !commonOnly && (
           <>
-            <p className="word-panel__status">Marked as known. Furigana is hidden for it.</p>
+            <p className="word-panel__status">{t("Marked as known. Furigana is hidden for it.")}</p>
             <button className="btn" onClick={() => unknowWord(token.base)}>
-              Mark as new
+              {t("Mark as new")}
             </button>
           </>
         )}
@@ -310,7 +310,7 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
                 setUndo(null);
               }}
             >
-              Undo
+              {t("Undo")}
             </button>
           </p>
         )}

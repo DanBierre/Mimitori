@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useStore } from "../lib/store";
+import { useStore, useT } from "../lib/store";
 import { tokenizeWithReadings } from "../lib/furigana";
 import { sentenceAround, sentenceContext } from "../lib/sentence";
 import { conjugationParts } from "../lib/conjugation";
@@ -31,6 +31,7 @@ const ocrError = (code) => OCR_ERRORS[code] || "Couldn't read that. Try a tighte
 // ReadView closes the book (book.close()) when onClose runs.
 export default function BookView({ book, onClose, onOpenSettings, onPage }) {
   const { state } = useStore();
+  const t = useT();
   const ocr = useOcr();
   const store = useMemo(() => openBooks(), []);
 
@@ -283,7 +284,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
         setFloat({ phase: "type", box: float.box });
       }}
     >
-      Type it instead
+      {t("Type it instead")}
     </button>
   );
 
@@ -294,33 +295,34 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
     if (float.phase === "reading") {
       floatNode = (
         <>
-          <p className="book__float-note">Reading…</p>
-          {float.slow && <p className="book__float-note">This browser is slow at reading bubbles.</p>}
+          <p className="book__float-note">{t("Reading…")}</p>
+          {float.slow && <p className="book__float-note">{t("This browser is slow at reading bubbles.")}</p>}
         </>
       );
     } else if (float.phase === "wait") {
       floatNode = ocr.status === "needs-ok" ? (
         <>
           <p className="book__float-note">
-            {book.kind === "pdf" ? "This page is a picture, not text, so reading it" : "Reading bubbles"} needs a one-off
-            download, about {OCR_SIZE_MB} MB. It then works offline.
+            {book.kind === "pdf"
+              ? t("This page is a picture, not text, so reading it needs a one-off download, about {mb} MB. It then works offline.", { mb: OCR_SIZE_MB })
+              : t("Reading bubbles needs a one-off download, about {mb} MB. It then works offline.", { mb: OCR_SIZE_MB })}
           </p>
           <button className="btn btn--primary" onClick={ocr.allowDownload}>
-            Download
+            {t("Download")}
           </button>
           {typeButton}
         </>
       ) : ocr.status === "error" ? (
         <>
-          <p className="book__float-note note--error">{ocrError(ocr.error?.code || "model-download")}</p>
+          <p className="book__float-note note--error">{t(ocrError(ocr.error?.code || "model-download"))}</p>
           <button className="btn" onClick={ocr.allowDownload}>
-            Retry
+            {t("Retry")}
           </button>
           {typeButton}
         </>
       ) : (
         <>
-          <p className="book__float-note">Getting the reader… {ocr.modelPct}%</p>
+          <p className="book__float-note">{t("Getting the reader… {pct}%", { pct: ocr.modelPct })}</p>
           <progress className="book__progress" max="100" value={ocr.modelPct} />
           {typeButton}
         </>
@@ -340,27 +342,27 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
             autoFocus
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
-            aria-label="Type the line"
+            aria-label={t("Type the line")}
           />
           <button className="btn btn--primary" type="submit">
-            Save
+            {t("Save")}
           </button>
           <button className="btn btn--quiet" type="button" onClick={() => setFloat(null)}>
-            Cancel
+            {t("Cancel")}
           </button>
         </form>
       );
     } else if (float.phase === "empty") {
       floatNode = (
         <>
-          <p className="book__float-note">Couldn't read that. Try a tighter box.</p>
+          <p className="book__float-note">{t("Couldn't read that. Try a tighter box.")}</p>
           {typeButton}
         </>
       );
     } else if (float.phase === "error") {
       floatNode = (
         <>
-          <p className="book__float-note note--error">{ocrError(float.code)}</p>
+          <p className="book__float-note note--error">{t(ocrError(float.code))}</p>
           {(float.code === "model-download" || float.code === "storage") && (
             <button
               className="btn"
@@ -370,7 +372,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
                 ocr.allowDownload();
               }}
             >
-              Retry
+              {t("Retry")}
             </button>
           )}
           {typeButton}
@@ -394,13 +396,13 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
               autoFocus
               value={editing.text}
               onChange={(e) => setEditing({ id: line.id, text: e.target.value })}
-              aria-label="Line text"
+              aria-label={t("Line text")}
             />
             <button className="btn btn--primary" type="submit">
-              Save
+              {t("Save")}
             </button>
             <button className="btn btn--quiet" type="button" onClick={() => setEditing(null)}>
-              Cancel
+              {t("Cancel")}
             </button>
           </form>
         ) : (
@@ -418,14 +420,14 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
             </p>
             <div className="book__float-actions">
               <button className="btn btn--quiet" onClick={() => setEditing({ id: line.id, text: line.text })}>
-                Fix text
+                {t("Fix text")}
               </button>
               <button className="btn btn--quiet" onClick={() => navigator.clipboard?.writeText(line.text).catch(() => {})}>
-                Copy
+                {t("Copy")}
               </button>
               {canSpeak() && (
                 <button className="btn btn--quiet" onClick={() => speak(line.text)}>
-                  Say it
+                  {t("Say it")}
                 </button>
               )}
             </div>
@@ -434,7 +436,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
     }
   }
 
-  if (!rec) return <p className="note">Opening…</p>;
+  if (!rec) return <p className="note">{t("Opening…")}</p>;
 
   const pending = float && float.phase !== "line" && float.phase !== "empty" ? float.box : null;
   const forward = rtl ? "←" : "→";
@@ -450,35 +452,35 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
           <button
             className="btn btn--quiet book__boxing"
             aria-pressed={boxing}
-            title="Drag over a speech bubble to read it (B)"
+            title={t("Drag over a speech bubble to read it (B)")}
             onClick={() => setBoxing((b) => !b)}
           >
-            {boxing ? "Boxing on" : "Box a line"} <kbd>B</kbd>
+            {boxing ? t("Boxing on") : t("Box a line")} <kbd>B</kbd>
           </button>
-          <div className="segmented" role="group" aria-label="Reading direction">
+          <div className="segmented" role="group" aria-label={t("Reading direction")}>
             <button className="segmented__btn" aria-pressed={rtl} onClick={() => update((r) => ({ ...r, rtl: true }))}>
-              Right to left
+              {t("Right to left")}
             </button>
             <button className="segmented__btn" aria-pressed={!rtl} onClick={() => update((r) => ({ ...r, rtl: false }))}>
-              Left to right
+              {t("Left to right")}
             </button>
           </div>
-          <div className="segmented book__fit" role="group" aria-label="Fit">
+          <div className="segmented book__fit" role="group" aria-label={t("Fit")}>
             <button className="segmented__btn" aria-pressed={fit === "height"} onClick={() => update((r) => ({ ...r, fit: "height" }))}>
-              Fit height
+              {t("Fit height")}
             </button>
             <button className="segmented__btn" aria-pressed={fit === "width"} onClick={() => update((r) => ({ ...r, fit: "width" }))}>
-              Fit width
+              {t("Fit width")}
             </button>
           </div>
         </div>
         <div className="book__nav">
           <div className="book__pager" data-rtl={rtl || undefined}>
-            <button className="icon-btn" aria-label="Previous page" onClick={() => go(-1)} disabled={page <= 1}>
+            <button className="icon-btn" aria-label={t("Previous page")} onClick={() => go(-1)} disabled={page <= 1}>
               {backward}
             </button>
             <label className="book__count">
-              <span className="sr-only">Page</span>
+              <span className="sr-only">{t("Page")}</span>
               <input
                 key={page}
                 className="book__jump"
@@ -491,14 +493,14 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
                 onBlur={(e) => goTo(Number(e.currentTarget.value))}
               />
               <span aria-hidden="true">/ {book.pageCount}</span>
-              <span className="sr-only">of {book.pageCount}</span>
+              <span className="sr-only">{t("of {count}", { count: book.pageCount })}</span>
             </label>
-            <button className="icon-btn" aria-label="Next page" onClick={() => go(1)} disabled={page >= book.pageCount}>
+            <button className="icon-btn" aria-label={t("Next page")} onClick={() => go(1)} disabled={page >= book.pageCount}>
               {forward}
             </button>
           </div>
           <button className="btn btn--quiet" onClick={close}>
-            Close
+            {t("Close")}
           </button>
         </div>
       </div>
@@ -507,7 +509,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
         <div className="book__page">
           <button
             className={`book__turn book__turn--${rtl ? "right" : "left"}`}
-            aria-label="Previous page"
+            aria-label={t("Previous page")}
             onClick={() => go(-1)}
             disabled={page <= 1}
           >
@@ -515,7 +517,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
           </button>
           <button
             className={`book__turn book__turn--${rtl ? "left" : "right"}`}
-            aria-label="Next page"
+            aria-label={t("Next page")}
             onClick={() => go(1)}
             disabled={page >= book.pageCount}
           >
@@ -523,16 +525,16 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
           </button>
           {pageError ? (
             <div className="book__fail">
-              <p>This page didn't load.</p>
+              <p>{t("This page didn't load.")}</p>
               <button className="btn" onClick={() => setRetry((n) => n + 1)}>
-                Try again
+                {t("Try again")}
               </button>
             </div>
           ) : !pageData ? (
-            <p className="note">Loading page…</p>
+            <p className="note">{t("Loading page…")}</p>
           ) : (
             <PageCanvas
-              label={`Page ${page} of ${book.pageCount}`}
+              label={t("Page {page} of {count}", { page, count: book.pageCount })}
               stale={pageData.n !== page}
               page={pageData}
               lines={lines}
@@ -547,8 +549,8 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
             />
           )}
         </div>
-        <aside className="book__side" aria-label="On this page">
-          <h3 className="book__side-title">On this page</h3>
+        <aside className="book__side" aria-label={t("On this page")}>
+          <h3 className="book__side-title">{t("On this page")}</h3>
           <PageLines
             lines={lines}
             tokensById={tokensById}

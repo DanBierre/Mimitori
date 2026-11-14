@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { normBox } from "../lib/book/crop";
+import { useT } from "../lib/store";
 
 const pct = (n) => `${n * 100}%`;
 const boxStyle = ([x0, y0, x1, y1]) => ({ left: pct(x0), top: pct(y0), width: pct(x1 - x0), height: pct(y1 - y0) });
@@ -7,6 +8,7 @@ const boxStyle = ([x0, y0, x1, y1]) => ({ left: pct(x0), top: pct(y0), width: pc
 // One page, drawn on a canvas, with the boxed lines outlined over it. While `boxing`, dragging draws a new box
 // and onBox(box) gets it (fractions of the page, never a stray click). `float` sits beside the current box.
 export default function PageCanvas({ page, label, stale, lines, currentId, boxing, fit, pending, floatBox, onBox, onPick, float }) {
+  const t = useT();
   const canvasRef = useRef(null);
   const layerRef = useRef(null);
   const [drag, setDrag] = useState(null); // { a, b } while the pointer is down, as { x, y } fractions
@@ -62,7 +64,7 @@ export default function PageCanvas({ page, label, stale, lines, currentId, boxin
               className={`page__box${l.id === currentId ? " page__box--current" : ""}`}
               style={boxStyle(l.box)}
               tabIndex={boxing ? -1 : 0}
-              aria-label={`Line: ${l.text}`}
+              aria-label={t("Line: {text}", { text: l.text })}
               aria-pressed={l.id === currentId}
               onClick={() => onPick(l.id)}
             />

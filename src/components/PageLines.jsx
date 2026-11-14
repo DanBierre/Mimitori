@@ -1,11 +1,12 @@
 import TokenLine from "./TokenLine";
-import { useStore } from "../lib/store";
+import { useStore, useT } from "../lib/store";
 
 // "On this page": this page's lines, newest first. selected = { lineId, tokenIndex } | null.
 export default function PageLines({ lines, tokensById, currentId, selected, onSelect, onPick }) {
   const { state } = useStore();
+  const t = useT();
   if (!lines.length) {
-    return <p className="note book__empty">No lines yet. Drag a box over a speech bubble to read it.</p>;
+    return <p className="note book__empty">{t("No lines yet. Drag a box over a speech bubble to read it.")}</p>;
   }
   return (
     <ol className="book__lines" lang="ja" style={{ "--read-size": `${Math.min(state.settings.size, 26)}px` }}>

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { tokenizeWithReadings, JAPANESE_REGEX } from "../lib/furigana";
 import { translateText, translationEnabled } from "../lib/translate";
-import { ankiMode, useStore, wordState } from "../lib/store";
+import { ankiMode, useStore, useT, wordState } from "../lib/store";
 import TokenLine from "./TokenLine";
 import { useMarker } from "../lib/useMarker";
 import { conjugationParts } from "../lib/conjugation";
@@ -75,6 +75,7 @@ function BookFigure() {
 
 export default function ReadView({ onOpenSettings }) {
   const { state, setSettings } = useStore();
+  const t = useT();
   const { furigana, size } = state.settings;
   const furiRef = useMarker('[aria-pressed="true"]');
 
@@ -203,7 +204,7 @@ export default function ReadView({ onOpenSettings }) {
       return;
     }
     if (!JAPANESE_REGEX.test(text)) {
-      setError("That doesn’t look like Japanese. Paste some Japanese text and try again.");
+      setError(t("That doesn’t look like Japanese. Paste some Japanese text and try again."));
       setStatus("error");
       return;
     }
@@ -223,7 +224,7 @@ export default function ReadView({ onOpenSettings }) {
       setTokens(await tokenizeWithReadings(text));
       setStatus("idle");
     } catch {
-      setError("The reading engine didn’t load. Reload the page and try again.");
+      setError(t("The reading engine didn’t load. Reload the page and try again."));
       setStatus("error");
     }
   }
@@ -256,7 +257,7 @@ export default function ReadView({ onOpenSettings }) {
 
   if (book) {
     return (
-      <Suspense fallback={<p className="note">Opening…</p>}>
+      <Suspense fallback={<p className="note">{t("Opening…")}</p>}>
         <BookView book={book} onClose={closeBook} onOpenSettings={onOpenSettings} onPage={savePage} />
       </Suspense>
     );
@@ -279,29 +280,29 @@ export default function ReadView({ onOpenSettings }) {
         filesFromDrop(e.dataTransfer).then(openFiles, () => setBookError(BOOK_ERRORS.broken));
       }}
     >
-      <section className="sheet read__sheet" aria-label="Reading sheet">
+      <section className="sheet read__sheet" aria-label={t("Reading sheet")}>
         {!tokens ? (
           <div className="read__compose">
-            <h2 className="read__head">Read real Japanese.</h2>
-            <p className="read__lede">Open a manga or PDF, or paste any text. Tap a word for its reading and meaning.</p>
+            <h2 className="read__head">{t("Read real Japanese.")}</h2>
+            <p className="read__lede">{t("Open a manga or PDF, or paste any text. Tap a word for its reading and meaning.")}</p>
 
             <div className="read__doors">
               <section className="read__door read__door--book" aria-labelledby="door-book">
                 <h3 id="door-book" className="read__door-title">
-                  A manga or PDF <span className="read__door-tag">CBZ · PDF · pages</span>
+                  {t("A manga or PDF")} <span className="read__door-tag">{t("CBZ · PDF · pages")}</span>
                 </h3>
-                <p className="read__door-hint">Box a speech bubble to read it. Nothing leaves your device.</p>
+                <p className="read__door-hint">{t("Box a speech bubble to read it. Nothing leaves your device.")}</p>
                 <div className="read__drop">
                   <BookFigure />
                   <p className="read__drop-say only-fine" aria-live="polite">
-                    {dropping ? "Let go to open it" : "Drop a file or a folder of pages here"}
+                    {dropping ? t("Let go to open it") : t("Drop a file or a folder of pages here")}
                   </p>
                   <div className="read__drop-actions">
                     <button className="btn btn--primary" onClick={() => fileInput.current.click()} disabled={opening}>
-                      {opening ? "Opening…" : "Choose a file"}
+                      {opening ? t("Opening…") : t("Choose a file")}
                     </button>
                     <button className="btn only-fine" onClick={() => folderInput.current.click()} disabled={opening}>
-                      Folder of pages
+                      {t("Folder of pages")}
                     </button>
                   </div>
                   <input ref={fileInput} type="file" hidden multiple accept=".pdf,.cbz,.zip,image/*" onChange={onPicked} />
@@ -309,16 +310,16 @@ export default function ReadView({ onOpenSettings }) {
                 </div>
                 {bookError && (
                   <p className="note note--error" role="alert">
-                    {bookError}
+                    {t(bookError)}
                   </p>
                 )}
 
                 {recents.length > 0 && (
                   <section className="recents recents--books" aria-labelledby="book-recents">
                     <h4 id="book-recents" className="recents__title">
-                      Carry on reading
+                      {t("Carry on reading")}
                     </h4>
-                    <p className="recents__note">Mimitori never keeps a copy of your files, so pick the same one again to carry on.</p>
+                    <p className="recents__note">{t("Mimitori never keeps a copy of your files, so pick the same one again to carry on.")}</p>
                     <ul className="recents__list">
                       {recents.map((r) => (
                         <li key={r.key} className="recents__row">
@@ -326,18 +327,18 @@ export default function ReadView({ onOpenSettings }) {
                           <span className="recents__name" title={r.name}>
                             {r.name}
                           </span>
-                          <span className="recents__stop">{r.page && r.pageCount ? `p. ${r.page} / ${r.pageCount}` : ""}</span>
+                          <span className="recents__stop">{r.page && r.pageCount ? t("p. {page} / {count}", { page: r.page, count: r.pageCount }) : ""}</span>
                           <button
                             className="btn btn--quiet recents__go row-action"
-                            aria-label={`Open ${r.name} again`}
+                            aria-label={t("Open {name} again", { name: r.name })}
                             onClick={() => fileInput.current.click()}
                           >
-                            Open
+                            {t("Open")}
                           </button>
                           <button
                             className="icon-btn recents__remove row-action"
-                            aria-label={`Remove ${r.name} from this list`}
-                            title="Remove from this list"
+                            aria-label={t("Remove {name} from this list", { name: r.name })}
+                            title={t("Remove from this list")}
                             onClick={() => removeRecent(r.key)}
                           >
                             <Icon name="close" size={16} />
@@ -351,17 +352,17 @@ export default function ReadView({ onOpenSettings }) {
 
               <section className="read__door read__door--text" aria-labelledby="door-text">
                 <h3 id="door-text" className="read__door-title">
-                  Some text <span className="read__door-tag">paste</span>
+                  {t("Some text")} <span className="read__door-tag">{t("paste")}</span>
                 </h3>
                 <p className="read__door-hint" id="paste-hint">
-                  News, a game script, a message from a mate.
+                  {t("News, a game script, a message from a mate.")}
                 </p>
                 <textarea
                   id="paste"
                   ref={pasteRef}
                   className="read__input"
                   lang="ja"
-                  aria-label="Japanese text to read"
+                  aria-label={t("Japanese text to read")}
                   aria-describedby="paste-hint"
                   placeholder="ここに日本語を貼り付けてください"
                   value={input}
@@ -376,10 +377,10 @@ export default function ReadView({ onOpenSettings }) {
                 />
                 <div className="read__compose-actions">
                   <button className="btn" onClick={handleLookup} disabled={status === "loading"}>
-                    {status === "loading" ? "Reading…" : "Read this"}
+                    {status === "loading" ? t("Reading…") : t("Read this")}
                   </button>
                   <button className="btn btn--quiet" onClick={() => setInput(pickSample(input))}>
-                    Try a sample
+                    {t("Try a sample")}
                   </button>
                   {input && (
                     <button
@@ -389,7 +390,7 @@ export default function ReadView({ onOpenSettings }) {
                         pasteRef.current?.focus();
                       }}
                     >
-                      Clear
+                      {t("Clear")}
                     </button>
                   )}
                   <span className="read__keys" aria-hidden="true">
@@ -409,24 +410,24 @@ export default function ReadView({ onOpenSettings }) {
             <div className="read__stats">
               <div>
                 <b>{stats.pct}%</b>
-                words you know
-                <span className="read__cov" role="img" aria-label={`${stats.pct} percent known`}>
+                {t("words you know")}
+                <span className="read__cov" role="img" aria-label={t("{pct} percent known", { pct: stats.pct })}>
                   <i style={{ width: `${stats.pct}%` }} />
                 </span>
               </div>
               <div>
                 <b>{stats.fresh}</b>
-                new {stats.fresh === 1 ? "word" : "words"}
+                {t(stats.fresh === 1 ? "new word" : "new words")}
               </div>
               <div>
                 <b>{stats.kept}</b>
-                {ankiMode(state) ? "in Anki" : "saved"}
+                {ankiMode(state) ? t("in Anki") : t("saved")}
               </div>
             </div>
             <div className="read__toolbar">
-              <div className="segmented" role="group" aria-label="Furigana" ref={furiRef}>
+              <div className="segmented" role="group" aria-label={t("Furigana")} ref={furiRef}>
                 <span className="marker" aria-hidden="true" />
-                <span className="segmented__label">Furigana</span>
+                <span className="segmented__label">{t("Furigana")}</span>
                 {FURIGANA_MODES.map(([value, label]) => (
                   <button
                     key={value}
@@ -434,29 +435,29 @@ export default function ReadView({ onOpenSettings }) {
                     aria-pressed={furigana === value}
                     onClick={() => setSettings({ furigana: value })}
                   >
-                    {label}
+                    {t(label)}
                   </button>
                 ))}
               </div>
-              <div className="stepper" role="group" aria-label="Text size">
+              <div className="stepper" role="group" aria-label={t("Text size")}>
                 <button
                   className="stepper__btn"
                   onClick={() => setSettings({ size: Math.max(18, size - 2) })}
-                  aria-label="Smaller text"
+                  aria-label={t("Smaller text")}
                 >
                   A−
                 </button>
                 <button
                   className="stepper__btn stepper__btn--big"
                   onClick={() => setSettings({ size: Math.min(44, size + 2) })}
-                  aria-label="Larger text"
+                  aria-label={t("Larger text")}
                 >
                   A+
                 </button>
               </div>
             </div>
 
-            {tip && <p className="read__tip">Tap any word to see its reading and meaning.</p>}
+            {tip && <p className="read__tip">{t("Tap any word to see its reading and meaning.")}</p>}
 
             <p className="read__text" lang="ja" style={{ "--read-size": `${size}px` }}>
               <TokenLine tokens={tokens} selected={selected} onSelect={selectWord} />
@@ -464,21 +465,21 @@ export default function ReadView({ onOpenSettings }) {
 
             {translationEnabled && (
             <div className="read__translation">
-              {translation.status === "loading" && <p className="note">Translating…</p>}
+              {translation.status === "loading" && <p className="note">{t("Translating…")}</p>}
               {translation.status === "ready" && <p className="read__translation-text">{translation.text}</p>}
               {translation.status === "error" && (
-                <p className="note">Translation isn’t available right now. Readings and word lookup still work.</p>
+                <p className="note">{t("Translation isn’t available right now. Readings and word lookup still work.")}</p>
               )}
             </div>
             )}
 
             <div className="read__after">
               <button className="btn btn--quiet read__edit" onClick={backToEdit}>
-                Edit text
+                {t("Edit text")}
               </button>
               {canSpeak() && (
                 <button className="btn btn--quiet read__edit" onClick={() => speak(input)}>
-                  Read aloud
+                  {t("Read aloud")}
                 </button>
               )}
             </div>
@@ -488,7 +489,7 @@ export default function ReadView({ onOpenSettings }) {
 
       {tokens && !selectedToken && (
         <aside className="read__card-hint" aria-hidden="true">
-          Tap any word to see its reading and meaning.
+          {t("Tap any word to see its reading and meaning.")}
         </aside>
       )}
       {selectedToken && (

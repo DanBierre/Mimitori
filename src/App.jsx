@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { anki, useAnki } from "./lib/anki/useAnki";
 import { flushQueue } from "./lib/anki/queue";
-import { StoreProvider, ankiMode, useReviewToday, useStore } from "./lib/store";
+import { StoreProvider, ankiMode, useReviewToday, useStore, useT } from "./lib/store";
 import ReadView from "./components/ReadView";
 import WatchView from "./components/WatchView";
 import ReviewView from "./components/ReviewView";
@@ -62,7 +62,8 @@ function Shell() {
     setPrevTab(tab);
     setTab("settings");
   };
-  const backLabel = TABS.find((t) => t.id === prevTab)?.label ?? "Read";
+  const t = useT();
+  const backLabel = t(TABS.find((x) => x.id === prevTab)?.label ?? "Read");
   const railRef = useMarker('[aria-current="page"] .rail__label');
   const today = useReviewToday();
   const { state, setSettings } = useStore();
@@ -95,23 +96,23 @@ function Shell() {
           </svg>
           mimitori
         </h1>
-        <nav className="rail" aria-label="Sections" ref={railRef}>
+        <nav className="rail" aria-label={t("Sections")} ref={railRef}>
           <span className="marker rail__marker" aria-hidden="true" />
-          {TABS.filter((t) => !(inAnkiMode && t.id === "review")).map((t) => (
+          {TABS.filter((x) => !(inAnkiMode && x.id === "review")).map((x) => (
             <button
-              key={t.id}
+              key={x.id}
               className="rail__tab"
-              aria-current={tab === t.id ? "page" : undefined}
-              onClick={() => setTab(t.id)}
+              aria-current={tab === x.id ? "page" : undefined}
+              onClick={() => setTab(x.id)}
             >
               <span className="rail__icon" aria-hidden="true">
-                <Icon name={t.icon} size={22} />
+                <Icon name={x.icon} size={22} />
               </span>
-              <span className="rail__label">{t.label}</span>
-              {t.id === "review" && today.queue.length > 0 && (
+              <span className="rail__label">{t(x.label)}</span>
+              {x.id === "review" && today.queue.length > 0 && (
                 <span className="rail__due">
                   {today.queue.length}
-                  <span className="sr-only"> to review</span>
+                  <span className="sr-only">{t(" to review")}</span>
                 </span>
               )}
             </button>
@@ -119,21 +120,31 @@ function Shell() {
         </nav>
         <div className="app__side">
           {install && (
-            <button className="icon-btn" aria-label="Install Mimitori as an app" title="Install Mimitori as an app" onClick={install}>
+            <button className="icon-btn" aria-label={t("Install Mimitori as an app")} title={t("Install Mimitori as an app")} onClick={install}>
               <Icon name="download" size={19} />
             </button>
           )}
+          {/* Each label is written in the language it switches to, so either reader can find it. */}
+          <button
+            className="icon-btn app__lang"
+            lang={state.settings.lang === "ja" ? "en" : "ja"}
+            aria-label={state.settings.lang === "ja" ? "Switch to English" : "日本語に切り替え"}
+            title={state.settings.lang === "ja" ? "Switch to English" : "日本語に切り替え"}
+            onClick={() => setSettings({ lang: state.settings.lang === "ja" ? "en" : "ja" })}
+          >
+            {state.settings.lang === "ja" ? "EN" : "あ"}
+          </button>
           <button
             className="icon-btn app__theme"
-            aria-label={dark ? "Switch to light" : "Switch to dark"}
-            title={dark ? "Switch to light" : "Switch to dark"}
+            aria-label={t(dark ? "Switch to light" : "Switch to dark")}
+            title={t(dark ? "Switch to light" : "Switch to dark")}
             onClick={() => setSettings({ theme: dark ? "light" : "dark" })}
           >
             <Icon key={dark ? "sun" : "moon"} name={dark ? "sun" : "moon"} size={19} />
           </button>
           <button
             className="icon-btn"
-            aria-label={tab === "settings" ? `Close settings, back to ${backLabel}` : "Settings"}
+            aria-label={tab === "settings" ? t("Close settings, back to {tab}", { tab: backLabel }) : t("Settings")}
             aria-current={tab === "settings" ? "page" : undefined}
             onClick={openSettings}
           >

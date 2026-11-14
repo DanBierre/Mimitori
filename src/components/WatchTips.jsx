@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createFlags } from "../lib/firstRun";
+import { useT } from "../lib/store";
 import { noFocus } from "./WatchControls";
 import Icon from "./Icon";
 
@@ -18,6 +19,7 @@ const flags = createFlags();
 
 // Three quick tips, shown once, the first time any clip is ready to play.
 export default function WatchTips() {
+  const tr = useT();
   const [step, setStep] = useState(() => (flags.has("tips") ? -1 : 0));
   if (step < 0) return null;
 
@@ -29,20 +31,20 @@ export default function WatchTips() {
   const last = step === TIPS.length - 1;
 
   return (
-    <div className="popover watch__help watch__tips" role="region" aria-label="Tips">
+    <div className="popover watch__help watch__tips" role="region" aria-label={tr("Tips")}>
       <div className="popover__head">
-        <strong>{title}</strong>
-        <button className="icon-btn" onMouseDown={noFocus} onClick={done} aria-label="Skip tips">
+        <strong>{tr(title)}</strong>
+        <button className="icon-btn" onMouseDown={noFocus} onClick={done} aria-label={tr("Skip tips")}>
           <Icon name="close" size={18} />
         </button>
       </div>
-      <p className="watch__tips-body">{body}</p>
+      <p className="watch__tips-body">{tr(body)}</p>
       <div className="watch__tips-foot">
         <span className="watch__tips-count">
-          {step + 1} of {TIPS.length}
+          {tr("{n} of {total}", { n: step + 1, total: TIPS.length })}
         </span>
         <button className="btn btn--primary" onMouseDown={noFocus} onClick={last ? done : () => setStep(step + 1)}>
-          {last ? "Got it" : "Next"}
+          {last ? tr("Got it") : tr("Next")}
         </button>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { posterKey, stoppedLabel } from "../lib/recents";
+import { formatClock, posterKey } from "../lib/recents";
+import { useT } from "../lib/store";
 import { getImageUrl } from "../lib/images";
 import { noFocus } from "./WatchControls";
 
@@ -29,15 +30,16 @@ function Thumb({ id }) {
 // Under the empty stage: the last few videos, so the learner can pick up where they stopped.
 // Browsers can't reopen a file by themselves, so Carry on opens the file picker.
 export default function WatchRecents({ recents, onCarryOn, onSample, sampleLoading }) {
+  const tr = useT();
   const rows = recents.slice(0, 6);
   const showSample = rows.length < 2;
   return (
     <section className="recents" aria-labelledby="recents-title">
       <h2 id="recents-title" className="recents__title">
-        Recent
+        {tr("Recent")}
       </h2>
       {recents.length > 0 && (
-        <p className="recents__note">Mimitori never keeps a copy of your videos, so pick the same file again to carry on.</p>
+        <p className="recents__note">{tr("Mimitori never keeps a copy of your videos, so pick the same file again to carry on.")}</p>
       )}
       <ul className="recents__list">
         {rows.map((r) => (
@@ -46,25 +48,25 @@ export default function WatchRecents({ recents, onCarryOn, onSample, sampleLoadi
             <span className="recents__name" title={r.name}>
               {r.name}
             </span>
-            {r.coverage !== null && <span className="recents__pct">{r.coverage}% known</span>}
-            <span className="recents__stop">{stoppedLabel(r)}</span>
+            {r.coverage !== null && <span className="recents__pct">{tr("{n}% known", { n: r.coverage })}</span>}
+            <span className="recents__stop">{r.positionS >= 1 ? tr(r.durationS ? "Stopped at {at} of {total}" : "Stopped at {at}", { at: formatClock(r.positionS), total: r.durationS ? formatClock(r.durationS) : "" }) : ""}</span>
             <button
               className="btn btn--quiet recents__go row-action"
-              aria-label={`Carry on with ${r.name}`}
+              aria-label={tr("Carry on with {name}", { name: r.name })}
               onMouseDown={noFocus}
               onClick={() => onCarryOn(r)}
             >
-              Carry on
+              {tr("Carry on")}
             </button>
           </li>
         ))}
         {showSample && (
           <li className="recents__row recents__row--sample">
             <span className="recents__thumb" aria-hidden="true" />
-            <span className="recents__name">Sample clip</span>
-            <span className="recents__stop">30 s</span>
+            <span className="recents__name">{tr("Sample clip")}</span>
+            <span className="recents__stop">{tr("30 s")}</span>
             <button className="btn btn--quiet recents__go row-action" onMouseDown={noFocus} onClick={onSample} disabled={sampleLoading}>
-              {sampleLoading ? "Loading…" : "Try it"}
+              {sampleLoading ? tr("Loading…") : tr("Try it")}
             </button>
           </li>
         )}

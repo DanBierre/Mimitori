@@ -11,6 +11,7 @@ import { applyInk, applyTheme } from "./ink";
 export { ankiMode, wordState } from "./anki/settingsLogic";
 
 import { STORAGE_KEY } from "./backup";
+import { translate } from "./i18n";
 
 const DEFAULT_STATE = {
   words: {}, // keyed by dictionary form
@@ -22,6 +23,7 @@ const DEFAULT_STATE = {
     commonKnown: true, // treat very common words as known
     ink: "indigo", // the learner's accent colour
     theme: "light", // light (the default look) | dark | device
+    lang: "en", // interface language: en | ja
     name: "", // optional, for the Watch greeting
     ambient: true, // soft light from the video on the Watch stage
     watch: { autoPause: false, speed: 1, showSecondLine: true },
@@ -136,6 +138,9 @@ export function StoreProvider({ children }) {
     return off;
   }, [state.settings.theme]);
   useEffect(() => {
+    document.documentElement.lang = state.settings.lang;
+  }, [state.settings.lang]);
+  useEffect(() => {
     loadCommon().then(() => dispatch({ type: "commonReady" }));
   }, []);
 
@@ -180,6 +185,12 @@ export function useStore() {
   const ctx = useContext(StoreContext);
   if (!ctx) throw new Error("useStore must be used inside StoreProvider");
   return ctx;
+}
+
+// t("Settings") gives the text in the chosen interface language.
+export function useT() {
+  const lang = useStore().state.settings.lang;
+  return (text, vars) => translate(lang, text, vars);
 }
 
 // Today's review: capped at 20 (see dailyQueue); the rest stay due and wait.

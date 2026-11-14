@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ankiMode, knownTotal, useStore, wordState } from "../lib/store";
+import { ankiMode, knownTotal, useStore, useT, wordState } from "../lib/store";
 import { anki } from "../lib/anki/useAnki";
 import { addCardFromWord } from "../lib/anki/addCard";
 import { planBatch, sendBatch, sendSaved } from "../lib/anki/batch";
@@ -33,13 +33,14 @@ let batchRunning = false; // survives a tab switch, so a second Send all can't s
 
 export default function WordsView({ onGoWatch, onGoRead }) {
   const { state, removeWord, knowWord, unknowWord, restoreWord, markInAnki } = useStore();
+  const t = useT();
   const [sort, setSort] = useState("due");
   const [undo, setUndo] = useState(null); // { text, word } after Remove or I know this
   const [exported, setExported] = useState("");
   // Remove and I know this drop a word's review history, so both can be undone.
   const drop = (how, base, text) => {
     const word = state.words[base];
-    if (word) setUndo({ text: `${text} ${base}.`, word });
+    if (word) setUndo({ text: t(text, { word: base }), word });
     how(base);
   };
   const [filter, setFilter] = useState("all");
@@ -114,18 +115,18 @@ export default function WordsView({ onGoWatch, onGoRead }) {
     setBatch({
       done:
         r.stopped === "changed"
-          ? "Your note type changed. Check the field matching."
-          : `Added ${r.added + r.queued}. Skipped ${skipped} (already in Anki or very common).` +
-            (r.queued ? ` ${r.queued} will go in when Anki's open.` : "") +
-            (r.failed ? ` ${r.failed} couldn't be added.` : ""),
+          ? t("Your note type changed. Check the field matching.")
+          : t("Added {n}. Skipped {skipped} (already in Anki or very common).", { n: r.added + r.queued, skipped }) +
+            (r.queued ? " " + t("{n} will go in when Anki's open.", { n: r.queued }) : "") +
+            (r.failed ? " " + t("{n} couldn't be added.", { n: r.failed }) : ""),
     });
   }
 
   return (
-    <section className="sheet words" aria-label="Words">
-      <p className="words__count">{knownTotal(state)} words known · {savedWords.length} learning</p>
+    <section className="sheet words" aria-label={t("Words")}>
+      <p className="words__count">{t("{known} words known · {learning} learning", { known: knownTotal(state), learning: savedWords.length })}</p>
       <div className="words__bar">
-        <div className="segmented" role="group" aria-label="Filter words" ref={filterRef}>
+        <div className="segmented" role="group" aria-label={t("Filter words")} ref={filterRef}>
           <span className="marker" aria-hidden="true" />
           {FILTERS.map(([value, label]) => (
             <button
@@ -134,22 +135,22 @@ export default function WordsView({ onGoWatch, onGoRead }) {
               aria-pressed={filter === value}
               onClick={() => setFilter(value)}
             >
-              {label} <span className="segmented__count">{counts[value] || 0}</span>
+              {t(label)} <span className="segmented__count">{counts[value] || 0}</span>
             </button>
           ))}
         </div>
         <input
           className="words__search"
           type="search"
-          placeholder="Search words or meanings"
+          placeholder={t("Search words or meanings")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          aria-label="Search words"
+          aria-label={t("Search words")}
         />
-        <select className="select words__sort" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort words">
+        <select className="select words__sort" value={sort} onChange={(e) => setSort(e.target.value)} aria-label={t("Sort words")}>
           {SORTS.map(([value, label]) => (
             <option key={value} value={value}>
-              {label}
+              {t(label)}
             </option>
           ))}
         </select>
@@ -158,16 +159,16 @@ export default function WordsView({ onGoWatch, onGoRead }) {
             className="btn"
             onClick={() => {
               downloadCsv(savedWords);
-              setExported(`Exported ${savedWords.length} ${savedWords.length === 1 ? "word" : "words"} to a CSV file. Import it in Anki with File, Import.`);
+              setExported(t(savedWords.length === 1 ? "Exported {n} word to a CSV file. Import it in Anki with File, Import." : "Exported {n} words to a CSV file. Import it in Anki with File, Import.", { n: savedWords.length }));
             }}
             disabled={savedWords.length === 0}
-            title={savedWords.length === 0 ? "Save some words first" : undefined}
+            title={savedWords.length === 0 ? t("Save some words first") : undefined}
           >
-            Export to Anki (CSV)
+            {t("Export to Anki (CSV)")}
           </button>
           {ankiMode(state) && (
             <button className="btn" onClick={sendAll} disabled={batch?.running || batchRunning || toSend.length === 0}>
-              Send all to Anki
+              {t("Send all to Anki")}
             </button>
           )}
         </div>
@@ -185,7 +186,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
                   setUndo(null);
                 }}
               >
-                Undo
+                {t("Undo")}
               </button>
             </>
           ) : (
@@ -196,18 +197,18 @@ export default function WordsView({ onGoWatch, onGoRead }) {
 
       {rows.length === 0 ? (
         <div className="words__empty">
-          <h2 className="words__empty-title">Your words live here</h2>
+          <h2 className="words__empty-title">{t("Your words live here")}</h2>
           <p>
-            They appear when you tap a word in Read or Watch and press Save to review or Add to Anki. Words you mark
-            as known are tracked too, so furigana stays out of your way.
+            {t("They appear when you tap a word in Read or Watch and press Save to review or Add to Anki.")}{" "}
+            {t("Words you mark as known are tracked too, so furigana stays out of your way.")}
           </p>
           <div className="words__empty-actions">
-            <button className="btn btn--primary" onClick={onGoRead}>Open Read</button>
-            <button className="btn btn--quiet" onClick={onGoWatch}>Open Watch</button>
+            <button className="btn btn--primary" onClick={onGoRead}>{t("Open Read")}</button>
+            <button className="btn btn--quiet" onClick={onGoWatch}>{t("Open Watch")}</button>
           </div>
         </div>
       ) : visible.length === 0 ? (
-        <p className="note words__nomatch">No words match.</p>
+        <p className="note words__nomatch">{t("No words match.")}</p>
       ) : (
         <ul className="words__list">
           {visible.map((r) => (
@@ -225,9 +226,9 @@ export default function WordsView({ onGoWatch, onGoRead }) {
                 </span>
                 <span className="words__meaning">{r.glosses.slice(0, 2).join("; ")}</span>
                 <span className="words__state">
-                  {r.mark === "due" && "due now"}
-                  {r.mark === "saved" && `in ${formatInterval(r.due - new Date())}`}
-                  {r.mark === "known" && "known"}
+                  {r.mark === "due" && t("due now")}
+                  {r.mark === "saved" && t("in {when}", { when: t(formatInterval(r.due - new Date())) })}
+                  {r.mark === "known" && t("known")}
                 </span>
               </button>
               {open === r.base && (
@@ -241,18 +242,18 @@ export default function WordsView({ onGoWatch, onGoRead }) {
                   )}
                   <div className="words__actions">
                     {r.mark !== "known" && (
-                      <button className="btn" onClick={() => drop(knowWord, r.base, "Marked as known:")}>
-                        I know this
+                      <button className="btn" onClick={() => drop(knowWord, r.base, "Marked as known: {word}.")}>
+                        {t("I know this")}
                       </button>
                     )}
                     {r.mark === "known" && (
                       <button className="btn" onClick={() => unknowWord(r.base)}>
-                        Mark as new
+                        {t("Mark as new")}
                       </button>
                     )}
                     {r.mark !== "known" && (
-                      <button className="btn btn--quiet" onClick={() => drop(removeWord, r.base, "Removed")}>
-                        Remove
+                      <button className="btn btn--quiet" onClick={() => drop(removeWord, r.base, "Removed {word}.")}>
+                        {t("Remove")}
                       </button>
                     )}
                   </div>
@@ -265,12 +266,11 @@ export default function WordsView({ onGoWatch, onGoRead }) {
 
       {(batch?.running || batch?.done) && (
         <p className="note" role="status">
-          {batch.running ? `Sending ${batch.step} of ${batch.total}…` : batch.done}
+          {batch.running ? t("Sending {step} of {total}…", { step: batch.step, total: batch.total }) : batch.done}
         </p>
       )}
       <p className="words__credit">
-        Word meanings come from JMdict, © the Electronic Dictionary Research and Development Group,
-        used under CC BY-SA 4.0.
+        {t("Word meanings come from JMdict, © the Electronic Dictionary Research and Development Group, used under CC BY-SA 4.0.")}
       </p>
     </section>
   );

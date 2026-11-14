@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useT } from "../lib/store";
 
 const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
@@ -9,6 +10,7 @@ function clock(ms) {
 
 // Inline editor for one auto line: Enter or blur saves, Escape cancels.
 function LineEditor({ text, onSave, onCancel }) {
+  const tr = useT();
   const ref = useRef(null);
   const done = useRef(false);
   useEffect(() => ref.current?.focus(), []);
@@ -23,7 +25,7 @@ function LineEditor({ text, onSave, onCancel }) {
       ref={ref}
       className="transcript__edit"
       lang="ja"
-      aria-label="Fix this line"
+      aria-label={tr("Fix this line")}
       defaultValue={text}
       onKeyDown={(e) => {
         if (e.key === "Enter") finish(true);
@@ -38,6 +40,7 @@ function LineEditor({ text, onSave, onCancel }) {
 // view (scrolling only this list, never the page); tapping a line jumps there.
 // Auto (transcribed) lines can be fixed by hand with the pencil.
 export default function Transcript({ cues, current, onJump, newCounts = [], auto = false, edited = [], onEdit }) {
+  const tr = useT();
   const listRef = useRef(null);
   const [editing, setEditing] = useState(-1);
   // When the learner scrolls the list themselves, stop following for a few seconds so it doesn't snap back.
@@ -58,7 +61,7 @@ export default function Transcript({ cues, current, onJump, newCounts = [], auto
   }, [current]);
 
   return (
-    <ol className="transcript" ref={listRef} aria-label="Transcript" onWheel={browsing} onTouchMove={browsing}>
+    <ol className="transcript" ref={listRef} aria-label={tr("Transcript")} onWheel={browsing} onTouchMove={browsing}>
       {cues.map((cue, i) => (
         <li key={i}>
           {auto && editing === i ? (
@@ -85,15 +88,15 @@ export default function Transcript({ cues, current, onJump, newCounts = [], auto
                 <span className="transcript__text" lang="ja">
                   {cue.text.replace(/\n/g, " ")}
                 </span>
-                {auto && !edited.includes(i) && <span className="transcript__auto">auto</span>}
+                {auto && !edited.includes(i) && <span className="transcript__auto">{tr("auto")}</span>}
                 {newCounts[i] > 0 && (
-                  <span className="transcript__new" aria-label={`${newCounts[i]} new ${newCounts[i] === 1 ? "word" : "words"}`}>
-                    {newCounts[i]} new
+                  <span className="transcript__new" aria-label={tr(newCounts[i] === 1 ? "{n} new word" : "{n} new words", { n: newCounts[i] })}>
+                    {tr("{n} new", { n: newCounts[i] })}
                   </span>
                 )}
               </button>
               {auto && (
-                <button className="transcript__fix row-action" aria-label="Fix this line" onClick={() => setEditing(i)}>
+                <button className="transcript__fix row-action" aria-label={tr("Fix this line")} onClick={() => setEditing(i)}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
                   </svg>

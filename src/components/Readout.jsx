@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { lookupWord } from "../lib/dict";
 import { conjugationParts } from "../lib/conjugation";
-import { useStore, wordState } from "../lib/store";
+import { useStore, useT, wordState } from "../lib/store";
 import { noFocus } from "./WatchControls";
 
 const STATE = { new: "new", saved: "saved", due: "due", inAnki: "in Anki" };
@@ -11,6 +11,7 @@ const STATE = { new: "new", saved: "saved", due: "due", inAnki: "in Anki" };
 // on the entry; picking a row picks the word, like tapping it or pressing its number.
 export default function Readout({ tokens, picks, selected, onSelect }) {
   const { state } = useStore();
+  const tr = useT();
   const [found, setFound] = useState({});
   const key = picks.map((i) => tokens[i].base).join("|");
 
@@ -32,14 +33,14 @@ export default function Readout({ tokens, picks, selected, onSelect }) {
       <thead>
         <tr>
           <th scope="col">
-            <span className="sr-only">Number</span>
+            <span className="sr-only">{tr("Number")}</span>
           </th>
-          <th scope="col">Word</th>
+          <th scope="col">{tr("Word")}</th>
           <th scope="col" className="readout__rd">
-            Reading
+            {tr("Reading")}
           </th>
-          <th scope="col">Meaning</th>
-          <th scope="col">State</th>
+          <th scope="col">{tr("Meaning")}</th>
+          <th scope="col">{tr("State")}</th>
         </tr>
       </thead>
       <tbody>
@@ -59,7 +60,7 @@ export default function Readout({ tokens, picks, selected, onSelect }) {
                 {d?.reading || t.reading}
               </td>
               <td className="readout__mn">{meaning}</td>
-              <td className="readout__st">{STATE[wordState(state, t.base)] ?? ""}</td>
+              <td className="readout__st">{STATE[wordState(state, t.base)] ? tr(STATE[wordState(state, t.base)]) : ""}</td>
             </tr>
           );
         })}

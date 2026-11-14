@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useT } from "../lib/store";
 import Icon from "./Icon";
 
 const SPEEDS = [0.5, 0.75, 1, 1.25];
@@ -23,10 +24,10 @@ function IconBtn({ icon, label, className = "", pressed, onClick, size = 20, ...
   );
 }
 
-export function formatOffset(ms) {
-  if (ms === 0) return "On time";
+export function formatOffset(ms, tr = (s) => s) {
+  if (ms === 0) return tr("On time");
   const s = (Math.abs(ms) / 1000).toFixed(1);
-  return ms > 0 ? `${s} s later` : `${s} s earlier`;
+  return tr(ms > 0 ? "{s} s later" : "{s} s earlier", { s });
 }
 
 // One slim player bar: line controls on the left, settings as small icons on
@@ -54,6 +55,7 @@ export default function WatchControls({
   onFocus,
   onHelp,
 }) {
+  const tr = useT();
   const [timingOpen, setTimingOpen] = useState(false);
   const showTiming = timingOpen || syncText !== null;
 
@@ -72,25 +74,25 @@ export default function WatchControls({
   return (
     <div className="ctl">
       <div className="ctl__group">
-        <IconBtn icon="prev" label="Previous line (←)" onClick={onPrev} />
-        <IconBtn icon="replay" label="Replay line (R)" className="ctl-btn--primary" onClick={onReplay} size={22} />
-        <IconBtn icon="next" label="Next line (→)" onClick={onNext} />
+        <IconBtn icon="prev" label={tr("Previous line (←)")} onClick={onPrev} />
+        <IconBtn icon="replay" label={tr("Replay line (R)")} className="ctl-btn--primary" onClick={onReplay} size={22} />
+        <IconBtn icon="next" label={tr("Next line (→)")} onClick={onNext} />
         <span className="ctl__sep" aria-hidden="true" />
         <button
           className="ctl-chip"
           onMouseDown={noFocus}
           aria-pressed={autoPause}
           onClick={() => onAutoPause(!autoPause)}
-          title="Pause after each line"
+          title={tr("Pause after each line")}
         >
           <Icon name="autoPause" size={18} />
-          <span className="ctl-chip__label">Pause after each line</span>
+          <span className="ctl-chip__label">{tr("Pause after each line")}</span>
         </button>
       </div>
 
       <div className="ctl__group">
-        <label className="ctl-select" title="Speed">
-          <span className="sr-only">Speed</span>
+        <label className="ctl-select" title={tr("Speed")}>
+          <span className="sr-only">{tr("Speed")}</span>
           <select value={speed} onChange={(e) => onSpeed(Number(e.target.value))}>
             {SPEEDS.map((s) => (
               <option key={s} value={s}>
@@ -100,31 +102,31 @@ export default function WatchControls({
           </select>
         </label>
         {hasSecondLine && (
-          <IconBtn icon="captions" label="Second subtitle line" pressed={showSecondLine} onClick={onToggleSecondLine} />
+          <IconBtn icon="captions" label={tr("Second subtitle line")} pressed={showSecondLine} onClick={onToggleSecondLine} />
         )}
         <IconBtn
           icon="timing"
-          label="Subtitle timing"
+          label={tr("Subtitle timing")}
           pressed={showTiming || offsetMs !== 0}
           aria-expanded={showTiming}
           onClick={() => setTimingOpen((o) => !o)}
         />
         <IconBtn
           icon="transcript"
-          label="Transcript"
+          label={tr("Transcript")}
           className="ctl-btn--transcript"
           pressed={transcriptOpen}
           onClick={onToggleTranscript}
         />
-        <IconBtn icon="focus" label="Focus mode (F)" onClick={onFocus} />
-        <IconBtn icon="help" label="Keyboard shortcuts (?)" onClick={onHelp} />
+        <IconBtn icon="focus" label={tr("Focus mode (F)")} onClick={onFocus} />
+        <IconBtn icon="help" label={tr("Keyboard shortcuts (?)")} onClick={onHelp} />
       </div>
 
       {showTiming && (
-        <div className="popover ctl__timing" role="group" aria-label="Subtitle timing">
+        <div className="popover ctl__timing" role="group" aria-label={tr("Subtitle timing")}>
           <div className="popover__head">
-            <strong>Subtitle timing</strong>
-            <span className="popover__meta">{formatOffset(offsetMs)}</span>
+            <strong>{tr("Subtitle timing")}</strong>
+            <span className="popover__meta">{formatOffset(offsetMs, tr)}</span>
             <button
               className="icon-btn"
               onMouseDown={noFocus}
@@ -132,7 +134,7 @@ export default function WatchControls({
                 if (syncText !== null) onSyncCancel();
                 setTimingOpen(false);
               }}
-              aria-label="Close subtitle timing"
+              aria-label={tr("Close subtitle timing")}
             >
               <Icon name="close" size={18} />
             </button>
@@ -140,48 +142,48 @@ export default function WatchControls({
 
           {syncText === null ? (
             <>
-              <div className="nudge" role="group" aria-label="Shift subtitles">
-                <button className="btn" onMouseDown={noFocus} onClick={() => onNudge(-500)} aria-label="0.5 seconds earlier">
+              <div className="nudge" role="group" aria-label={tr("Shift subtitles")}>
+                <button className="btn" onMouseDown={noFocus} onClick={() => onNudge(-500)} aria-label={tr("0.5 seconds earlier")}>
                   −0.5
                 </button>
-                <button className="btn" onMouseDown={noFocus} onClick={() => onNudge(-100)} aria-label="0.1 seconds earlier">
+                <button className="btn" onMouseDown={noFocus} onClick={() => onNudge(-100)} aria-label={tr("0.1 seconds earlier")}>
                   −0.1
                 </button>
-                <button className="btn" onMouseDown={noFocus} onClick={() => onNudge(100)} aria-label="0.1 seconds later">
+                <button className="btn" onMouseDown={noFocus} onClick={() => onNudge(100)} aria-label={tr("0.1 seconds later")}>
                   +0.1
                 </button>
-                <button className="btn" onMouseDown={noFocus} onClick={() => onNudge(500)} aria-label="0.5 seconds later">
+                <button className="btn" onMouseDown={noFocus} onClick={() => onNudge(500)} aria-label={tr("0.5 seconds later")}>
                   +0.5
                 </button>
               </div>
               <div className="popover__actions">
                 <button className="btn btn--primary" onMouseDown={noFocus} onClick={onLineUp}>
-                  Line up a line
+                  {tr("Line up a line")}
                 </button>
                 <button className="btn btn--quiet" onMouseDown={noFocus} onClick={onDownload} disabled={offsetMs === 0}>
                   <Icon name="download" size={16} />
-                  Download fixed file
+                  {tr("Download fixed file")}
                 </button>
               </div>
               <p className="popover__hint only-fine">
-                Tip: <kbd>[</kbd> and <kbd>]</kbd> nudge by 0.1 s while you watch.
+                {tr("Tip:")} <kbd>[</kbd> <kbd>]</kbd> {tr("nudge by 0.1 s while you watch.")}
               </p>
             </>
           ) : (
             <>
               <p className="popover__text">
-                When you hear{" "}
+                {tr("When you hear")}{" "}
                 <span lang="ja" className="ctl__sync-line">
                   「{syncText}」
                 </span>
-                , press Now.
+                {tr(", press Now.")}
               </p>
               <div className="popover__actions">
                 <button className="btn btn--primary" onMouseDown={noFocus} onClick={onSyncNow}>
-                  Now
+                  {tr("Now")}
                 </button>
                 <button className="btn btn--quiet" onMouseDown={noFocus} onClick={onSyncCancel}>
-                  Cancel
+                  {tr("Cancel")}
                 </button>
               </div>
             </>

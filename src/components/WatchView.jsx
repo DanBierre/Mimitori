@@ -10,9 +10,8 @@ import {
   pickPrimary,
 } from "../lib/subtitles/cues";
 import { writeSrt } from "../lib/subtitles/write";
-import { ankiMode, knownTotal, useReviewToday, useStore } from "../lib/store";
+import { ankiMode, knownTotal, useReviewToday, useStore, useT } from "../lib/store";
 import { addedThisWeek, greeting } from "../lib/greeting";
-import { reviewNote } from "../lib/srs";
 import Ticks from "./Ticks";
 import TokenLine from "./TokenLine";
 import WordPanel from "./WordPanel";
@@ -77,6 +76,7 @@ const hasJapanese = (cues) => cues.some((c) => JAPANESE_REGEX.test(c.text));
 // WordPanel as Read, so saved words land in Review.
 export default function WatchView({ active, onOpenSettings }) {
   const { state, setWatchSettings } = useStore();
+  const tr = useT();
   const { size } = state.settings;
   const { showSecondLine, autoPause, speed } = state.settings.watch;
   const autoPauseRef = useRef(autoPause);
@@ -660,14 +660,14 @@ export default function WatchView({ active, onOpenSettings }) {
             {greeting(new Date(), state.settings.name)}
           </p>
           <p className="watch__progress">
-            {knownCount} words known · {week} this week
+            {tr("{n} words known · {w} this week", { n: knownCount, w: week })}
           </p>
         </header>
       )}
 
       {empty && (
         <div className="watch__main watch__main--empty">
-          <section className="watch__stage watch-empty__stage" aria-label="Player">
+          <section className="watch__stage watch-empty__stage" aria-label={tr("Player")}>
             <WatchDrop
               stage
               pickerRef={pickerRef}
@@ -719,10 +719,10 @@ export default function WatchView({ active, onOpenSettings }) {
 
       {video && (
         <div className="watch__main">
-        <section ref={stageRef} className={`watch__stage${ambient ? " watch__stage--amb" : ""}`} aria-label="Player">
+        <section ref={stageRef} className={`watch__stage${ambient ? " watch__stage--amb" : ""}`} aria-label={tr("Player")}>
           {!focus && (
             <button className="watch__close" onMouseDown={noFocus} onClick={closeVideo}>
-              <Icon name="prev" size={16} /> Close video
+              <Icon name="prev" size={16} /> {tr("Close video")}
             </button>
           )}
           <div className="watch__frame">
@@ -765,7 +765,7 @@ export default function WatchView({ active, onOpenSettings }) {
               <p className="watch__line" lang="ja" aria-live="polite">
                 {!cue ? (
                   listening ? (
-                    <span className="watch__gap">Still listening…</span>
+                    <span className="watch__gap">{tr("Still listening…")}</span>
                   ) : (
                     <span className="watch__gap" aria-hidden="true">
                       ·
@@ -821,14 +821,14 @@ export default function WatchView({ active, onOpenSettings }) {
           {ready && !helpOpen && <WatchTips key={tipsKey} />}
 
           {helpOpen && (
-            <div className="popover watch__help" role="region" aria-label="Keyboard shortcuts">
+            <div className="popover watch__help" role="region" aria-label={tr("Keyboard shortcuts")}>
               <div className="popover__head">
-                <strong>Keyboard shortcuts</strong>
+                <strong>{tr("Keyboard shortcuts")}</strong>
                 <button
                   className="icon-btn"
                   onMouseDown={noFocus}
                   onClick={() => setHelpOpen(false)}
-                  aria-label="Close shortcuts"
+                  aria-label={tr("Close shortcuts")}
                 >
                   <Icon name="close" size={18} />
                 </button>
@@ -839,7 +839,7 @@ export default function WatchView({ active, onOpenSettings }) {
                     <dt>
                       <kbd>{key}</kbd>
                     </dt>
-                    <dd>{what}</dd>
+                    <dd>{tr(what)}</dd>
                   </div>
                 ))}
               </dl>
@@ -856,7 +856,7 @@ export default function WatchView({ active, onOpenSettings }) {
                   setTipsKey((k) => k + 1);
                 }}
               >
-                Show the tips again
+                {tr("Show the tips again")}
               </button>
             </div>
           )}
@@ -873,22 +873,22 @@ export default function WatchView({ active, onOpenSettings }) {
             />
             <p className="watch__keys only-fine" aria-hidden="true">
               <span>
-                <kbd>{showReview ? "S" : "A"}</kbd> {showReview ? "save to review" : "add to Anki"}
+                <kbd>{showReview ? "S" : "A"}</kbd> {showReview ? tr("save to review") : tr("add to Anki")}
               </span>
               <span>
-                <kbd>K</kbd> I know it
+                <kbd>K</kbd> {tr("I know it")}
               </span>
               <span>
-                <kbd>1</kbd>–<kbd>9</kbd> pick a word
+                <kbd>1</kbd>–<kbd>9</kbd> {tr("pick a word")}
               </span>
               <span>
-                <kbd>R</kbd> replay
+                <kbd>R</kbd> {tr("replay")}
               </span>
               <span>
-                <kbd>←</kbd> <kbd>→</kbd> line
+                <kbd>←</kbd> <kbd>→</kbd> {tr("line")}
               </span>
               <span>
-                <kbd>?</kbd> all keys
+                <kbd>?</kbd> {tr("all keys")}
               </span>
             </p>
           </div>
@@ -899,45 +899,45 @@ export default function WatchView({ active, onOpenSettings }) {
             {coverage !== null && readings === "ready" && (
               <span className="watch__cov">
                 <span className="watch__pct">{coverage}%</span>
-                <span className="watch__pct-label">known in this episode</span>
-                <span className="watch__bar" role="img" aria-label={`${coverage} percent known`}>
+                <span className="watch__pct-label">{tr("known in this episode")}</span>
+                <span className="watch__bar" role="img" aria-label={tr("{n} percent known", { n: coverage })}>
                   <b style={{ width: `${coverage}%` }} />
                 </span>
               </span>
             )}
             {coverage !== null && readings === "ready" && (
               <span>
-                {newWords} new {newWords === 1 ? "word" : "words"}
+                {tr(newWords === 1 ? "{n} new word" : "{n} new words", { n: newWords })}
               </span>
             )}
-            {primary.auto && <span className="watch__draft">Subtitles made by Mimitori · draft</span>}
+            {primary.auto && <span className="watch__draft">{tr("Subtitles made by Mimitori · draft")}</span>}
           </p>
         )}
 
           <div className="watch__notes">
               {videoError && (
                 <p className="note note--error" role="alert">
-                  {BAD_VIDEO}
+                  {tr(BAD_VIDEO)}
                 </p>
               )}
               {fileError && (
                 <p className="note note--error" role="alert">
-                  {fileError}
+                  {tr(fileError)}
                 </p>
               )}
-              {notice && <p className="note">{notice}</p>}
-              {readings === "loading" && <p className="note">Loading readings…</p>}
+              {notice && <p className="note">{tr(notice)}</p>}
+              {readings === "loading" && <p className="note">{tr("Loading readings…")}</p>}
               {readings === "error" && (
                 <p className="note">
-                  The reading engine didn’t load, so lines show without furigana.{" "}
+                  {tr("The reading engine didn’t load, so lines show without furigana.")}{" "}
                   <button className="link" onMouseDown={noFocus} onClick={() => setRetry((n) => n + 1)}>
-                    Try again
+                    {tr("Try again")}
                   </button>
                 </p>
               )}
               {t.status === "error" && t.error && (
                 <p className="note note--error" role="alert">
-                  {ERRORS[t.error.code] ?? ERRORS.unknown}
+                  {tr(ERRORS[t.error.code] ?? ERRORS.unknown)}
                 </p>
               )}
               <MakeSubtitles
@@ -950,19 +950,19 @@ export default function WatchView({ active, onOpenSettings }) {
                 onCancel={() => setCard(false)}
                 onDownload={primary ? download : undefined}
               />
-              {primary?.skipped > 0 && <p className="note">Skipped {primary.skipped} lines we couldn't read.</p>}
-              {sample === "on" && <p className="note">{SAMPLE.credit}</p>}
+              {primary?.skipped > 0 && <p className="note">{tr(primary.skipped === 1 ? "Skipped {n} line we couldn't read." : "Skipped {n} lines we couldn't read.", { n: primary.skipped })}</p>}
+              {sample === "on" && <p className="note">{tr(SAMPLE.credit)}</p>}
               {ready && <WatchDrop compact onFiles={pickFiles} />}
           </div>
         </div>
       )}
 
       {ready && (
-        <aside className="watch__side" aria-label="Transcript">
+        <aside className="watch__side" aria-label={tr("Transcript")}>
           {entry && desk && !focus && <div className="watch__entry">{entry}</div>}
           <div className="watch__side-head">
-            <strong>Transcript</strong>
-            <span>{primary.cues.length} lines</span>
+            <strong>{tr("Transcript")}</strong>
+            <span>{tr(primary.cues.length === 1 ? "{n} line" : "{n} lines", { n: primary.cues.length })}</span>
           </div>
           <Transcript
             cues={primary.cues}
@@ -975,9 +975,9 @@ export default function WatchView({ active, onOpenSettings }) {
           />
           <div className="watch__foot">
             {showReview && (
-              <p>{reviewNote(today.queue.length, today.waiting)}</p>
+              <p>{tr(today.queue.length === 0 ? "Nothing to review today." : "{n} to review today.", { n: today.queue.length }) + (today.waiting > 0 ? " " + tr("The other {n} can wait.", { n: today.waiting }) : "")}</p>
             )}
-            <p>No account. Everything stays on this computer.</p>
+            <p>{tr("No account. Everything stays on this computer.")}</p>
           </div>
         </aside>
       )}
