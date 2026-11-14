@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { addCardFromWord } from "./addCard.js";
+import { addCardFromWord, wordQuery } from "./addCard.js";
 import { AnkiError } from "./connect.js";
 
 const mapping = {
@@ -147,6 +147,26 @@ test("reachable: a note with this word in the deck is a duplicate (query escaped
   assert.equal(q, String.raw`"deck:Test" "Word:a\_b\""`);
   assert.ok(!actions(t.calls).includes("addNote"));
 });
+test("wordQuery: exact for an expression field, the template's own text around the word for a template field", () => {
+  assert.equal(wordQuery("Word", { role: "expression" }, "犬"), '"Word:犬"');
+  const tpl = { role: "template", template: "{expression}（{reading}）＝{meaning}<br>{picture}" };
+  assert.equal(wordQuery("Back", tpl, "検証"), '"Back:検証（*"');
+  assert.equal(wordQuery("Back", { role: "template", template: "<b>{expression}</b>" }, "猫"), '"Back:<b>猫</b>"');
+  assert.equal(wordQuery("Back", { role: "template", template: "{reading}: {expression}" }, "a_b"), String.raw`"Back:*\: a\_b"`);
+  assert.equal(wordQuery("Back", { role: "template", template: "{reading}" }, "犬"), null);
+  assert.equal(wordQuery("Pic", { role: "picture" }, "犬"), null);
+});
+
+test("reachable: a template-only note type still checks Anki for the word", async () => {
+  const t = setup({
+    settings: { ...settings, mapping: { Back: { role: "template", template: "{expression}（{reading}）" } } },
+    invoke: (a) => (a === "findNotes" ? [5] : undefined),
+  });
+  assert.equal(await t.run(), "duplicate");
+  assert.match(t.calls.find((c) => c.action === "findNotes").params.query, /"Back:.+（\*"$/);
+  assert.ok(!actions(t.calls).includes("addNote"));
+});
+
 test("reachable: no hit adds; no expression field skips the check", async () => {
   const t = setup({ invoke: (a) => (a === "findNotes" ? [] : undefined) });
   assert.equal(await t.run(), "added");

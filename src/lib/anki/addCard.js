@@ -21,6 +21,21 @@ export async function blobToBase64(blob) {
 const wantsMedia = (mapping, role, slot) =>
   Object.values(mapping).some((e) => e.role === role || (e.role === "template" && e.template?.includes(`{${slot}}`)));
 
+const esc = (s) => s.replace(/[\\"*_:]/g, "\\$&");
+
+// The Anki search that finds `base` in one mapped field, or null when the field can't hold the word.
+// An expression field must equal the word. A template field must hold it with the template's own
+// text around it: "{expression}（{reading}）＝…" gives "Back:検証（*", so 検証済み doesn't count.
+export function wordQuery(field, m, base) {
+  if (m.role === "expression") return `"${field}:${esc(base)}"`;
+  if (m.role !== "template" || !m.template?.includes("{expression}")) return null;
+  const slot = /\{\w+\}/;
+  const [before, after] = m.template.split("{expression}");
+  const head = slot.test(before) ? `*${esc(before.split(slot).at(-1))}` : esc(before);
+  const tail = esc(after.split(slot)[0]);
+  return `"${field}:${head}${esc(base)}${tail}${slot.test(after) ? "*" : ""}"`;
+}
+
 const realDeps = { recordLine, captureFrame, enqueue, listQueue, now: () => Date.now() };
 
 // Returns "added" | "duplicate" | "queued" | "changed" | { error }.
@@ -57,11 +72,11 @@ export async function addCardFromWord({
     if (!reachable) {
       if ((await d.listQueue().catch(() => [])).some((q) => q.base === word.base)) return "duplicate";
     } else {
-      const esc = word.base.replace(/[\\"*_:]/g, "\\$&");
       for (const [field, m] of Object.entries(mapping)) {
-        if (m.role !== "expression") continue;
+        const q = wordQuery(field, m, word.base);
+        if (!q) continue;
         // Anki dropping out here is fine: addNote below queues the card.
-        const hit = await anki.invoke("findNotes", { query: `${deckQuery(deck)} "${field}:${esc}"` }).catch((e) => {
+        const hit = await anki.invoke("findNotes", { query: `${deckQuery(deck)} ${q}` }).catch((e) => {
           if (e?.kind !== "unreachable") throw e;
         });
         if (Array.isArray(hit) && hit.length) return "duplicate";
