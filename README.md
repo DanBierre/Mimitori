@@ -4,7 +4,7 @@
 
 A free, open source study app for Japanese learners. Read manga, PDFs and plain text, or watch your own videos with Japanese subtitles. Tap any word for its reading and meaning, save it, and review it later. No account, no setup, and your files never leave your computer.
 
-![The Read tab: a short Japanese passage with furigana, and the word card for 風景 open](docs/screenshot.jpg)
+![The Read tab in dark mode: a short Japanese passage with furigana, new words underlined, and the word card for 中古 open](docs/screenshot.jpg)
 
 ## What it does
 
