@@ -29,7 +29,7 @@ export const SAMPLE = {
     ["sample-ja.srt", "text/plain"],
     ["sample-en.srt", "text/plain"],
   ],
-  credit: "Placeholder test clip. The real sample is on its way.",
+  credit: "Sample clip made for Mimitori: colour scenes and a quiet chord, no speech. Read along with the subtitles.",
 };
 
 // Fetches the sample as File objects, so Watch loads it exactly like files the learner picked.

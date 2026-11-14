@@ -13,12 +13,15 @@ import { upsertRecent, droppedKeys } from "../lib/recents";
 import { putImage, getImageUrl, deleteImage } from "../lib/images";
 import { createFlags } from "../lib/firstRun";
 import Icon from "./Icon";
+import { SAMPLES } from "../lib/samples";
 // The viewer, pdf.js and the book code load only when a book opens.
 const BookView = lazy(() => import("./BookView"));
 
-// Mixed levels on purpose, so even a strong learner meets a few new words.
-const SAMPLE =
-  "駅の改札を出ると、雨が降り始めていた。傘を持っていなかったので、近くのコンビニで透明なビニール傘を買った。店員さんは「急に降ってきましたね」と笑っていた。";
+// A different passage each press.
+const pickSample = (current) => {
+  const rest = SAMPLES.filter((t) => t !== current);
+  return rest[Math.floor(Math.random() * rest.length)];
+};
 
 const flags = createFlags();
 const MOD_KEY = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘" : "Ctrl";
@@ -286,7 +289,7 @@ export default function ReadView({ onOpenSettings }) {
               </button>
               <button
                 className="btn"
-                onClick={() => setInput(SAMPLE)}
+                onClick={() => setInput(pickSample(input))}
               >
                 Try a sample
               </button>
