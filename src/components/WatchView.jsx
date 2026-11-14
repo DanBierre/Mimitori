@@ -664,7 +664,7 @@ export default function WatchView({ active, onOpenSettings }) {
             {greeting(new Date(), state.settings.name)}
           </p>
           <p className="watch__progress">
-            {tr("{n} words known · {w} this week", { n: knownCount, w: week })}
+            {tr(knownCount === 1 ? "{n} word known · {w} this week" : "{n} words known · {w} this week", { n: knownCount, w: week })}
           </p>
         </header>
       )}

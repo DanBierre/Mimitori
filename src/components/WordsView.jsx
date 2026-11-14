@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ankiMode, knownTotal, useStore, useT, wordState } from "../lib/store";
 import { anki } from "../lib/anki/useAnki";
 import { addCardFromWord } from "../lib/anki/addCard";
 import { planBatch, sendBatch, sendSaved } from "../lib/anki/batch";
 import { downloadCsv } from "../lib/exportCsv";
 import { formatInterval } from "../lib/srs";
+import { lookupWord } from "../lib/dict";
 import SceneStill from "./SceneStill";
 import { useMarker } from "../lib/useMarker";
 
@@ -49,6 +50,21 @@ export default function WordsView({ onGoWatch, onGoRead }) {
   const [open, setOpen] = useState(null);
   const [batch, setBatch] = useState(null); // null | { running, step, total } | { done: message }
 
+  // Known words keep only their key, so their reading and meaning come from the dictionary.
+  const [meanings, setMeanings] = useState({});
+  const knownKeys = Object.keys(state.known).join("|");
+  useEffect(() => {
+    const missing = Object.keys(state.known).filter((b) => !state.words[b] && !meanings[b]);
+    if (!missing.length) return;
+    let live = true;
+    Promise.all(missing.map((base) => lookupWord({ base }).then((d) => [base, d || { reading: "", glosses: [] }]))).then(
+      (found) => live && setMeanings((m) => ({ ...m, ...Object.fromEntries(found) }))
+    );
+    return () => {
+      live = false;
+    };
+  }, [knownKeys]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const rows = useMemo(() => {
     const now = new Date();
     const learning = Object.values(state.words).map((w) => ({
@@ -60,17 +76,18 @@ export default function WordsView({ onGoWatch, onGoRead }) {
       due: new Date(w.card.due),
       mark: wordState(state, w.base, now),
     }));
-    const known = Object.keys(state.known).map((base) => ({
+    learning.forEach((r) => r.mark === "inAnki" && Object.assign(r, { mark: "saved", inAnki: true }));
+    const known = Object.keys(state.known).filter((base) => !state.words[base]).map((base) => ({
       base,
-      reading: "",
-      glosses: [],
+      reading: meanings[base]?.reading || "",
+      glosses: meanings[base]?.glosses || [],
       sentence: "",
       addedAt: state.known[base],
       due: null,
       mark: "known",
     }));
     return [...learning, ...known].sort(SORTERS[sort]);
-  }, [state, sort]);
+  }, [state, sort, meanings]);
 
   const counts = useMemo(() => {
     const c = { all: rows.length, due: 0, saved: 0, known: 0 };
@@ -124,7 +141,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
 
   return (
     <section className="sheet words" aria-label={t("Words")}>
-      <p className="words__count">{t("{known} words known · {learning} learning", { known: knownTotal(state), learning: savedWords.length })}</p>
+      <p className="words__count">{t(knownTotal(state) === 1 ? "{known} word known · {learning} learning" : "{known} words known · {learning} learning", { known: knownTotal(state), learning: savedWords.length })}</p>
       <div className="words__bar">
         <div className="segmented" role="group" aria-label={t("Filter words")} ref={filterRef}>
           <span className="marker" aria-hidden="true" />
@@ -218,7 +235,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
                 aria-expanded={open === r.base}
                 onClick={() => setOpen(open === r.base ? null : r.base)}
               >
-                <span className={`words__term mk mk--${r.mark}`} lang="ja">
+                <span className={`words__term mk mk--${r.inAnki ? "inAnki" : r.mark}`} lang="ja">
                   {r.base}
                 </span>
                 <span className="words__reading" lang="ja">
@@ -227,7 +244,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
                 <span className="words__meaning">{r.glosses.slice(0, 2).join("; ")}</span>
                 <span className="words__state">
                   {r.mark === "due" && t("due now")}
-                  {r.mark === "saved" && t("in {when}", { when: t(formatInterval(r.due - new Date())) })}
+                  {r.inAnki ? t("in Anki") : r.mark === "saved" && t("in {when}", { when: t(formatInterval(r.due - new Date())) })}
                   {r.mark === "known" && t("known")}
                 </span>
               </button>

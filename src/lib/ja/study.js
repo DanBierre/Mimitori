@@ -55,6 +55,7 @@ export default {
   "Search words": "単語を検索",
   "Sort words": "単語を並べ替え",
   "{known} words known · {learning} learning": "既知{known}語 · 学習中{learning}語",
+  "{known} word known · {learning} learning": "既知{known}語 · 学習中{learning}語",
   "Exported {n} word to a CSV file. Import it in Anki with File, Import.": "{n}語をCSVファイルに書き出しました。Ankiの「ファイル」→「読み込み」で取り込めます。",
   "Exported {n} words to a CSV file. Import it in Anki with File, Import.": "{n}語をCSVファイルに書き出しました。Ankiの「ファイル」→「読み込み」で取り込めます。",
   "Save some words first": "先に単語を保存してください",

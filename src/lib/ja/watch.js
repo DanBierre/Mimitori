@@ -2,6 +2,7 @@
 export default {
   // Header
   "{n} words known · {w} this week": "既知の単語 {n}語 · 今週 {w}語",
+  "{n} word known · {w} this week": "既知の単語 {n}語 · 今週 {w}語",
 
   // Player and controls
   Player: "プレーヤー",
