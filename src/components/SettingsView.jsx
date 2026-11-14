@@ -26,9 +26,9 @@ const ago = (when, t) => {
 // Deck notes are stored as English sentences with the deck baked in, so translate by pattern.
 const deckNote = (n, t) => {
   let m = n.match(/^(.*) wasn't found in Anki$/);
-  if (m) return t("{deck} wasn't found in Anki", { deck: m[1] });
+  if (m) return t("{deck} wasn’t found in Anki", { deck: m[1] });
   m = n.match(/^Couldn't find the word field in (.*)$/);
-  return m ? t("Couldn't find the word field in {deck}", { deck: m[1] }) : n;
+  return m ? t("Couldn’t find the word field in {deck}", { deck: m[1] }) : n;
 };
 
 const plain = (v) => String(v || "").replace(/<[^>]*>/g, " ").replace(/\[sound:[^\]]*\]/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
@@ -160,7 +160,7 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
           <span id="ink-label" className="settings__label">{t("Your ink")}</span>
           <div className="inks__dots">
             {INKS.map((ink) => (
-              <label key={ink.id} className="inks__dot" style={{ "--swatch": ink.light }}>
+              <label key={ink.id} className="inks__dot" style={{ "--swatch-l": ink.light, "--swatch-d": ink.dark }}>
                 <input
                   type="radio"
                   name="ink"
@@ -169,7 +169,7 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
                   checked={inkById(state.settings.ink).id === ink.id}
                   onChange={() => setSettings({ ink: ink.id })}
                 />
-                <span className="inks__swatch" style={{ background: ink.light }} aria-hidden="true" />
+                <span className="inks__swatch" aria-hidden="true" />
                 <span className="inks__name" aria-hidden="true">{t(ink.name)}</span>
               </label>
             ))}
@@ -387,7 +387,7 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
               <span>{t("Tag words I know in Anki")}</span>
             </label>
             <p className="note">
-              {t("Adds a mimitori-known tag to cards in {deck} for words you've marked known here. Only that deck, nothing else is changed.", { deck: cfg.deck })}
+              {t("Adds a mimitori-known tag to cards in {deck} for words you’ve marked known here. Only that deck, nothing else is changed.", { deck: cfg.deck })}
             </p>
           </>
         )}
@@ -400,7 +400,7 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
           />
           <span>{t("Treat very common words as known")}</span>
         </label>
-        <p className="note">{t("About 2,000 everyday words like 何, する and いる. They won't get furigana or be suggested for Anki.")}</p>
+        <p className="note">{t("About 2,000 everyday words like 何, する and いる. They won’t get furigana or be suggested for Anki.")}</p>
 
         {(ankiMode(state) || a.queueCount > 0) && (
           <p className="note">
@@ -412,7 +412,7 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
 
         {failed.length > 0 && (
           <>
-            <p className="note note--error">{t("{n} couldn't be sent:", { n: failed.length })}</p>
+            <p className="note note--error">{t("{n} couldn’t be sent:", { n: failed.length })}</p>
             <ul className="settings__failed">
               {failed.map((f) => (
                 <li key={f.id}>
@@ -444,7 +444,7 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
         {pending && (
           <div role="alert">
             <p className="note">
-              {t("This replaces everything here ({a} saved, {b} known) with the backup ({c} saved, {d} known). Save a backup first if you're not sure.", { a: backupCounts(state).saved, b: backupCounts(state).known, c: backupCounts(pending).saved, d: backupCounts(pending).known })}
+              {t("This replaces everything here ({a} saved, {b} known) with the backup ({c} saved, {d} known). Save a backup first if you’re not sure.", { a: backupCounts(state).saved, b: backupCounts(state).known, c: backupCounts(pending).saved, d: backupCounts(pending).known })}
             </p>
             <div className="settings__row">
               <button className="btn btn--primary" onClick={() => { restoreBackup(pending); location.reload(); }}>{t("Replace")}</button>
