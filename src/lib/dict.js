@@ -63,16 +63,27 @@ function prettyPos(tags) {
 export async function lookupWord({ base, surface, reading }) {
   const dict = await loadDict();
   if (!dict) return null;
-  const entries = dict[base] || dict[surface] || (reading && dict[reading]) || null;
-  if (!entries || !entries.length) return null;
+  const key = lookupKeys({ base, surface, reading }).find((k) => dict[k]?.length);
+  const entries = key ? dict[key] : null;
+  if (!entries) return null;
   const i = pickEntry(entries, reading);
   const best = entries[i];
+  // Found through the plain word (世話 for お世話): keep the reading of the polite form itself.
+  const viaPlain = ![base, surface, reading].includes(key);
   return {
-    reading: best.r,
+    reading: viaPlain && reading ? toHira(reading) : best.r,
     glosses: best.g.slice(0, 4),
     pos: prettyPos(best.p),
     alternatives: entries.filter((_, j) => j !== i).slice(0, 2).map((e) => ({ reading: e.r, glosses: e.g.slice(0, 2) })),
   };
+}
+
+// Keys to try, in order: dictionary form, the form in the text, the reading. Polite お/ご/御 forms
+// JMdict doesn't list (お世話) fall back to the plain word (世話).
+export function lookupKeys({ base, surface, reading }) {
+  const keys = [base, surface, reading].filter(Boolean);
+  const plain = /^[おご御](?=[㐀-鿿])/.test(base || "") ? base.slice(1) : null;
+  return plain ? [...keys, plain] : keys;
 }
 
 const toHira = (s) => (s || "").replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
