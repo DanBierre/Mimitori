@@ -33,6 +33,8 @@ export default {
   "Add anyway": "それでも追加",
   "Marked as known. Furigana is hidden for it.": "知ってる単語にしました。ふりがなは隠れます。",
   "Mark as new": "新しい単語に戻す",
+  "The scene where you saved this word": "この単語を保存した場面",
+  "Known in your Anki deck. Furigana is hidden for it.": "Ankiで覚えた単語です。ふりがなは隠れます。",
   Undo: "元に戻す",
   Settings: "設定",
   // Readout

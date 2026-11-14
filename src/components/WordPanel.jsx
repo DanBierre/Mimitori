@@ -32,6 +32,8 @@ const Key = ({ k }) => (
 // In Anki mode, ankiContext = { sentence, tokens, tokenIndex, translation?, fileName?,
 // timeMs?, video?, cue?, offsetMs?, picture? (Blob), source? (string) } and the main button adds a card to Anki.
 // auto: a one-tap card from the line (a changing number); the main action runs once the meaning has loaded.
+const LOADING = { status: "loading", data: null };
+
 export default function WordPanel({ token, index, sentence, grammar = [], ankiContext, auto = 0, onSaved, onClose, onOpenSettings }) {
   const { state, saveWord, removeWord, knowWord, unknowWord, restoreWord, markInAnki } = useStore();
   const t = useT();
@@ -44,7 +46,9 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
   const rootRef = useRef(null);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
-  const [entry, setEntry] = useState({ status: "loading", data: null });
+  const [found, setEntry] = useState({ status: "loading", data: null });
+  // Until this word's own lookup lands, don't show or save the last word's meaning.
+  const entry = found.base === token.base ? found : LOADING;
 
   useEffect(() => {
     let cancelled = false;
@@ -245,7 +249,7 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
               className="btn btn--primary"
               {...hot(addToAnki ? "a" : "s")}
               onClick={addToAnki ? handleAdd : handleSave}
-              disabled={add === "adding" || add === "recording" || (addToAnki && entry.status === "loading")}
+              disabled={add === "adding" || add === "recording" || entry.status === "loading"}
             >
               <span>{addToAnki ? t("Add to Anki") : t("Save to review")}</span>
               <Key k={addToAnki ? "a" : "s"} />
@@ -281,7 +285,7 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
           <>
             <p className="word-panel__status">{t("You’ve probably met this one already, so its furigana is hidden.")}</p>
             {!addToAnki ? (
-              <button className="btn btn--primary" {...hot("s")} onClick={handleSave}>
+              <button className="btn btn--primary" {...hot("s")} onClick={handleSave} disabled={entry.status === "loading"}>
                 <span>{t("Save to review")}</span>
                 <Key k="s" />
               </button>
@@ -303,10 +307,16 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
         )}
         {mark === "known" && !commonOnly && (
           <>
-            <p className="word-panel__status">{t("Marked as known. Furigana is hidden for it.")}</p>
-            <button className="btn" onClick={() => unknowWord(token.base)}>
-              {t("Mark as new")}
-            </button>
+            {state.known[token.base] ? (
+              <>
+                <p className="word-panel__status">{t("Marked as known. Furigana is hidden for it.")}</p>
+                <button className="btn" onClick={() => unknowWord(token.base)}>
+                  {t("Mark as new")}
+                </button>
+              </>
+            ) : (
+              <p className="word-panel__status">{t("Known in your Anki deck. Furigana is hidden for it.")}</p>
+            )}
           </>
         )}
         {undo && (mark === "new" || mark === "known") && (

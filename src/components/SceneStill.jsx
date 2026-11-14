@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { getImageUrl } from "../lib/images";
+import { useT } from "../lib/store";
 
 // The still from the scene where a word was saved in Watch, if there is one.
 export default function SceneStill({ base }) {
   const [url, setUrl] = useState(null);
+  const t = useT();
 
   useEffect(() => {
     let live = true;
@@ -23,5 +25,5 @@ export default function SceneStill({ base }) {
     };
   }, [base]);
 
-  return url ? <img className="scene-still" src={url} alt="The scene where you saved this word" /> : null;
+  return url ? <img className="scene-still" src={url} alt={t("The scene where you saved this word")} /> : null;
 }
