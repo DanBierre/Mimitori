@@ -38,6 +38,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage, onCove
 
   const [rec, setRec] = useState(null);
   const recRef = useRef(null);
+  const rootRef = useRef(null);
   const [pageData, setPageData] = useState(null);
   const [pageError, setPageError] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -242,6 +243,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage, onCove
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const t = e.target;
       if (t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (!rootRef.current?.getClientRects().length) return; // Read is hidden behind another tab
       if (e.key === "ArrowLeft") go(rtl ? 1 : -1);
       else if (e.key === "ArrowRight") go(rtl ? -1 : 1);
       else if (e.key === "Home") goTo(1);
@@ -455,7 +457,7 @@ export default function BookView({ book, onClose, onOpenSettings, onPage, onCove
   const backward = rtl ? "→" : "←";
 
   return (
-    <div className="book">
+    <div className="book" ref={rootRef}>
       <div className="book__bar">
         <h2 className="book__title" title={book.title}>
           {book.title}
