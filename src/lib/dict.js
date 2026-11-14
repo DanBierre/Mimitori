@@ -65,11 +65,30 @@ export async function lookupWord({ base, surface, reading }) {
   if (!dict) return null;
   const entries = dict[base] || dict[surface] || (reading && dict[reading]) || null;
   if (!entries || !entries.length) return null;
-  const best = entries[0];
+  const i = pickEntry(entries, reading);
+  const best = entries[i];
   return {
     reading: best.r,
     glosses: best.g.slice(0, 4),
     pos: prettyPos(best.p),
-    alternatives: entries.slice(1, 3).map((e) => ({ reading: e.r, glosses: e.g.slice(0, 2) })),
+    alternatives: entries.filter((_, j) => j !== i).slice(0, 2).map((e) => ({ reading: e.r, glosses: e.g.slice(0, 2) })),
   };
+}
+
+const toHira = (s) => (s || "").replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
+
+// Which entry fits how the word was read in the text: 降る read ふる is "to fall", not くだる "to descend".
+// The token's reading is of the form in the text (降った → ふった), so the longest shared start wins;
+// ties keep JMdict's own order.
+export function pickEntry(entries, reading) {
+  const r = toHira(reading);
+  let best = 0;
+  let top = 0;
+  entries.forEach((e, i) => {
+    const er = toHira(e.r);
+    let n = 0;
+    while (n < er.length && n < r.length && er[n] === r[n]) n++;
+    if (n > top) [best, top] = [i, n];
+  });
+  return best;
 }
