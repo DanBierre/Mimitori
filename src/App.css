@@ -245,6 +245,8 @@
 .app__lang:lang(ja) {
   font-family: var(--serif);
   font-size: 17px;
+  line-height: 1;
+  padding-top: 5px; /* the serif あ sits high in its box; this lines it up with the icons */
 }
 
 .icon-btn[aria-current="page"] {
