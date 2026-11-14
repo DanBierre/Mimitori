@@ -1,5 +1,5 @@
 // useAnki.js
-// One shared AnkiConnect client plus the status, lists and known-word sync the
+// One shared Anki client (Mimitori add-on, else AnkiConnect) plus the status, lists and known-word sync the
 // UI needs. Pass active=false to stay silent (no requests) until Anki is wanted.
 
 import { useCallback, useEffect, useRef, useState } from "react";

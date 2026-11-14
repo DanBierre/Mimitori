@@ -4,9 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "predev": "node scripts/copy-pdfjs-assets.mjs",
+    "addon": "node scripts/build-addon.mjs",
+    "predev": "node scripts/copy-pdfjs-assets.mjs && node scripts/build-addon.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/copy-pdfjs-assets.mjs",
+    "prebuild": "node scripts/copy-pdfjs-assets.mjs && node scripts/build-addon.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "build:dict": "node scripts/build-jmdict.mjs",

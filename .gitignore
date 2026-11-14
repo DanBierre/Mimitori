@@ -6,3 +6,5 @@ android/
 .DS_Store
 fixtures/book/*.png
 public/pdfjs/
+public/mimitori.ankiaddon
+__pycache__/

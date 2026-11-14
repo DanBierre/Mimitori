@@ -80,8 +80,8 @@ export default {
   "Checking Anki…": "Ankiを確認中…",
   "Connected to Anki.": "Ankiに接続しました。",
   "Anki isn't reachable. Open Anki, then press Connect.": "Ankiに接続できません。Ankiを開いてから「接続」を押してください。",
-  "Your AnkiConnect add-on is out of date. Update it in Anki (Tools, Add-ons), then press Connect.":
-    "AnkiConnectアドオンが古くなっています。Ankiの「ツール」→「アドオン」で更新してから、「接続」を押してください。",
+  "Your Anki add-on is out of date. Update it in Anki (Tools, Add-ons), then press Connect.":
+    "Ankiのアドオンが古くなっています。Ankiの「ツール」→「アドオン」で更新してから、「接続」を押してください。",
   "Anki said no. Press Connect again and choose Yes in the box Anki shows.":
     "Ankiに拒否されました。もう一度「接続」を押し、Ankiに出るボックスで「はい」を選んでください。",
   never: "未同期",
@@ -129,9 +129,10 @@ export default {
   "Anki sync works on a computer. On your phone, export your words as a CSV from the Words tab.":
     "Anki連携はパソコン用です。スマホでは、「単語」タブから単語をCSVで書き出してください。",
   "Open Anki on this computer.": "このパソコンでAnkiを開く。",
-  "Install the AnkiConnect add-on (Tools, Add-ons, Get Add-ons, code 2055492159), then restart Anki.":
-    "AnkiConnectアドオンを入れる（ツール → アドオン → アドオンを入手、コード 2055492159）。入れたらAnkiを再起動する。",
-  "Press Connect and choose Yes in the box Anki shows.": "「接続」を押し、Ankiに出るボックスで「はい」を選ぶ。",
+  "Download the Mimitori add-on": "Mimitoriアドオンをダウンロードする",
+  "Double-click the downloaded file to install it, then restart Anki.": "ダウンロードしたファイルをダブルクリックして入れ、Ankiを再起動する。",
+  "Press Connect.": "「接続」を押す。",
+  "Already set up AnkiConnect? That still works.": "AnkiConnectを設定済みなら、そのままでも使えます。",
   Connect: "接続",
   Deck: "デッキ",
   "Choose a deck…": "デッキを選ぶ…",

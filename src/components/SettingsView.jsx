@@ -12,7 +12,7 @@ const STATUS_TEXT = {
   checking: "Checking Anki…",
   ok: "Connected to Anki.",
   unreachable: "Anki isn't reachable. Open Anki, then press Connect.",
-  outdated: "Your AnkiConnect add-on is out of date. Update it in Anki (Tools, Add-ons), then press Connect.",
+  outdated: "Your Anki add-on is out of date. Update it in Anki (Tools, Add-ons), then press Connect.",
   forbidden: "Anki said no. Press Connect again and choose Yes in the box Anki shows.",
 };
 
@@ -242,9 +242,11 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
           <>
             <ol className="settings__steps">
               <li>{t("Open Anki on this computer.")}</li>
-              <li>{t("Install the AnkiConnect add-on (Tools, Add-ons, Get Add-ons, code 2055492159), then restart Anki.")}</li>
-              <li>{t("Press Connect and choose Yes in the box Anki shows.")}</li>
+              <li><a href="/mimitori.ankiaddon" download>{t("Download the Mimitori add-on")}</a></li>
+              <li>{t("Double-click the downloaded file to install it, then restart Anki.")}</li>
+              <li>{t("Press Connect.")}</li>
             </ol>
+            <p className="note">{t("Already set up AnkiConnect? That still works.")}</p>
             <button
               className="btn btn--primary"
               onClick={() => {
