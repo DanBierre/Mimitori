@@ -1352,6 +1352,10 @@ rt.rt--known {
   margin-top: 18px;
 }
 
+.watch__one-tap {
+  margin: 10px 0 0 -8px;
+}
+
 .readout {
   width: 100%;
   border-collapse: collapse;

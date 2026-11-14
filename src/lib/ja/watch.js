@@ -162,4 +162,6 @@ export default {
   "Download .srt": ".srtを保存",
   "You stopped part-way through.": "途中で止まりました。",
   "This computer will take about as long as the video, maybe longer.": "このコンピューターでは動画と同じくらい、またはそれ以上かかりそうです。",
+  "Save this line to review": "この行を復習に保存",
+  "Add this line to Anki": "この行をAnkiに追加",
 };

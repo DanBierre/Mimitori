@@ -5,7 +5,7 @@
 
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from "react";
 import { becameKnown, dailyQueue, gradeCard, newCard } from "./srs";
-import { deleteImage } from "./images";
+import { binImage, unbinImage } from "./images";
 import { loadCommon } from "./common";
 import { applyInk, applyTheme } from "./ink";
 export { ankiMode, wordState } from "./anki/settingsLogic";
@@ -148,23 +148,24 @@ export function StoreProvider({ children }) {
     () => ({
       state,
       saveWord: (entry) => dispatch({ type: "save", entry }),
-      // Scene stills live in IndexedDB; drop them when the word leaves the list.
+      // Scene stills live in IndexedDB; drop them when the word leaves the list,
+      // keeping a copy in memory for Undo.
       removeWord: (base) => {
         dispatch({ type: "remove", base });
-        deleteImage(base);
+        binImage(base);
       },
       knowWord: (base) => {
         dispatch({ type: "know", base });
-        deleteImage(base);
+        binImage(base);
         knownChanged();
       },
       unknowWord: (base) => {
         dispatch({ type: "unknow", base });
         knownChanged();
       },
-      // The scene still was already deleted with the word, so an undone word comes back without it.
       restoreWord: (word) => {
         dispatch({ type: "restore", word });
+        unbinImage(word.base);
         knownChanged();
       },
       grade: (base, rating) => dispatch({ type: "grade", base, rating }),

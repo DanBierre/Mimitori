@@ -10,7 +10,7 @@ export function cleanBookRecents(raw) {
   if (!Array.isArray(raw)) return [];
   return raw
     .filter((r) => r && typeof r.key === "string" && typeof r.name === "string")
-    .map((r) => ({ key: r.key, name: r.name, page: num(r.page), pageCount: num(r.pageCount), watchedAt: num(r.watchedAt) ?? 0 }))
+    .map((r) => ({ key: r.key, name: r.name, page: num(r.page), pageCount: num(r.pageCount), coverage: num(r.coverage), watchedAt: num(r.watchedAt) ?? 0 }))
     .sort((a, b) => b.watchedAt - a.watchedAt)
     .slice(0, MAX_RECENTS);
 }

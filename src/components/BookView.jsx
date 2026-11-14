@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useStore, useT } from "../lib/store";
+import { useStore, useT, wordState } from "../lib/store";
+import { coverageOf } from "../lib/coverage";
 import { tokenizeWithReadings } from "../lib/furigana";
 import { sentenceAround, sentenceContext } from "../lib/sentence";
 import { conjugationParts } from "../lib/conjugation";
@@ -29,7 +30,7 @@ const ocrError = (code) => OCR_ERRORS[code] || "Couldn't read that. Try a tighte
 
 // The book viewer: toolbar, the page with its boxes, and a side column with this page's lines and the word card.
 // ReadView closes the book (book.close()) when onClose runs.
-export default function BookView({ book, onClose, onOpenSettings, onPage }) {
+export default function BookView({ book, onClose, onOpenSettings, onPage, onCoverage }) {
   const { state } = useStore();
   const t = useT();
   const ocr = useOcr();
@@ -104,10 +105,11 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
     if (book.kind !== "pdf") ocr.load();
   }, [book, ocr.load]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Tokenize the lines on this page (once per text).
+  // Tokenize every line read so far (once per text): this page's for the side column, the lot for the score.
+  const allLines = useMemo(() => Object.values(rec?.lines || {}).flat(), [rec]);
   useEffect(() => {
     let live = true;
-    for (const l of lines) {
+    for (const l of allLines) {
       if (tokensByText[l.text]) continue;
       tokenizeWithReadings(l.text)
         .then((t) => live && setTokensByText((m) => (m[l.text] ? m : { ...m, [l.text]: t })))
@@ -116,7 +118,17 @@ export default function BookView({ book, onClose, onOpenSettings, onPage }) {
     return () => {
       live = false;
     };
-  }, [lines, tokensByText]);
+  }, [allLines, tokensByText]);
+
+  // How much of the book is known, from the lines read so far. ReadView shows it in Carry on reading.
+  const coverage = useMemo(
+    () => coverageOf(allLines.map((l) => tokensByText[l.text]), (base) => wordState(state, base) === "known"),
+    [allLines, tokensByText, state],
+  );
+  useEffect(() => {
+    if (coverage !== null) onCoverage?.(coverage);
+  }, [coverage]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const tokensById = {};
   for (const l of lines) if (tokensByText[l.text]) tokensById[l.id] = tokensByText[l.text];
 

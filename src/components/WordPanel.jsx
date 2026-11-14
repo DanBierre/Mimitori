@@ -31,7 +31,8 @@ const Key = ({ k }) => (
 
 // In Anki mode, ankiContext = { sentence, tokens, tokenIndex, translation?, fileName?,
 // timeMs?, video?, cue?, offsetMs?, picture? (Blob), source? (string) } and the main button adds a card to Anki.
-export default function WordPanel({ token, index, sentence, grammar = [], ankiContext, onSaved, onClose, onOpenSettings }) {
+// auto: a one-tap card from the line (a changing number); the main action runs once the meaning has loaded.
+export default function WordPanel({ token, index, sentence, grammar = [], ankiContext, auto = 0, onSaved, onClose, onOpenSettings }) {
   const { state, saveWord, removeWord, knowWord, unknowWord, restoreWord, markInAnki } = useStore();
   const t = useT();
   const [add, setAdd] = useState(null); // null | key of ADD_STATUS | "queued" | { error }
@@ -49,7 +50,7 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
     let cancelled = false;
     setEntry({ status: "loading", data: null });
     lookupWord({ base: token.base, surface: token.surface, reading: token.reading }).then((data) => {
-      if (!cancelled) setEntry({ status: data ? "ready" : "missing", data });
+      if (!cancelled) setEntry({ status: data ? "ready" : "missing", data, base: token.base });
     });
     return () => {
       cancelled = true;
@@ -143,6 +144,14 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
     if (typeof result === "object") return setAdd(result);
     setAdd(result === "added" && noAudio.current ? "noAudio" : result);
   }
+
+  const autoDone = useRef(0);
+  useEffect(() => {
+    if (!auto || autoDone.current === auto || entry.base !== token.base || mark !== "new") return;
+    autoDone.current = auto;
+    if (addToAnki) handleAdd();
+    else handleSave();
+  }, [auto, entry, mark]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addStatus =
     add === "queued" ? t("Waiting for Anki ({n})", { n: waiting }) : typeof add === "object" && add ? t(add.error) : ADD_STATUS[add] ? t(ADD_STATUS[add]) : ADD_STATUS[add];

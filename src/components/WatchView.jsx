@@ -538,11 +538,12 @@ export default function WatchView({ active, onOpenSettings }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [active]);
 
-  function selectWord(i) {
+  // auto: one-tap card from the line, so the word card saves or adds it straight away.
+  function selectWord(i, auto = 0) {
     if (i === null) return closeCard();
     if (!selection) resumeRef.current = Boolean(videoRef.current && !videoRef.current.paused);
     videoRef.current?.pause();
-    setSelection({ cue: current, token: i });
+    setSelection({ cue: current, token: i, auto });
   }
 
   function closeCard() {
@@ -612,6 +613,8 @@ export default function WatchView({ active, onOpenSettings }) {
     .flatMap((tk, i) => (tk.isWord && wordState(state, tk.base) !== "known" ? [i] : []))
     .slice(0, 9);
   const selectedNumber = selection && selection.cue === current ? picks.indexOf(selection.token) + 1 : 0;
+  // A line with just one new word is a ready-made sentence card: one tap makes it.
+  const onlyNew = picks.length === 1 && wordState(state, lineTokens[picks[0]].base) === "new" ? picks[0] : null;
 
   const entry = selectedToken && (
     <WordPanel
@@ -620,6 +623,7 @@ export default function WatchView({ active, onOpenSettings }) {
       sentence={primary.cues[selection.cue].text.replace(/\n/g, "")}
       grammar={conjugationParts(tokens[selection.cue], selection.token)}
       ankiContext={ankiContext()}
+      auto={selection.auto}
       onOpenSettings={onOpenSettings}
       onSaved={(base) => captureFrame(videoRef.current).then((blob) => blob && putImage(base, blob))}
       onClose={closeCard}
@@ -871,6 +875,11 @@ export default function WatchView({ active, onOpenSettings }) {
               selected={selection?.cue === current ? selection.token : null}
               onSelect={selectWord}
             />
+            {onlyNew !== null && (
+              <button className="btn btn--quiet watch__one-tap" onMouseDown={(e) => e.preventDefault()} onClick={() => selectWord(onlyNew, Date.now())}>
+                {showReview ? tr("Save this line to review") : tr("Add this line to Anki")}
+              </button>
+            )}
             <p className="watch__keys only-fine" aria-hidden="true">
               <span>
                 <kbd>{showReview ? "S" : "A"}</kbd> {showReview ? tr("save to review") : tr("add to Anki")}

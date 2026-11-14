@@ -175,6 +175,8 @@ export default function ReadView({ onOpenSettings }) {
   function savePage(page) {
     setBookRecents(upsertRecent(recentsRef.current, { key: book.key, name: book.title, page, pageCount: book.pageCount }));
   }
+  const saveCoverage = (coverage) =>
+    setBookRecents(upsertRecent(recentsRef.current, { key: book.key, name: book.title, pageCount: book.pageCount, coverage }));
 
   // Drops a book from "Carry on reading", cover and all. The file itself was never kept.
   const removeRecent = (key) => setBookRecents(recentsRef.current.filter((r) => r.key !== key));
@@ -258,7 +260,7 @@ export default function ReadView({ onOpenSettings }) {
   if (book) {
     return (
       <Suspense fallback={<p className="note">{t("Opening…")}</p>}>
-        <BookView book={book} onClose={closeBook} onOpenSettings={onOpenSettings} onPage={savePage} />
+        <BookView book={book} onClose={closeBook} onOpenSettings={onOpenSettings} onPage={savePage} onCoverage={saveCoverage} />
       </Suspense>
     );
   }
@@ -327,7 +329,10 @@ export default function ReadView({ onOpenSettings }) {
                           <span className="recents__name" title={r.name}>
                             {r.name}
                           </span>
-                          <span className="recents__stop">{r.page && r.pageCount ? t("p. {page} / {count}", { page: r.page, count: r.pageCount }) : ""}</span>
+                          <span className="recents__stop">
+                            {r.coverage !== null && <span className="recents__pct">{t("{n}% known", { n: r.coverage })} · </span>}
+                            {r.page && r.pageCount ? t("p. {page} / {count}", { page: r.page, count: r.pageCount }) : ""}
+                          </span>
                           <button
                             className="btn btn--quiet recents__go row-action"
                             aria-label={t("Open {name} again", { name: r.name })}

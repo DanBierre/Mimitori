@@ -9,7 +9,7 @@ test("cleanBookRecents drops junk rows and keeps 12, newest first", () => {
   assert.equal(out.length, 12);
   assert.equal(out[0].key, "k19");
   assert.deepEqual(cleanBookRecents([{ key: "x", name: "X", page: "7", pageCount: 9, watchedAt: 1 }])[0], {
-    key: "x", name: "X", page: null, pageCount: 9, watchedAt: 1,
+    key: "x", name: "X", page: null, pageCount: 9, coverage: null, watchedAt: 1,
   });
   assert.deepEqual(cleanBookRecents("nope"), []);
 });
@@ -22,4 +22,8 @@ test("loadBookRecents returns [] when storage throws", () => {
 test("keys", () => {
   assert.equal(BOOK_RECENTS_KEY, "mimitori:books");
   assert.equal(coverKey("a|1|2"), "book:a|1|2");
+});
+
+test("cleanBookRecents keeps the known-words score", () => {
+  assert.equal(cleanBookRecents([{ key: "x", name: "X", coverage: 82 }])[0].coverage, 82);
 });

@@ -34,16 +34,33 @@ async function run(mode, action) {
   });
 }
 
-export const putImage = (base, blob) => run("readwrite", (s) => s.put(blob, base)).catch(() => {});
+export const putImage = (base, blob) => {
+  binned.delete(base); // a fresh still beats an old one waiting for Undo
+  return run("readwrite", (s) => s.put(blob, base)).catch(() => {});
+};
 export const deleteImage = (base) => run("readwrite", (s) => s.delete(base)).catch(() => {});
+const getImage = (base) => run("readonly", (s) => s.get(base)).catch(() => null);
 
 export async function getImageUrl(base) {
-  try {
-    const blob = await run("readonly", (s) => s.get(base));
-    return blob ? URL.createObjectURL(blob) : null;
-  } catch {
-    return null;
+  const blob = await getImage(base);
+  return blob ? URL.createObjectURL(blob) : null;
+}
+
+// The last few stills dropped with a word, held in memory so Undo can put one back.
+const binned = new Map();
+export async function binImage(base) {
+  const blob = await getImage(base);
+  if (blob) {
+    binned.delete(base);
+    binned.set(base, blob);
+    if (binned.size > 10) binned.delete(binned.keys().next().value);
   }
+  return deleteImage(base);
+}
+export function unbinImage(base) {
+  const blob = binned.get(base);
+  binned.delete(base);
+  return blob ? putImage(base, blob) : Promise.resolve();
 }
 
 // Current video frame as a JPEG (480px wide unless told otherwise), or null.
