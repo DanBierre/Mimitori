@@ -12,7 +12,7 @@ import { loadBookRecents, saveBookRecents, coverKey } from "../lib/book/recents"
 import { upsertRecent, droppedKeys } from "../lib/recents";
 import { putImage, getImageUrl, deleteImage } from "../lib/images";
 import { createFlags } from "../lib/firstRun";
-import Icon from "./Icon";
+import { filesFromDrop, pickBookFiles } from "../lib/book/drop";
 import { SAMPLES } from "../lib/samples";
 // The viewer, pdf.js and the book code load only when a book opens.
 const BookView = lazy(() => import("./BookView"));
@@ -56,6 +56,20 @@ function Cover({ id }) {
     };
   }, [id]);
   return <span className="recents__thumb">{src && <img src={src} alt="" loading="lazy" decoding="async" />}</span>;
+}
+
+// A manga page with one speech bubble boxed, the way a reader picks a line to read.
+function BookFigure() {
+  return (
+    <svg className="read__figure" viewBox="0 0 128 176" width="96" height="132" aria-hidden="true">
+      <rect className="read__figure-paper" x="0.5" y="0.5" width="127" height="175" />
+      <path d="M10 10h108v62H10zM10 80h50v86H10zM68 80h50v40H68zM68 128h50v38H68z" />
+      <ellipse className="read__figure-bub" cx="88" cy="32" rx="17" ry="13" />
+      <ellipse className="read__figure-bub" cx="35" cy="104" rx="13" ry="16" />
+      <path className="read__figure-text" d="M96 18v28M90 20v24M84 22v18" />
+      <rect className="read__figure-box" x="66" y="14" width="42" height="36" />
+    </svg>
+  );
 }
 
 export default function ReadView({ onOpenSettings }) {
@@ -125,7 +139,7 @@ export default function ReadView({ onOpenSettings }) {
   useEffect(() => () => bookRef.current?.close(), []);
 
   async function openFiles(list) {
-    const files = [...list];
+    const files = pickBookFiles([...list]);
     if (!files.length || opening) return;
     setOpening(true);
     setBookError("");
@@ -255,121 +269,126 @@ export default function ReadView({ onOpenSettings }) {
       onDrop={(e) => {
         e.preventDefault();
         setDropping(false);
-        openFiles(e.dataTransfer.files);
+        // a read error here is the disk, not the book
+        filesFromDrop(e.dataTransfer).then(openFiles, () => setBookError(BOOK_ERRORS.broken));
       }}
     >
       <section className="sheet read__sheet" aria-label="Reading sheet">
         {!tokens ? (
           <div className="read__compose">
             <h2 className="read__head">Read real Japanese.</h2>
-            <p className="read__lede" id="paste-hint">
-              Paste anything you’re reading, then tap a word for its reading and meaning.
-            </p>
-            <textarea
-              id="paste"
-              ref={pasteRef}
-              className="read__input"
-              lang="ja"
-              aria-label="Japanese text to read"
-              aria-describedby="paste-hint"
-              placeholder="ここに日本語を貼り付けてください"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                  e.preventDefault();
-                  handleLookup();
-                }
-              }}
-              rows={5}
-            />
-            <div className="read__compose-actions">
-              <button className="btn btn--primary" onClick={handleLookup} disabled={status === "loading"}>
-                {status === "loading" ? "Reading…" : "Read this"}
-              </button>
-              <button
-                className="btn"
-                onClick={() => setInput(pickSample(input))}
-              >
-                Try a sample
-              </button>
-              {input && (
-                <button
-                  className="btn btn--quiet"
-                  onClick={() => {
-                    setInput("");
-                    pasteRef.current?.focus();
-                  }}
-                >
-                  Clear
-                </button>
-              )}
-              <span className="read__keys" aria-hidden="true">
-                <kbd>{MOD_KEY}</kbd> <kbd>Enter</kbd> to read
-              </span>
-            </div>
-            {status === "error" && (
-              <p className="note note--error" role="alert">
-                {error}
-              </p>
-            )}
+            <p className="read__lede">Open a manga or PDF, or paste any text. Tap a word for its reading and meaning.</p>
 
-            <p className="read__or">or open a book</p>
-            <div className="read__book">
-              <span className="read__book-icon" aria-hidden="true">
-                <Icon name="read" size={26} />
-              </span>
-              <div className="read__book-text">
-                <p className="read__book-title">Manga or a PDF?</p>
-                <p className="read__book-hint">
-                  <span className="only-fine">Drop a CBZ, PDF or folder of pages here. </span>
-                  <span className="only-touch">Open a CBZ or PDF. </span>
-                  Box a speech bubble to read it. Nothing leaves your device.
-                </p>
-              </div>
-              <div className="read__book-actions">
-                <button className="btn" onClick={() => fileInput.current.click()} disabled={opening}>
-                  {opening ? "Opening…" : "Choose a file"}
-                </button>
-                <button className="btn only-fine" onClick={() => folderInput.current.click()} disabled={opening}>
-                  Folder of pages
-                </button>
-              </div>
-              <input ref={fileInput} type="file" hidden multiple accept=".pdf,.cbz,.zip,image/*" onChange={onPicked} />
-              <input ref={folderInput} type="file" hidden webkitdirectory="" onChange={onPicked} />
-            </div>
-            {bookError && (
-              <p className="note note--error" role="alert">
-                {bookError}
-              </p>
-            )}
+            <div className="read__doors">
+              <section className="read__door read__door--book" aria-labelledby="door-book">
+                <h3 id="door-book" className="read__door-title">
+                  A manga or PDF <span className="read__door-tag">CBZ · PDF · pages</span>
+                </h3>
+                <p className="read__door-hint">Box a speech bubble to read it. Nothing leaves your device.</p>
+                <div className="read__drop">
+                  <BookFigure />
+                  <p className="read__drop-say only-fine" aria-live="polite">
+                    {dropping ? "Let go to open it" : "Drop a file or a folder of pages here"}
+                  </p>
+                  <div className="read__drop-actions">
+                    <button className="btn btn--primary" onClick={() => fileInput.current.click()} disabled={opening}>
+                      {opening ? "Opening…" : "Choose a file"}
+                    </button>
+                    <button className="btn only-fine" onClick={() => folderInput.current.click()} disabled={opening}>
+                      Folder of pages
+                    </button>
+                  </div>
+                  <input ref={fileInput} type="file" hidden multiple accept=".pdf,.cbz,.zip,image/*" onChange={onPicked} />
+                  <input ref={folderInput} type="file" hidden webkitdirectory="" onChange={onPicked} />
+                </div>
+                {bookError && (
+                  <p className="note note--error" role="alert">
+                    {bookError}
+                  </p>
+                )}
 
-            {recents.length > 0 && (
-              <section className="recents recents--books" aria-labelledby="book-recents">
-                <h2 id="book-recents" className="recents__title">
-                  Carry on reading
-                </h2>
-                <p className="recents__note">Mimitori never keeps a copy of your files, so pick the same one again to carry on.</p>
-                <ul className="recents__list">
-                  {recents.map((r) => (
-                    <li key={r.key} className="recents__row">
-                      <Cover id={r.key} />
-                      <span className="recents__name" title={r.name}>
-                        {r.name}
-                      </span>
-                      <span className="recents__stop">{r.page && r.pageCount ? `p. ${r.page} of ${r.pageCount}` : ""}</span>
-                      <button
-                        className="btn btn--quiet recents__go row-action"
-                        aria-label={`Open ${r.name} again`}
-                        onClick={() => fileInput.current.click()}
-                      >
-                        Open
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                {recents.length > 0 && (
+                  <section className="recents recents--books" aria-labelledby="book-recents">
+                    <h4 id="book-recents" className="recents__title">
+                      Carry on reading
+                    </h4>
+                    <p className="recents__note">Mimitori never keeps a copy of your files, so pick the same one again to carry on.</p>
+                    <ul className="recents__list">
+                      {recents.map((r) => (
+                        <li key={r.key} className="recents__row">
+                          <Cover id={r.key} />
+                          <span className="recents__name" title={r.name}>
+                            {r.name}
+                          </span>
+                          <span className="recents__stop">{r.page && r.pageCount ? `p. ${r.page} / ${r.pageCount}` : ""}</span>
+                          <button
+                            className="btn btn--quiet recents__go row-action"
+                            aria-label={`Open ${r.name} again`}
+                            onClick={() => fileInput.current.click()}
+                          >
+                            Open
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
               </section>
-            )}
+
+              <section className="read__door read__door--text" aria-labelledby="door-text">
+                <h3 id="door-text" className="read__door-title">
+                  Some text <span className="read__door-tag">paste</span>
+                </h3>
+                <p className="read__door-hint" id="paste-hint">
+                  News, a game script, a message from a mate.
+                </p>
+                <textarea
+                  id="paste"
+                  ref={pasteRef}
+                  className="read__input"
+                  lang="ja"
+                  aria-label="Japanese text to read"
+                  aria-describedby="paste-hint"
+                  placeholder="ここに日本語を貼り付けてください"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                      e.preventDefault();
+                      handleLookup();
+                    }
+                  }}
+                  rows={5}
+                />
+                <div className="read__compose-actions">
+                  <button className="btn" onClick={handleLookup} disabled={status === "loading"}>
+                    {status === "loading" ? "Reading…" : "Read this"}
+                  </button>
+                  <button className="btn btn--quiet" onClick={() => setInput(pickSample(input))}>
+                    Try a sample
+                  </button>
+                  {input && (
+                    <button
+                      className="btn btn--quiet"
+                      onClick={() => {
+                        setInput("");
+                        pasteRef.current?.focus();
+                      }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                  <span className="read__keys" aria-hidden="true">
+                    <kbd>{MOD_KEY}</kbd> <kbd>Enter</kbd>
+                  </span>
+                </div>
+                {status === "error" && (
+                  <p className="note note--error" role="alert">
+                    {error}
+                  </p>
+                )}
+              </section>
+            </div>
           </div>
         ) : (
           <>

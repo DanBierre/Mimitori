@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Read, manga first</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Noto+Sans+JP:wght@400;500&family=Noto+Serif+JP:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* Tokens from DESIGN.md: Lexicon x Instrument, ink blue. */
+  .app { --page:#fbfbfc; --surface:#fff; --s2:#f3f4f6; --s3:#e3e5ea; --line:#e3e5ea; --soft:#eef0f3; --strong:#cdd1d8;
+         --text:#15171c; --t2:#5d6370; --t3:#6b717d; --ink:#2747d1; --ink-s:color-mix(in srgb, var(--ink) 90%, #000);
+         --mark:color-mix(in srgb, var(--ink) 16%, transparent); --on:#fff; }
+  .dark .app { --page:#111317; --surface:#16191e; --s2:#1d2026; --s3:#262a31; --line:#262a31; --soft:#1d2026; --strong:#3a3f48;
+         --text:#eceef2; --t2:#a3a9b5; --t3:#858b97; --ink:#8ea3ff; --ink-s:var(--ink); --on:#111317; }
+  :root { --serif:"Newsreader","Noto Serif JP",serif; --sans:"Noto Sans JP",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace; }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e9eaed; color: #15171c; font: 16px/1.55 var(--sans); }
+  body.dark { background: #08090b; color: #eceef2; }
+  .wrap { max-width: 1480px; margin: 0 auto; padding: 40px 24px 96px; }
+  .top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+  h1 { font: 500 34px/1.15 var(--serif); margin: 0 0 6px; }
+  .lede { margin: 0; max-width: 760px; color: #5d6370; }
+  .dark .lede { color: #a3a9b5; }
+  .switches { display: flex; gap: 8px; }
+  .switches button { font: 14px var(--sans); height: 36px; padding: 0 14px; background: transparent; color: inherit; border: 1px solid #b9bdc5; cursor: pointer; }
+  .switches button[aria-pressed="true"] { background: #15171c; color: #fff; border-color: #15171c; }
+  .dark .switches button[aria-pressed="true"] { background: #eceef2; color: #111317; }
+
+  .option { margin-top: 64px; }
+  .option > header { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: baseline; border-top: 2px solid currentColor; padding-top: 12px; margin-bottom: 20px; }
+  .option .no { font: 500 13px var(--mono); }
+  .option h2 { font: 400 26px/1.2 var(--serif); margin: 0; }
+  .option header p { grid-column: 2; margin: 0; max-width: 820px; color: #5d6370; font-size: 15px; }
+  .dark .option header p { color: #a3a9b5; }
+  .frames { display: grid; grid-template-columns: minmax(0, 1fr) 375px; gap: 24px; align-items: start; }
+  @media (max-width: 1100px) { .frames { grid-template-columns: 1fr; } .frames .phone { max-width: 375px; } }
+  .frame-label { font: 500 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #6b717d; margin: 0 0 8px; }
+
+  /* App shell */
+  .app { container-type: inline-size; background: var(--page); color: var(--text); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+         box-shadow: 0 30px 60px -36px rgb(0 0 0 / .45); font: 14px/1.6 var(--sans); }
+  .bar { display: flex; align-items: center; gap: 36px; height: 50px; padding: 0 28px; border-bottom: 1px solid var(--line); }
+  .logo { display: flex; align-items: center; gap: 8px; font: 500 18px var(--serif); }
+  .nav { display: flex; gap: 26px; height: 100%; }
+  .nav span { display: flex; align-items: center; color: var(--t2); }
+  .nav .on { color: var(--text); box-shadow: inset 0 -2px 0 var(--text); }
+  .bar .icons { margin-left: auto; display: flex; gap: 16px; color: var(--t2); }
+  .tabbar { display: none; }
+  .body { padding: 44px 28px 56px; }
+  .col { max-width: 760px; margin-inline: auto; }
+
+  .head { font: 500 34px/1.2 var(--serif); letter-spacing: -.01em; margin: 0 0 6px; text-wrap: balance; }
+  .sub { font-size: 15px; color: var(--t2); margin: 0 0 28px; max-width: 60ch; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 16px; font: 14px var(--sans); color: var(--text);
+         background: transparent; border: 1px solid var(--strong); cursor: pointer; white-space: nowrap; }
+  .btn:hover { background: color-mix(in srgb, var(--text) 5%, transparent); }
+  .btn--primary { background: var(--ink-s); border-color: var(--ink-s); color: var(--on); }
+  .btn--primary:hover { background: var(--ink-s); }
+  .btn--quiet { border-color: transparent; color: var(--t2); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .keys { margin-left: auto; font: 12px var(--mono); color: var(--t3); }
+  kbd { font: 11px var(--mono); color: var(--text); border: 1px solid var(--strong); border-bottom-width: 2px; padding: 0 5px; }
+  textarea { display: block; width: 100%; resize: vertical; padding: 14px 16px; font: 400 18px/1.95 var(--serif); color: var(--text);
+             background: transparent; border: 1px solid var(--strong); border-radius: 0; }
+  textarea::placeholder { color: var(--t3); }
+  .mono-label { font: 500 10px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--t3); }
+  .note { font-size: 13px; color: var(--t3); margin: 0; }
+
+  /* The drawn page: a manga page in hairlines, one bubble boxed in ink. */
+  .page-fig { flex: none; color: var(--strong); }
+  .page-fig .box { stroke: var(--ink); }
+  .page-fig .bub { fill: var(--page); stroke: var(--t3); }
+  .page-fig .paper { fill: var(--surface); }
+
+  /* Drop target, shared states */
+  .drop { position: relative; transition: background-color .15s cubic-bezier(.22,1,.36,1), outline-color .15s; outline: 1px dashed transparent; outline-offset: -1px; }
+  .dragging .drop { background: color-mix(in srgb, var(--ink) 6%, transparent); outline-color: var(--ink-s); }
+  .drop .say-drop { display: none; }
+  .dragging .drop .say-drop { display: block; }
+  .dragging .drop .say-idle { display: none; }
+  .drop-title { font: 400 26px/1.25 var(--serif); margin: 0 0 6px; text-wrap: balance; }
+  .drop-hint { font-size: 14px; color: var(--t2); margin: 0 0 18px; max-width: 46ch; }
+  .formats { font: 12px var(--mono); color: var(--t3); margin: 14px 0 0; }
+
+  /* Covers: a page thumbnail, square, hairline */
+  .cover { display: block; background: var(--s2); border: 1px solid var(--line); position: relative; overflow: hidden; }
+  .cover::before, .cover::after { content: ""; position: absolute; border: 1px solid var(--strong); }
+  .cover::before { inset: 8% 8% 52% 8%; }
+  .cover::after { inset: 52% 8% 8% 40%; }
+  .cover.c2::before { inset: 8% 45% 30% 8%; } .cover.c2::after { inset: 8% 8% 55% 58%; }
+  .cover.c3::before { inset: 8% 8% 70% 8%; } .cover.c3::after { inset: 34% 8% 8% 8%; }
+  .pnum { font: 12px var(--mono); color: var(--t3); }
+  .bar4 { display: block; height: 2px; background: var(--soft); margin-top: 6px; }
+  .bar4 i { display: block; height: 100%; background: var(--text); }
+
+  /* ===== Option 1: Book on top, paste below ===== */
+  .o1 .drop { display: flex; gap: 32px; align-items: center; padding: 28px 28px 28px 32px; border-top: 2px solid var(--text); border-bottom: 1px solid var(--line); }
+  .o1 .shelf { margin: 28px 0 0; }
+  .o1 .shelf h3, .o1 .paste h3 { font: 400 19px var(--serif); margin: 0 0 12px; }
+  .o1 .shelf ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 112px)); gap: 20px; }
+  .o1 .shelf .cover { aspect-ratio: 5 / 7; }
+  .o1 .shelf .t { display: block; margin-top: 8px; font: 400 15px/1.35 var(--serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .o1 .paste { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .o1 .paste textarea { min-height: 96px; margin-bottom: 12px; }
+  @container (max-width: 560px) {
+    .o1 .drop { flex-direction: column; align-items: stretch; gap: 20px; padding: 24px 0 24px; }
+    .o1 .drop .page-fig { width: 84px; height: auto; }
+    .o1 .shelf ul { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .o1 .shelf li:nth-child(4) { display: none; }
+  }
+
+  /* ===== Option 2: Two doors side by side ===== */
+  .o2 .col { max-width: 1120px; }
+  .o2 .doors { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-top: 2px solid var(--text); }
+  .o2 .door { padding: 22px 32px 28px 0; display: flex; flex-direction: column; }
+  .o2 .door + .door { padding: 22px 0 28px 32px; border-left: 1px solid var(--line); }
+  .o2 .door h3 { display: flex; align-items: baseline; gap: 10px; font: 400 22px var(--serif); margin: 0 0 4px; }
+  .o2 .door h3 .mono-label { margin-left: auto; }
+  .o2 .door > p.hint { font-size: 14px; color: var(--t2); margin: 0 0 18px; }
+  .o2 .drop { flex: 1; display: grid; place-items: center; text-align: center; gap: 14px; padding: 28px 20px; border: 1px dashed var(--strong); min-height: 300px; }
+  .o2 .drop .row { justify-content: center; }
+  .o2 .drop .drop-title { font-size: 20px; margin: 0; }
+  .o2 .list { margin-top: 20px; }
+  .o2 .list ul { list-style: none; margin: 8px 0 0; padding: 0; border-top: 1px solid var(--line); }
+  .o2 .list li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--soft); }
+  .o2 .list .cover { width: 30px; height: 42px; }
+  .o2 .list .t { font: 400 16px var(--serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .o2 textarea { flex: 1; min-height: 300px; margin-bottom: 12px; }
+  @container (max-width: 760px) {
+    .o2 .doors { grid-template-columns: 1fr; }
+    .o2 .door { padding: 20px 0 24px; }
+    .o2 .door + .door { padding: 20px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+    .o2 .drop { min-height: 0; }
+    .o2 textarea { min-height: 120px; }
+  }
+
+  /* ===== Option 3: A switch, book by default ===== */
+  .o3 .seg { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 0 0 28px; }
+  .o3 .seg button { height: 40px; padding: 0 14px 0 0; margin-right: 14px; font: 15px var(--sans); color: var(--t2); background: none; border: 0; cursor: pointer;
+                    box-shadow: inset 0 -2px 0 transparent; transition: box-shadow .38s cubic-bezier(.22,1,.36,1), color .15s; }
+  .o3 .seg button[aria-pressed="true"] { color: var(--text); box-shadow: inset 0 -2px 0 var(--ink); }
+  .o3 .seg .pnum { margin-left: 6px; }
+  .o3 .drop { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 40px; align-items: center; padding: 40px 40px; background: var(--s2); }
+  .dark .o3 .drop { background: var(--surface); }
+  .o3 .drop .drop-title { font-size: 30px; }
+  .o3 .readout { margin-top: 36px; border-top: 2px solid var(--text); }
+  .o3 .readout .cap { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0 0; }
+  .o3 .readout .cap h3 { font: 400 19px var(--serif); margin: 0; }
+  .o3 table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .o3 th { text-align: left; font: 500 10px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--t3); padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); }
+  .o3 td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--soft); vertical-align: middle; }
+  .o3 td .cover { width: 34px; height: 48px; }
+  .o3 td.t { font: 400 17px var(--serif); }
+  .o3 td.n { font: 500 11px var(--mono); color: var(--ink-s); width: 22px; }
+  .o3 td.go { text-align: right; width: 1%; }
+  .o3 .textpane textarea { min-height: 220px; margin-bottom: 12px; }
+  .o3 [hidden] { display: none !important; }
+  @container (max-width: 560px) {
+    .o3 .drop { grid-template-columns: 1fr; gap: 20px; padding: 28px 20px; }
+    .o3 .drop .page-fig { width: 84px; height: auto; }
+    .o3 .drop .drop-title { font-size: 24px; }
+    .o3 th:nth-child(4), .o3 td:nth-child(4), .o3 td.n, .o3 th:first-child { display: none; }
+  }
+
+  /* Phone shell */
+  @container (max-width: 560px) {
+    .bar { gap: 0; height: 52px; padding: 0 16px; }
+    .nav { display: none; }
+    .body { padding: 24px 16px 32px; }
+    .head { font-size: 28px; }
+    .keys, .only-fine { display: none !important; }
+    .btn { height: 44px; }
+    .row .btn { flex: 1; }
+    .tabbar { display: grid; grid-template-columns: repeat(4, 1fr); height: 64px; border-top: 1px solid var(--line); font-size: 12px; color: var(--t2); }
+    .tabbar span { display: grid; place-items: center; }
+    .tabbar .on { color: var(--text); box-shadow: inset 0 2px 0 var(--text); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Read, manga first</h1>
+      <p class="lede">Three ways to put manga and PDFs up front on the Read page. Same look, different layouts. Flip on the drag state to see the drop target light up.</p>
+    </div>
+    <div class="switches">
+      <button type="button" id="drag" aria-pressed="false">Show drag state</button>
+      <button type="button" id="theme" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+
+  <section class="option">
+    <header><span class="no">1</span><h2>Book on top</h2>
+      <p>One column, flipped. The book drop leads with a drawn page and a boxed bubble, so the first thing you see says what the app does. Recent books sit under it as a shelf of covers. Paste moves below a hairline. Smallest change from today.</p></header>
+    <div class="frames"><div><p class="frame-label">Desktop</p><div class="slot" data-o="o1"></div></div><div class="phone"><p class="frame-label">Phone</p><div class="slot" data-o="o1"></div></div></div>
+  </section>
+
+  <section class="option">
+    <header><span class="no">2</span><h2>Two doors</h2>
+      <p>Book and text side by side, equal height, split by a hairline. Book is on the left, so you read it first. Recent books are a ruled list under the drop. On phones the book door stacks on top. Best for desktop, where the space is.</p></header>
+    <div class="frames"><div><p class="frame-label">Desktop</p><div class="slot" data-o="o2"></div></div><div class="phone"><p class="frame-label">Phone</p><div class="slot" data-o="o2"></div></div></div>
+  </section>
+
+  <section class="option">
+    <header><span class="no">3</span><h2>A switch, book first</h2>
+      <p>A Book / Text switch under the heading, book chosen by default. Only one thing shows at a time, so the drop target gets the whole page. Recent books are an Instrument readout table. The app remembers the last side you used. Try the switch.</p></header>
+    <div class="frames"><div><p class="frame-label">Desktop</p><div class="slot" data-o="o3"></div></div><div class="phone"><p class="frame-label">Phone</p><div class="slot" data-o="o3"></div></div></div>
+  </section>
+</div>
+
+<!-- The drawn page, reused by every option -->
+<template id="fig">
+  <svg class="page-fig" width="128" height="176" viewBox="0 0 128 176" fill="none" aria-hidden="true">
+    <rect class="paper" x="0.5" y="0.5" width="127" height="175" stroke="currentColor" />
+    <path d="M10 10h108v62H10zM10 80h50v86H10zM68 80h50v40H68zM68 128h50v38H68z" stroke="currentColor" />
+    <ellipse class="bub" cx="88" cy="32" rx="17" ry="13" />
+    <path d="M96 18v28M90 20v24M84 22v18" stroke="currentColor" stroke-width="1.5" />
+    <rect class="box" x="66" y="14" width="42" height="36" stroke-width="2" />
+    <ellipse class="bub" cx="35" cy="104" rx="13" ry="16" />
+  </svg>
+</template>
+
+<template id="o1">
+  <div class="body o1"><div class="col">
+    <h2 class="head">Read real Japanese.</h2>
+    <p class="sub">Open a manga or PDF and box a speech bubble, or paste any text. Tap a word for its reading and meaning.</p>
+    <div class="drop">
+      <slot-fig></slot-fig>
+      <div>
+        <p class="drop-title say-idle">Drop a manga or PDF here</p>
+        <p class="drop-title say-drop">Let go to open it</p>
+        <p class="drop-hint">A CBZ, a PDF, a page or a whole folder of pages. Box a bubble to read it. Nothing leaves your device.</p>
+        <div class="row"><button class="btn btn--primary">Choose a file</button><button class="btn only-fine">Folder of pages</button></div>
+      </div>
+    </div>
+    <div class="shelf">
+      <h3>Carry on reading</h3>
+      <ul>
+        <li><span class="cover" style="aspect-ratio:5/7"></span><span class="t">よつばと！ 第1巻</span><span class="pnum">p. 34 of 220</span><span class="bar4"><i style="width:15%"></i></span></li>
+        <li><span class="cover c2" style="aspect-ratio:5/7"></span><span class="t">ハイキュー！！ 01</span><span class="pnum">p. 112 of 190</span><span class="bar4"><i style="width:59%"></i></span></li>
+        <li><span class="cover c3" style="aspect-ratio:5/7"></span><span class="t">NHK Easy, March</span><span class="pnum">p. 3 of 12</span><span class="bar4"><i style="width:25%"></i></span></li>
+        <li><span class="cover" style="aspect-ratio:5/7"></span><span class="t">ふらいんぐうぃっち 2</span><span class="pnum">p. 8 of 176</span><span class="bar4"><i style="width:5%"></i></span></li>
+      </ul>
+      <p class="note" style="margin-top:12px">Mimitori never keeps a copy of your files, so pick the same one again to carry on.</p>
+    </div>
+    <div class="paste">
+      <h3>Or paste some text</h3>
+      <textarea lang="ja" rows="3" placeholder="ここに日本語を貼り付けてください"></textarea>
+      <div class="row"><button class="btn">Read this</button><button class="btn btn--quiet">Try a sample</button><span class="keys"><kbd>Ctrl</kbd> <kbd>Enter</kbd> to read</span></div>
+    </div>
+  </div></div>
+</template>
+
+<template id="o2">
+  <div class="body o2"><div class="col">
+    <h2 class="head">Read real Japanese.</h2>
+    <p class="sub">Open a manga or PDF, or paste any text. Tap a word for its reading and meaning.</p>
+    <div class="doors">
+      <div class="door">
+        <h3>A manga or PDF <span class="mono-label">CBZ · PDF · pages</span></h3>
+        <p class="hint">Box a speech bubble to read it. Nothing leaves your device.</p>
+        <div class="drop">
+          <slot-fig></slot-fig>
+          <p class="drop-title say-idle">Drop it here</p>
+          <p class="drop-title say-drop">Let go to open it</p>
+          <div class="row"><button class="btn btn--primary">Choose a file</button><button class="btn only-fine">Folder of pages</button></div>
+        </div>
+        <div class="list">
+          <span class="mono-label">Carry on reading</span>
+          <ul>
+            <li><span class="cover"></span><span class="t">よつばと！ 第1巻</span><span class="pnum">p. 34 / 220</span></li>
+            <li><span class="cover c2"></span><span class="t">ハイキュー！！ 01</span><span class="pnum">p. 112 / 190</span></li>
+            <li><span class="cover c3"></span><span class="t">NHK Easy, March</span><span class="pnum">p. 3 / 12</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="door">
+        <h3>Some text <span class="mono-label">paste</span></h3>
+        <p class="hint">News, a game script, a message from a mate.</p>
+        <textarea lang="ja" placeholder="ここに日本語を貼り付けてください"></textarea>
+        <div class="row"><button class="btn">Read this</button><button class="btn btn--quiet">Try a sample</button><span class="keys"><kbd>Ctrl</kbd> <kbd>Enter</kbd></span></div>
+      </div>
+    </div>
+  </div></div>
+</template>
+
+<template id="o3">
+  <div class="body o3"><div class="col">
+    <h2 class="head">Read real Japanese.</h2>
+    <p class="sub">Box a speech bubble in a manga or PDF, or paste any text. Tap a word for its reading and meaning.</p>
+    <div class="seg" role="group" aria-label="What to read">
+      <button type="button" aria-pressed="true" data-pane="book">Manga or PDF</button>
+      <button type="button" aria-pressed="false" data-pane="text">Paste text</button>
+    </div>
+    <div class="bookpane">
+      <div class="drop">
+        <slot-fig></slot-fig>
+        <div>
+          <p class="drop-title say-idle">Drop a manga or PDF anywhere</p>
+          <p class="drop-title say-drop">Let go to open it</p>
+          <p class="drop-hint">A CBZ, a PDF, a page or a whole folder of pages. Nothing leaves your device.</p>
+          <div class="row"><button class="btn btn--primary">Choose a file</button><button class="btn only-fine">Folder of pages</button></div>
+          <p class="formats">.cbz  .pdf  .jpg  .png  .webp</p>
+        </div>
+      </div>
+      <div class="readout">
+        <div class="cap"><h3>Carry on reading</h3><span class="pnum">3 books</span></div>
+        <table>
+          <thead><tr><th></th><th></th><th>Title</th><th>Page</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="n">1</td><td><span class="cover"></span></td><td class="t">よつばと！ 第1巻</td><td><span class="pnum">34 / 220</span><span class="bar4"><i style="width:15%"></i></span></td><td class="go"><button class="btn btn--quiet">Open</button></td></tr>
+            <tr><td class="n">2</td><td><span class="cover c2"></span></td><td class="t">ハイキュー！！ 01</td><td><span class="pnum">112 / 190</span><span class="bar4"><i style="width:59%"></i></span></td><td class="go"><button class="btn btn--quiet">Open</button></td></tr>
+            <tr><td class="n">3</td><td><span class="cover c3"></span></td><td class="t">NHK Easy, March</td><td><span class="pnum">3 / 12</span><span class="bar4"><i style="width:25%"></i></span></td><td class="go"><button class="btn btn--quiet">Open</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="textpane" hidden>
+      <textarea lang="ja" placeholder="ここに日本語を貼り付けてください"></textarea>
+      <div class="row"><button class="btn btn--primary">Read this</button><button class="btn">Try a sample</button><span class="keys"><kbd>Ctrl</kbd> <kbd>Enter</kbd> to read</span></div>
+    </div>
+  </div></div>
+</template>
+
+<template id="shell">
+  <div class="app">
+    <div class="bar">
+      <span class="logo">mimitori</span>
+      <nav class="nav"><span class="on">Read</span><span>Watch</span><span>Review</span><span>Words</span></nav>
+      <span class="icons"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></span>
+    </div>
+    <div class="content"></div>
+    <div class="tabbar"><span class="on">Read</span><span>Watch</span><span>Review</span><span>Words</span></div>
+  </div>
+</template>
+
+<script>
+  for (const slot of document.querySelectorAll(".slot")) {
+    const app = document.getElementById("shell").content.cloneNode(true);
+    app.querySelector(".content").append(document.getElementById(slot.dataset.o).content.cloneNode(true));
+    for (const s of app.querySelectorAll("slot-fig")) s.replaceWith(document.getElementById("fig").content.cloneNode(true));
+    slot.append(app);
+  }
+  for (const app of document.querySelectorAll(".o3")) {
+    app.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-pane]");
+      if (!b) return;
+      for (const x of app.querySelectorAll("[data-pane]")) x.setAttribute("aria-pressed", String(x === b));
+      app.querySelector(".bookpane").hidden = b.dataset.pane !== "book";
+      app.querySelector(".textpane").hidden = b.dataset.pane !== "text";
+    });
+  }
+  const toggle = (id, cls) => document.getElementById(id).addEventListener("click", (e) => {
+    const on = e.currentTarget.getAttribute("aria-pressed") !== "true";
+    e.currentTarget.setAttribute("aria-pressed", String(on));
+    document.body.classList.toggle(cls, on);
+  });
+  toggle("drag", "dragging");
+  toggle("theme", "dark");
+</script>
+</body>
+</html>
