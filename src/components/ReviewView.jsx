@@ -86,7 +86,8 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
       if ((e.key === "u" || e.key === "U") && !e.ctrlKey && !e.metaKey) return undoLast();
       if (phase !== "running") return;
-      if (!revealed && (e.key === " " || e.key === "Enter")) {
+      // Space and Enter on a focused button press that button, not Show answer.
+      if (!revealed && (e.key === " " || e.key === "Enter") && e.target.tagName !== "BUTTON") {
         e.preventDefault();
         setRevealed(true);
       } else if (revealed && ["1", "2", "3", "4"].includes(e.key)) {
