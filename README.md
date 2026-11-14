@@ -39,12 +39,17 @@ npm test
 
 The app can send cards straight to Anki. It works on desktop only, and Anki needs to be open.
 
-1. Install the AnkiConnect add-on in Anki. Use the code `2055492159`, then restart Anki.
-2. In the app, open the gear, then **Settings**, then **Connect**. Choose **Yes** in the box Anki shows.
-3. Pick a deck and a note type, then press **Check fields**. The app learns your layout from your existing cards of that note type.
-4. Press **Looks right**. From then on, **Send** saves the word to Anki.
+1. In the app, open the gear, then **Settings**. Download the Mimitori add-on from the Anki section.
+2. Double-click `mimitori.ankiaddon` to install it, then restart Anki.
+3. Press **Connect**.
+4. Pick a deck and a note type, then press **Check fields**. The app learns your layout from your existing cards of that note type.
+5. Press **Looks right**. From then on, **Send** saves the word to Anki.
 
 Each card gets the word, reading, meaning, the sentence with the word in bold, and the second subtitle line. When you save from Watch, it also adds a screenshot and an audio clip of the line.
+
+The add-on listens on `127.0.0.1:8766` and only answers the sites in its allow-list (edit it in Anki under **Tools › Add-ons › Config**). Already use AnkiConnect? The app falls back to it on port 8765.
+
+To build the add-on file yourself, run `npm run addon`. It lands in `public/mimitori.ankiaddon`.
 
 If Anki is closed, cards wait in a queue and go in later. A waiting card goes to the deck you chose when you saved it.
 

@@ -1,5 +1,9 @@
 const API_VERSION = 6;
 
+// The Mimitori add-on first, then AnkiConnect as a fallback. Both speak the same JSON.
+export const ADDON_URL = "http://127.0.0.1:8766";
+export const ANKICONNECT_URL = "http://127.0.0.1:8765";
+
 export class AnkiError extends Error {
   constructor(message, kind) {
     super(message);
@@ -10,12 +14,14 @@ export class AnkiError extends Error {
 
 export function createAnki({
   fetchImpl = globalThis.fetch,
-  url = "http://127.0.0.1:8765",
+  urls = [ADDON_URL, ANKICONNECT_URL],
 } = {}) {
-  async function invoke(action, params = {}) {
+  let url = urls[0]; // whichever answered last
+
+  async function call(to, action, params = {}) {
     let body;
     try {
-      const res = await fetchImpl(url, {
+      const res = await fetchImpl(to, {
         method: "POST",
         body: JSON.stringify({ action, version: API_VERSION, params }),
       });
@@ -31,28 +37,35 @@ export function createAnki({
     return body?.result;
   }
 
-  // Maps a version call to a status. Throws only non-"unreachable" errors.
-  async function versionStatus() {
-    try {
-      return (await invoke("version")) >= API_VERSION ? "ok" : "outdated";
-    } catch (e) {
-      if (e.kind === "unreachable") return "unreachable";
-      throw e;
+  const invoke = (action, params) => call(url, action, params);
+
+  // Tries each URL in order and sticks with the first that answers.
+  async function first(action) {
+    for (const to of urls) {
+      try {
+        const result = await call(to, action);
+        url = to;
+        return { result };
+      } catch (e) {
+        if (e.kind !== "unreachable") throw e;
+      }
     }
+    return null;
   }
 
-  // An origin AnkiConnect hasn't allowed yet is CORS-blocked, so it looks unreachable.
-  const checkConnection = versionStatus;
+  // Maps a version call to a status. Throws only non-"unreachable" errors.
+  async function checkConnection() {
+    const hit = await first("version");
+    if (!hit) return "unreachable";
+    return hit.result >= API_VERSION ? "ok" : "outdated";
+  }
 
+  // AnkiConnect blocks origins it hasn't allowed (they look unreachable) but always answers requestPermission.
   async function connect() {
-    try {
-      const res = await invoke("requestPermission");
-      if (res?.permission !== "granted") return "forbidden";
-    } catch (e) {
-      if (e.kind === "unreachable") return "unreachable";
-      throw e;
-    }
-    return versionStatus();
+    const hit = await first("requestPermission");
+    if (!hit) return "unreachable";
+    if (hit.result?.permission !== "granted") return "forbidden";
+    return checkConnection();
   }
 
   return { invoke, checkConnection, connect };
