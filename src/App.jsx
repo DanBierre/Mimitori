@@ -22,6 +22,35 @@ const TABS = [
 
 const flags = createFlags();
 
+// Chrome, Edge and Android offer to install the site as an app. Catch the offer early, before the shell mounts.
+// No iOS or Firefox prompt exists; there it's Share > Add to Home Screen, which the README covers.
+let installOffer = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  installOffer = e;
+  window.dispatchEvent(new Event("install-offer"));
+});
+window.addEventListener("appinstalled", () => {
+  installOffer = null;
+  window.dispatchEvent(new Event("install-offer"));
+});
+
+function useInstallOffer() {
+  const [offer, setOffer] = useState(installOffer);
+  useEffect(() => {
+    const sync = () => setOffer(installOffer);
+    window.addEventListener("install-offer", sync);
+    return () => window.removeEventListener("install-offer", sync);
+  }, []);
+  if (!offer) return null;
+  return async () => {
+    offer.prompt();
+    await offer.userChoice;
+    installOffer = null; // each offer can only be used once
+    setOffer(null);
+  };
+}
+
 function Shell() {
   // First visit lands on Watch, where the sample clip is one tap away. After that, Read as before.
   const [tab, setTab] = useState(() => (flags.has("visited") ? "read" : "watch"));
@@ -39,6 +68,7 @@ function Shell() {
   const { state, setSettings } = useStore();
   const inAnkiMode = ankiMode(state);
   const dark = isDark(state.settings.theme);
+  const install = useInstallOffer();
   const { queueCount, refreshQueue } = useAnki(inAnkiMode && tab !== "settings"); // keeps known words fresh; Settings runs its own
 
   // Send waiting cards when the app gains focus and every 30 s while any wait.
@@ -88,6 +118,11 @@ function Shell() {
           ))}
         </nav>
         <div className="app__side">
+          {install && (
+            <button className="icon-btn" aria-label="Install Mimitori as an app" title="Install Mimitori as an app" onClick={install}>
+              <Icon name="download" size={19} />
+            </button>
+          )}
           <button
             className="icon-btn app__theme"
             aria-label={dark ? "Switch to light" : "Switch to dark"}

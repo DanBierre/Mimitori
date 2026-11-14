@@ -2,17 +2,19 @@
 
 # Mimitori
 
-A free, open source study app for Japanese learners. Read real Japanese or watch your own videos with Japanese subtitles, tap any word for its meaning, save it, and review it later. No account, no setup, and your files never leave your computer.
+A free, open source study app for Japanese learners. Read manga, PDFs and plain text, or watch your own videos with Japanese subtitles. Tap any word for its reading and meaning, save it, and review it later. No account, no setup, and your files never leave your computer.
 
-![The Watch tab: a video with the current line in furigana underneath, its English line, and the word card for 食べる open](docs/screenshot.jpg)
+![The Read tab: a short Japanese passage with furigana, and the word card for 風景 open](docs/screenshot.jpg)
 
 ## What it does
 
-- **Read:** paste Japanese and get furigana over the kanji. Tap a word for its meaning and save it.
+- **Read manga and PDFs:** open a `.cbz`, `.zip`, PDF or a folder of pages. Drop it on the page or pick it. Draw a box around a speech bubble and Mimitori reads the text out of it, right on your computer. The reader is a one-off 117 MB download. PDFs with real text skip that step. Your recent books remember the page you got to.
+- **Read text:** paste Japanese and get furigana over the kanji. Tap a word for its meaning and save it. Not sure what to read? There are 50 short samples to try.
 - **Watch:** drop in a video and its subtitle file (`.srt`, `.vtt` or `.ass`). The current line shows with furigana and tappable words. You can replay a line, pause after each one, slow things down, and fix subtitles that are out of sync.
 - **Make subtitles:** if a video has no subtitle file, the Watch tab can make Japanese subtitles on your own computer. Nothing is uploaded. It needs a one-off 564 MB model download and works best in Chrome or Edge.
 - **Review:** saved words come back as flashcards with spaced repetition (FSRS), so they actually stick.
 - **Words:** see everything you've saved, mark words as known, and export to Anki as CSV.
+- **Backup:** save everything (words, reviews, known words, settings) to one file in Settings, and restore it on another device.
 
 Furigana can show on every word, only on words you don't know yet, or not at all.
 
@@ -46,7 +48,7 @@ Each card gets the word, reading, meaning, the sentence with the word in bold, a
 
 If Anki is closed, cards wait in a queue and go in later. A waiting card goes to the deck you chose when you saved it.
 
-Words already in your deck count as known, so they lose their furigana.
+Mimitori and Anki stay in step both ways. Words already in your deck count as known, so they lose their furigana. Words you mark known in Mimitori get the `mimitori-known` tag in Anki.
 
 If you rename a field in Anki, the app pauses saving and asks you to re-check the fields in Settings.
 
@@ -56,6 +58,23 @@ Not checked yet:
 - If you rename a field in your note type, saving pauses and asks you to check the field matching again. Automated tests cover this, but it wasn't tried on a real Anki collection.
 - The waiting list for when Anki is closed while you save is covered by automated tests too, but wasn't tried live.
 - Phones aren't supported for Anki yet.
+
+## Install it as an app
+
+Mimitori works as a web page, but you can also install it so it opens in its own window.
+
+- **Chrome, Edge or Android:** press the install button (the down arrow) at the top of the page.
+- **iPhone or iPad:** in Safari, press **Share**, then **Add to Home Screen**.
+
+## Host your own copy
+
+The site is plain static files, so any static host works. It's set up for Cloudflare Pages:
+
+1. Connect the repo in Cloudflare Pages.
+2. Set the build command to `npm run build` and the output folder to `dist`.
+3. Deploy. The build checks that no file is over Cloudflare's 25 MiB limit.
+
+The speech and manga models come from Hugging Face, and the ONNX runtime comes from jsDelivr, so they don't count against that limit.
 
 ## Translation (optional)
 

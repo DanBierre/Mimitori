@@ -42,49 +42,49 @@ colors:
   danger-dark: "#ff7a66"
 typography:
   display:
-    fontFamily: "Newsreader, Noto Serif JP, Hiragino Mincho ProN, Yu Mincho, Georgia, serif"
+    fontFamily: "Newsreader, Noto Sans JP, Hiragino Sans, Yu Gothic, Georgia, serif"
     fontSize: "72px"
     fontWeight: 400
     lineHeight: 1
   headline:
-    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontFamily: "Newsreader, Noto Sans JP, serif"
     fontSize: "56px"
     fontWeight: 400
     lineHeight: 1.2
   term:
-    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontFamily: "Newsreader, Noto Sans JP, serif"
     fontSize: "40px"
     fontWeight: 400
     lineHeight: 1.2
   cue:
-    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontFamily: "Newsreader, Noto Sans JP, serif"
     fontSize: "clamp(22px, read-size + 6px, 40px)"
     fontWeight: 400
     lineHeight: 1.95
     letterSpacing: "0.01em"
   reading:
-    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontFamily: "Newsreader, Noto Sans JP, serif"
     fontSize: "clamp(22px, read-size + 6px, 40px)"
     fontWeight: 400
     lineHeight: 1.95
     letterSpacing: "0.01em"
   figure:
-    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontFamily: "Newsreader, Noto Sans JP, serif"
     fontSize: "26px"
     fontWeight: 400
     lineHeight: 1.2
   entry:
-    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontFamily: "Newsreader, Noto Sans JP, serif"
     fontSize: "19px"
     fontWeight: 400
     lineHeight: 1.4
   meaning:
-    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontFamily: "Newsreader, Noto Sans JP, serif"
     fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.5
   margin-note:
-    fontFamily: "Newsreader, Noto Serif JP, serif"
+    fontFamily: "Newsreader, Noto Sans JP, serif"
     fontSize: "15px"
     fontWeight: 400
     lineHeight: 1.5
@@ -222,7 +222,7 @@ A cool neutral scale carries the page. Ink is the only accent.
 
 ## Typography
 
-**Serif:** Newsreader, then Noto Serif JP (Newsreader has no kana, so Japanese falls through), Hiragino Mincho ProN, Yu Mincho, Georgia.
+**Serif:** Newsreader, then Noto Sans JP (Newsreader has no kana, so Japanese falls through to a plain gothic, easier to read than mincho at small sizes), Hiragino Sans, Yu Gothic, Georgia.
 **Sans:** Noto Sans JP with system-ui fallbacks, `palt` on.
 **Mono:** IBM Plex Mono, only for timecodes, counts and keys.
 

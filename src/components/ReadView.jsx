@@ -10,6 +10,7 @@ import WordPanel from "./WordPanel";
 import { sentenceAround, sentenceContext } from "../lib/sentence";
 import { loadBookRecents, saveBookRecents, coverKey } from "../lib/book/recents";
 import { upsertRecent, droppedKeys } from "../lib/recents";
+import Icon from "./Icon";
 import { putImage, getImageUrl, deleteImage } from "../lib/images";
 import { createFlags } from "../lib/firstRun";
 import { filesFromDrop, pickBookFiles } from "../lib/book/drop";
@@ -171,9 +172,14 @@ export default function ReadView({ onOpenSettings }) {
   }
 
   function savePage(page) {
-    const patch = { key: book.key, name: book.title, page, pageCount: book.pageCount };
+    setBookRecents(upsertRecent(recentsRef.current, { key: book.key, name: book.title, page, pageCount: book.pageCount }));
+  }
+
+  // Drops a book from "Carry on reading", cover and all. The file itself was never kept.
+  const removeRecent = (key) => setBookRecents(recentsRef.current.filter((r) => r.key !== key));
+
+  function setBookRecents(next) {
     const prev = recentsRef.current;
-    const next = upsertRecent(prev, patch);
     for (const k of droppedKeys(prev, next)) deleteImage(coverKey(k));
     recentsRef.current = next;
     setRecents(next);
@@ -327,6 +333,14 @@ export default function ReadView({ onOpenSettings }) {
                             onClick={() => fileInput.current.click()}
                           >
                             Open
+                          </button>
+                          <button
+                            className="icon-btn recents__remove row-action"
+                            aria-label={`Remove ${r.name} from this list`}
+                            title="Remove from this list"
+                            onClick={() => removeRecent(r.key)}
+                          >
+                            <Icon name="close" size={16} />
                           </button>
                         </li>
                       ))}

@@ -8123,8 +8123,15 @@ BrowserDictionaryLoader.prototype.loadArrayBuffer = function (url, callback) {
             return;
         }
         var arraybuffer = this.response;
+        var bytes = new Uint8Array(arraybuffer);
 
-        var gz = new zlib.Zlib.Gunzip(new Uint8Array(arraybuffer));
+        // Mimitori: some hosts (Cloudflare Pages) send .gz files with Content-Encoding: gzip,
+        // so the browser has already unzipped them. Only gunzip what still starts with the gzip magic bytes.
+        if (bytes[0] !== 0x1f || bytes[1] !== 0x8b) {
+            callback(null, arraybuffer);
+            return;
+        }
+        var gz = new zlib.Zlib.Gunzip(bytes);
         var typed_array = gz.decompress();
         callback(null, typed_array.buffer);
     };
