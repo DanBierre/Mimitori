@@ -34,11 +34,11 @@ export function buildKanji(xml) {
     const all = (re) => [...c.matchAll(re)].map((m) => m[1]);
     const meanings = all(/<meaning>([^<]+)</g).slice(0, 3);
     if (!meanings.length) continue;
-    const on = all(/<reading r_type="ja_on">([^<]+)</g).slice(0, 3);
+    // "-" marks a prefix or suffix use ("もの-"): dropped, then repeats removed.
+    const clean = (list) => [...new Set(list.map((r) => r.replace(/^-|-$/g, "")))].slice(0, 3);
+    const on = clean(all(/<reading r_type="ja_on">([^<]+)</g));
     // "た.べる" -> "た(べる)": the part after the dot is okurigana, written in kana after the kanji.
-    const kun = all(/<reading r_type="ja_kun">([^<]+)</g)
-      .slice(0, 3)
-      .map((k) => k.replace(/\.(.+)$/, "($1)"));
+    const kun = clean(all(/<reading r_type="ja_kun">([^<]+)</g).map((k) => k.replace(/\.(.+)$/, "($1)")));
     out[literal] = [meanings.join(", "), on.join("、"), kun.join("、")];
   }
   return out;
