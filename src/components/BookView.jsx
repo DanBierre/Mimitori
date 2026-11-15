@@ -509,7 +509,12 @@ export default function BookView({ book, onClose, onOpenSettings, onPage, onCove
                 max={book.pageCount}
                 defaultValue={page}
                 onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-                onBlur={(e) => goTo(Number(e.currentTarget.value))}
+                onBlur={(e) => {
+                  // An empty box keeps your place; an out-of-range number snaps back if it changes nothing.
+                  const box = e.currentTarget;
+                  if (box.value !== "") goTo(Number(box.value));
+                  box.value = page;
+                }}
               />
               <span aria-hidden="true">/ {book.pageCount}</span>
               <span className="sr-only">{t("of {count}", { count: book.pageCount })}</span>

@@ -501,7 +501,7 @@ export default function WatchView({ active, onOpenSettings }) {
 
   // Keyboard shortcuts, only while Watch is showing and never while typing.
   const keysRef = useRef(null);
-  keysRef.current = { togglePlay, replay, step, nudge, toggleFocus, focus, pick: (n) => picks[n] !== undefined && selectWord(picks[n]) };
+  keysRef.current = { hasVideo: Boolean(video), togglePlay, replay, step, nudge, toggleFocus, focus, pick: (n) => picks[n] !== undefined && selectWord(picks[n]) };
   useEffect(() => {
     if (!active) return;
     const onKey = (e) => {
@@ -513,6 +513,8 @@ export default function WatchView({ active, onOpenSettings }) {
       const control = el.tagName === "A" || (el.tagName === "BUTTON" && !el.classList.contains("word"));
       if (e.key === " " && control && el.matches(":focus-visible")) return;
       const k = keysRef.current;
+      // With no video loaded, only Esc (to leave the full-window view) does anything.
+      if (!k.hasVideo && e.key !== "Escape") return;
       const actions = {
         " ": k.togglePlay,
         r: k.replay,

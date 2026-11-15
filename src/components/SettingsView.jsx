@@ -264,14 +264,14 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
           <>
             <div className="settings__row">
               <label className="settings__label" htmlFor="anki-deck">{t("Deck")}</label>
-              <select id="anki-deck" className="select" value={cfg.deck} onChange={(e) => pick({ deck: e.target.value })}>
+              <select id="anki-deck" className="select" disabled={checking} value={cfg.deck} onChange={(e) => pick({ deck: e.target.value })}>
                 <option value="">{t("Choose a deck…")}</option>
                 {a.decks.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div className="settings__row">
               <label className="settings__label" htmlFor="anki-model">{t("Note type")}</label>
-              <select id="anki-model" className="select" value={cfg.model} onChange={(e) => pick({ model: e.target.value })}>
+              <select id="anki-model" className="select" disabled={checking} value={cfg.model} onChange={(e) => pick({ model: e.target.value })}>
                 <option value="">{t("Choose a note type…")}</option>
                 {a.models.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
