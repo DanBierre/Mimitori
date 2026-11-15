@@ -32,6 +32,7 @@ import Icon from "./Icon";
 import { conjugationParts } from "../lib/conjugation";
 import { captureFrame, deleteImage, putImage } from "../lib/images";
 import { wordState } from "../lib/store";
+import { newCount } from "../lib/coverage";
 import { isRecording } from "../lib/media/clip";
 
 const NO_LINES = "We couldn't read any lines from this file. Is it a .srt, .vtt or .ass file?";
@@ -571,19 +572,16 @@ export default function WatchView({ active, onOpenSettings }) {
     let all = 0;
     let known = 0;
     const fresh = new Set();
-    const counts = tokens.map((line) => {
-      let n = 0;
+    const isKnown = (b) => wordState(state, b) === "known";
+    for (const line of tokens) {
       for (const t of line || []) {
         if (!t.isWord) continue;
         all++;
-        if (wordState(state, t.base) === "known") known++;
-        else {
-          n++;
-          fresh.add(t.base);
-        }
+        if (isKnown(t.base)) known++;
+        else fresh.add(t.base);
       }
-      return n;
-    });
+    }
+    const counts = tokens.map((line) => newCount(line, isKnown));
     return { newCounts: counts, coverage: all ? Math.round((known / all) * 100) : null, newWords: fresh.size };
   }, [tokens, state]);
 

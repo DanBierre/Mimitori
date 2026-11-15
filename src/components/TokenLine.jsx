@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore, wordState } from "../lib/store";
+import { loneNewWords } from "../lib/coverage";
 
 // One line of tokenized Japanese: furigana over kanji (per the furigana
 // setting) and tappable content words. Shared by Read and Watch.
@@ -13,6 +14,8 @@ export default function TokenLine({ tokens, selected, onSelect, numbered }) {
   // A word that just went from new/known to saved gets its underline drawn on, once.
   const marks = {};
   for (const t of tokens) if (t.isWord) marks[t.base] = wordState(state, t.base);
+  // The only new word in its sentence gets a double underline: the easiest one to learn next.
+  const lone = useMemo(() => loneNewWords(tokens, (b) => wordState(state, b) === "known"), [tokens, state]);
   const seen = useRef(null);
   const [fresh, setFresh] = useState(null);
   useEffect(() => {
@@ -51,7 +54,7 @@ export default function TokenLine({ tokens, selected, onSelect, numbered }) {
     return (
       <button
         key={i}
-        className={`word mk mk--${mark}${fresh?.has(token.base) ? " mk--draw" : ""}${n ? " word--idx" : ""}`}
+        className={`word mk mk--${mark}${fresh?.has(token.base) ? " mk--draw" : ""}${n ? " word--idx" : ""}${lone.has(i) ? " word--lone" : ""}`}
         aria-pressed={selected === i}
         // Ruby splits the word for screen readers; give them the word, then its reading.
         aria-label={token.reading && token.reading !== token.surface ? `${token.surface}, ${token.reading}` : token.surface}

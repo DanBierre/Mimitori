@@ -90,7 +90,7 @@ export default function Transcript({ cues, current, onJump, newCounts = [], auto
                 </span>
                 {auto && !edited.includes(i) && <span className="transcript__auto">{tr("auto")}</span>}
                 {newCounts[i] > 0 && (
-                  <span className="transcript__new" aria-label={tr(newCounts[i] === 1 ? "{n} new word" : "{n} new words", { n: newCounts[i] })}>
+                  <span className={`transcript__new${newCounts[i] === 1 ? " transcript__new--one" : ""}`} aria-label={tr(newCounts[i] === 1 ? "{n} new word" : "{n} new words", { n: newCounts[i] })}>
                     {tr("{n} new", { n: newCounts[i] })}
                   </span>
                 )}

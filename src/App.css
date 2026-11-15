@@ -404,6 +404,14 @@
   text-decoration-color: var(--mark-strong);
 }
 
+/* The one new word in an otherwise known sentence: a double rule, so it reads as "this one next". */
+.word.mk--new.word--lone:not([aria-pressed="true"]) {
+  text-decoration-line: underline;
+  text-decoration-style: double;
+  text-decoration-color: var(--ink);
+  text-decoration-thickness: 1px;
+}
+
 .word.mk--new:hover {
   text-decoration-color: color-mix(in srgb, var(--ink) 60%, transparent);
 }
@@ -1642,6 +1650,11 @@ rt.rt--known {
 
 .transcript__text {
   flex: 1;
+}
+
+.transcript__new--one {
+  text-decoration: underline double var(--ink);
+  text-underline-offset: 0.3em;
 }
 
 .transcript__new {
