@@ -109,7 +109,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
     const now = new Date();
     const learning = Object.values(state.words).map((w) => ({
       base: w.base,
-      reading: w.reading,
+      reading: w.reading || "",
       glosses: w.glosses || [],
       sentence: w.sentence,
       addedAt: w.addedAt,
@@ -135,6 +135,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
     const c = { all: rows.length, due: 0, saved: 0, known: 0 };
     rows.forEach((r) => {
       c[r.mark] = (c[r.mark] || 0) + 1;
+      if (r.mark === "due") c.saved++; // Learning covers every saved word, due or not
     });
     return c;
   }, [rows]);
@@ -142,7 +143,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
   const q = query.trim().toLowerCase();
   const visible = rows.filter(
     (r) =>
-      (filter === "all" || r.mark === filter) &&
+      (filter === "all" || r.mark === filter || (filter === "saved" && r.mark === "due")) &&
       (level === "" || r.jlpt === Number(level)) &&
       (!q || r.base.includes(q) || r.reading.includes(q) || r.glosses.join(" ").toLowerCase().includes(q))
   );
