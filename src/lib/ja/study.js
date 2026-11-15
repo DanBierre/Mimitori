@@ -220,4 +220,8 @@ export default {
   while: "〜ながら",
   "even if": "〜ても",
   "looks like": "様態（〜そう）",
+  "Easiest first": "やさしい順",
+  "Any level": "すべてのレベル",
+  "Not on a JLPT list": "JLPTの範囲外",
+  "Filter by JLPT level": "JLPTレベルで絞り込む",
 };

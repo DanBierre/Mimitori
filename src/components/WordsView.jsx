@@ -21,6 +21,18 @@ const SORTS = [
   ["due", "Due first"],
   ["new", "Newest first"],
   ["az", "A–Z"],
+  ["level", "Easiest first"],
+];
+
+// "" is any level, 0 is words on no JLPT list.
+const LEVELS = [
+  ["", "Any level"],
+  ["5", "N5"],
+  ["4", "N4"],
+  ["3", "N3"],
+  ["2", "N2"],
+  ["1", "N1"],
+  ["0", "Not on a JLPT list"],
 ];
 
 // Due words first (soonest first), then the rest by when they're due; known words last.
@@ -29,6 +41,8 @@ const SORTERS = {
   due: byDue,
   new: (a, b) => (b.addedAt || 0) - (a.addedAt || 0),
   az: (a, b) => a.base.localeCompare(b.base, "ja"),
+  // N5 first, words on no list last; ties stay A–Z.
+  level: (a, b) => (b.jlpt || -1) - (a.jlpt || -1) || a.base.localeCompare(b.base, "ja"),
 };
 
 let batchRunning = false; // survives a tab switch, so a second Send all can't start mid-run
@@ -61,6 +75,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
     setPicked(new Set());
   };
   const [filter, setFilter] = useState("all");
+  const [level, setLevel] = useState("");
   const filterRef = useMarker('[aria-pressed="true"]');
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(null);
@@ -111,8 +126,10 @@ export default function WordsView({ onGoWatch, onGoRead }) {
       due: null,
       mark: "known",
     }));
-    return [...learning, ...known].sort(SORTERS[sort]);
-  }, [state, sort, meanings]);
+    const all = [...learning, ...known];
+    all.forEach((r) => (r.jlpt = levels?.get(r.base)?.jlpt || 0));
+    return all.sort(SORTERS[sort]);
+  }, [state, sort, meanings, levels]);
 
   const counts = useMemo(() => {
     const c = { all: rows.length, due: 0, saved: 0, known: 0 };
@@ -126,6 +143,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
   const visible = rows.filter(
     (r) =>
       (filter === "all" || r.mark === filter) &&
+      (level === "" || r.jlpt === Number(level)) &&
       (!q || r.base.includes(q) || r.reading.includes(q) || r.glosses.join(" ").toLowerCase().includes(q))
   );
 
@@ -195,6 +213,15 @@ export default function WordsView({ onGoWatch, onGoRead }) {
           onChange={(e) => setQuery(e.target.value)}
           aria-label={t("Search words")}
         />
+        {levels?.size > 0 && (
+          <select className="select words__sort" value={level} onChange={(e) => setLevel(e.target.value)} aria-label={t("Filter by JLPT level")}>
+            {LEVELS.map(([value, label]) => (
+              <option key={value} value={value}>
+                {t(label)}
+              </option>
+            ))}
+          </select>
+        )}
         <select className="select words__sort" value={sort} onChange={(e) => setSort(e.target.value)} aria-label={t("Sort words")}>
           {SORTS.map(([value, label]) => (
             <option key={value} value={value}>
