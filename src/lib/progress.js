@@ -51,3 +51,12 @@ export function logReview(log = {}, now = Date.now()) {
   if (keys.length > 400) keys.sort().slice(0, keys.length - 400).forEach((k) => delete next[k]);
   return next;
 }
+
+// Undo of a grade: take that review back off today's count.
+export function unlogReview(log = {}, now = Date.now()) {
+  const day = dayKey(now);
+  if (!log[day]) return log;
+  const next = { ...log, [day]: log[day] - 1 };
+  if (!next[day]) delete next[day];
+  return next;
+}

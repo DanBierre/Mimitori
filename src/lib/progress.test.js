@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dayKey, logReview, weekStats } from "./progress.js";
+import { dayKey, logReview, unlogReview, weekStats } from "./progress.js";
 
 const now = new Date(2026, 10, 15, 21, 0).getTime();
 const daysAgo = (n, h = 12) => new Date(2026, 10, 15 - n, h).getTime();
@@ -23,4 +23,12 @@ test("logReview adds to today and keeps the log short", () => {
   assert.deepEqual(logReview({ [dayKey(now)]: 2 }, now), { [dayKey(now)]: 3 });
   const big = Object.fromEntries(Array.from({ length: 401 }, (_, i) => [`2020-01-${String(i).padStart(3, "0")}`, 1]));
   assert.equal(Object.keys(logReview(big, now)).length, 400);
+});
+
+test("unlogReview takes one review off today and drops an empty day", () => {
+  const now = new Date(2026, 10, 15, 12).getTime();
+  const one = logReview({}, now);
+  assert.deepEqual(unlogReview(logReview(one, now), now), one);
+  assert.deepEqual(unlogReview(one, now), {});
+  assert.deepEqual(unlogReview({}, now), {});
 });

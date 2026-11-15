@@ -46,7 +46,7 @@ function WeekLine({ state, t }) {
 }
 
 export default function ReviewView({ onGoRead, onGoWatch }) {
-  const { state, grade, restoreWord } = useStore();
+  const { state, grade, ungrade } = useStore();
   const t = useT();
   const { queue: due, waiting } = useReviewToday();
 
@@ -71,7 +71,7 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
   // Undo the last grade: the word gets its old schedule back and comes round again.
   function undoLast() {
     if (!last) return;
-    restoreWord(last.word);
+    ungrade(last.word);
     setQueue(last.queue);
     setReviewed(last.reviewed);
     setRevealed(true);

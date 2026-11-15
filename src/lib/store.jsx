@@ -8,7 +8,7 @@ import { becameKnown, dailyQueue, gradeCard, newCard, repairWords } from "./srs"
 import { binImage, unbinImage } from "./images";
 import { loadCommon } from "./common";
 import { applyInk, applyTheme } from "./ink";
-import { logReview } from "./progress";
+import { logReview, unlogReview } from "./progress";
 export { ankiMode, wordState } from "./anki/settingsLogic";
 
 import { STORAGE_KEY } from "./backup";
@@ -88,6 +88,11 @@ function reducer(state, action) {
       const known = { ...state.known };
       delete known[action.word.base];
       return { ...state, known, words: { ...state.words, [action.word.base]: action.word } };
+    }
+    // Undo of a review grade: the old card back, and the review off today's count.
+    case "ungrade": {
+      const next = reducer(state, { type: "restore", word: action.word });
+      return { ...next, log: unlogReview(state.log) };
     }
     case "know": {
       const words = { ...state.words };
@@ -172,6 +177,10 @@ export function StoreProvider({ children }) {
         knownChanged();
       },
       grade: (base, rating) => dispatch({ type: "grade", base, rating }),
+      ungrade: (word) => {
+        dispatch({ type: "ungrade", word });
+        knownChanged();
+      },
       setSettings: (patch) => dispatch({ type: "settings", patch }),
       setWatchSettings: (patch) => dispatch({ type: "watch", patch }),
       setAnkiSettings: (patch) => dispatch({ type: "ankiSettings", patch }),
