@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useReviewToday, useStore, useT } from "../lib/store";
 import { previewIntervals, Rating } from "../lib/srs";
 import SceneStill from "./SceneStill";
+import { weekStats } from "../lib/progress";
 
 const GRADES = [
   [Rating.Again, "Again"],
@@ -21,6 +22,26 @@ function SentenceWithWord({ sentence, surface, base }) {
       <mark className="review__hit">{needle}</mark>
       {rest.join(needle)}
     </>
+  );
+}
+
+// One quiet readout line: this week's reviews, saves and known words, plus days in a row.
+function WeekLine({ state, t }) {
+  const { reviews, saved, learnt, streak } = weekStats(state);
+  if (!reviews && !saved && !learnt) return null;
+  const part = (n, one, many) => (
+    <span>
+      <b>{n}</b> {t(n === 1 ? one : many)}
+    </span>
+  );
+  return (
+    <p className="review__week" aria-label={t("This week")}>
+      <span className="review__week-label">{t("This week")}</span>
+      {part(reviews, "review", "reviews")}
+      {part(saved, "saved", "saved")}
+      {part(learnt, "known", "known")}
+      {streak > 1 && part(streak, "day in a row", "days in a row")}
+    </p>
   );
 }
 
@@ -206,6 +227,7 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
             </button>
           )}
         </div>
+        <WeekLine state={state} t={t} />
       </section>
     );
   }
@@ -248,6 +270,7 @@ export default function ReviewView({ onGoRead, onGoWatch }) {
           </div>
         </>
       )}
+      <WeekLine state={state} t={t} />
     </section>
   );
 }

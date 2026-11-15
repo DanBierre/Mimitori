@@ -8,6 +8,7 @@ import { becameKnown, dailyQueue, gradeCard, newCard } from "./srs";
 import { binImage, unbinImage } from "./images";
 import { loadCommon } from "./common";
 import { applyInk, applyTheme } from "./ink";
+import { logReview } from "./progress";
 export { ankiMode, wordState } from "./anki/settingsLogic";
 
 import { STORAGE_KEY } from "./backup";
@@ -16,6 +17,7 @@ import { translate } from "./i18n";
 const DEFAULT_STATE = {
   words: {}, // keyed by dictionary form
   known: {}, // dictionary form -> time marked (true on older data)
+  log: {}, // local day (YYYY-MM-DD) -> reviews done, for the "this week" line
   // furigana: all | unknown | off
   settings: {
     furigana: "unknown",
@@ -41,6 +43,7 @@ function load() {
     return {
       words: parsed.words || {},
       known: parsed.known || {},
+      log: parsed.log || {},
       settings: {
         ...DEFAULT_STATE.settings,
         ...(parsed.settings || {}),
@@ -100,7 +103,7 @@ function reducer(state, action) {
       const word = state.words[action.base];
       if (!word) return state;
       const card = gradeCard(word.card, action.rating);
-      const next = { ...state, words: { ...state.words, [action.base]: { ...word, card } } };
+      const next = { ...state, log: logReview(state.log), words: { ...state.words, [action.base]: { ...word, card } } };
       if (becameKnown(card)) next.known = { ...state.known, [action.base]: Date.now() };
       return next;
     }

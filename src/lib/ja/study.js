@@ -183,4 +183,9 @@ export default {
   "This replaces everything here ({a} saved, {b} known) with the backup ({c} saved, {d} known). Save a backup first if you’re not sure.":
     "ここにあるものがすべて、バックアップの内容に置き換わります（現在：保存{a}・既知{b}、バックアップ：保存{c}・既知{d}）。迷うときは、先にバックアップを保存してください。",
   Replace: "置き換える",
+  "This week": "今週",
+  review: "回復習",
+  reviews: "回復習",
+  "day in a row": "日連続",
+  "days in a row": "日連続",
 };

@@ -1962,6 +1962,29 @@ rt.rt--known {
   color: var(--text-2);
 }
 
+/* This week: one quiet readout line under Review, hairline above, numbers in mono. */
+.review__week {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+  margin: 28px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.review__week b {
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.review__week-label {
+  color: var(--text-2);
+}
+
 .review__progress {
   display: grid;
   gap: 8px;
