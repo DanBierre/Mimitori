@@ -381,7 +381,8 @@ export default function WordsView({ onGoWatch, onGoRead }) {
       )}
       <p className="words__credit">
         {t("Word meanings come from JMdict, © the Electronic Dictionary Research and Development Group, used under CC BY-SA 4.0.")}{" "}
-        {t("JLPT levels come from Jonathan Waller’s JLPT Resources, used under CC BY.")}
+        {t("JLPT levels come from Jonathan Waller’s JLPT Resources, used under CC BY.")}{" "}
+        {t("Pitch accents come from Kanjium and kanji parts from KANJIDIC2, both used under CC BY-SA 4.0.")}
       </p>
     </section>
   );

@@ -7,6 +7,7 @@ import { listQueue } from "../lib/anki/queue";
 import { isVeryCommon } from "../lib/common";
 import { formatInterval } from "../lib/srs";
 import { canSpeak, speak } from "../lib/speak";
+import { accentFor, kanjiParts, loadTable, pitchMarks } from "../lib/wordnotes";
 import Icon from "./Icon";
 
 // Detail for the tapped word: meaning, and the actions that move it along
@@ -80,6 +81,16 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Pitch accent and kanji parts: two small tables, fetched the first time a card opens.
+  const [notes, setNotes] = useState({ pitch: {}, kanji: {} });
+  useEffect(() => {
+    let live = true;
+    Promise.all([loadTable("pitch"), loadTable("kanji")]).then(([pitch, kanji]) => live && setNotes({ pitch, kanji }));
+    return () => {
+      live = false;
+    };
+  }, []);
+
   const [sure, setSure] = useState(false); // very-common notice acknowledged
   const [justSaved, setJustSaved] = useState(false);
   const [undo, setUndo] = useState(null); // { text, word } after Remove or I know this on a saved word
@@ -102,6 +113,8 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
   const commonOnly = mark === "known" && !state.known[token.base] && !state.anki.known[token.base] && isVeryCommon(token.base);
   const saved = state.words[token.base];
   const reading = entry.data?.reading || token.reading || "";
+  const accent = accentFor(notes.pitch[token.base], reading);
+  const kanji = kanjiParts(token.base, notes.kanji);
 
   function handleSave() {
     saveWord({
@@ -177,7 +190,17 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
         </span>
         {reading && (
           <span className="word-panel__reading" lang="ja">
-            {reading}
+            {accent < 0 ? (
+              reading
+            ) : (
+              <span className="pitch" role="img" aria-label={t("{reading}, pitch accent {n}", { reading, n: accent })} title={t("Pitch accent {n}", { n: accent })}>
+                {pitchMarks(reading, accent).map((m, i) => (
+                  <span key={i} className={`pitch__mora${m.high ? " pitch__mora--high" : ""}${m.drop ? " pitch__mora--drop" : ""}`}>
+                    {m.mora}
+                  </span>
+                ))}
+              </span>
+            )}
           </span>
         )}
         {canSpeak() && (
@@ -201,6 +224,24 @@ export default function WordPanel({ token, index, sentence, grammar = [], ankiCo
             <li key={i}>{g}</li>
           ))}
         </ol>
+      )}
+
+      {kanji.length > 0 && (
+        <dl className="word-panel__kanji" aria-label={t("Kanji in this word")}>
+          {kanji.map((k) => (
+            <div key={k.kanji}>
+              <dt lang="ja">{k.kanji}</dt>
+              <dd>
+                {k.meaning}
+                {(k.on || k.kun) && (
+                  <span className="word-panel__kanji-read" lang="ja">
+                    {[k.on, k.kun].filter(Boolean).join(" · ")}
+                  </span>
+                )}
+              </dd>
+            </div>
+          ))}
+        </dl>
       )}
 
       {(grammar.length > 0 || entry.data?.alternatives.length > 0) && (

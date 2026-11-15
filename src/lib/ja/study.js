@@ -198,4 +198,8 @@ export default {
   "Select {word}": "{word}を選択",
   common: "よく使う",
   "JLPT levels come from Jonathan Waller’s JLPT Resources, used under CC BY.": "JLPTレベルはJonathan WallerのJLPT ResourcesによるものでCC BYに基づき使用。",
+  "{reading}, pitch accent {n}": "{reading}、アクセント{n}",
+  "Pitch accent {n}": "アクセント {n}",
+  "Kanji in this word": "この言葉の漢字",
+  "Pitch accents come from Kanjium and kanji parts from KANJIDIC2, both used under CC BY-SA 4.0.": "アクセントは Kanjium、漢字の情報は KANJIDIC2 によるもので、どちらも CC BY-SA 4.0 で使っています。",
 };
