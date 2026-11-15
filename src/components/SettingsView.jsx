@@ -418,7 +418,7 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
                 <li key={f.id}>
                   <span lang="ja">{plain(Object.values(f.note.fields || {})[0])}</span>
                   <span className="note settings__inline">{t(f.lastError)}</span>
-                  <button className="btn btn--quiet" onClick={() => retryFailed(f.id).then(() => { loadFailed(); a.refreshQueue(); })}>
+                  <button className="btn btn--quiet" aria-label={t("Retry {word}", { word: plain(Object.values(f.note.fields || {})[0]) })} onClick={() => retryFailed(f.id).then(() => { loadFailed(); a.refreshQueue(); })}>
                     {t("Retry")}
                   </button>
                 </li>

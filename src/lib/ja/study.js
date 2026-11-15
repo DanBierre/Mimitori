@@ -174,6 +174,7 @@ export default {
   "{n} couldn’t be sent:": "{n}件は送信できませんでした：",
   "Your note type changed since this card was saved.": "このカードを保存してから、ノートタイプが変わりました。",
   Retry: "再試行",
+  "Retry {word}": "{word}を再試行",
   Backup: "バックアップ",
   "Your words live on this device only. Save a backup now and then, and keep it somewhere safe. It holds your saved words, review history, known words and settings.":
     "単語はこの端末の中だけに保存されています。ときどきバックアップを取って、安全な場所に保管してください。保存した単語、復習の履歴、既知の単語、設定が入っています。",

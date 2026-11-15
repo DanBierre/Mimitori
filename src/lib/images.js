@@ -48,19 +48,25 @@ export async function getImageUrl(base) {
 
 // The last few stills dropped with a word, held in memory so Undo can put one back.
 const binned = new Map();
-export async function binImage(base) {
-  const blob = await getImage(base);
-  if (blob) {
-    binned.delete(base);
-    binned.set(base, blob);
-    if (binned.size > 10) binned.delete(binned.keys().next().value);
-  }
-  return deleteImage(base);
+const binning = new Map(); // a bin still in progress, so a quick Undo waits for it
+export function binImage(base) {
+  const job = (async () => {
+    const blob = await getImage(base);
+    if (blob) {
+      binned.delete(base);
+      binned.set(base, blob);
+      if (binned.size > 10) binned.delete(binned.keys().next().value);
+    }
+    await deleteImage(base);
+  })();
+  binning.set(base, job);
+  return job.finally(() => binning.get(base) === job && binning.delete(base));
 }
-export function unbinImage(base) {
+export async function unbinImage(base) {
+  await binning.get(base);
   const blob = binned.get(base);
   binned.delete(base);
-  return blob ? putImage(base, blob) : Promise.resolve();
+  if (blob) await putImage(base, blob);
 }
 
 // Current video frame as a JPEG (480px wide unless told otherwise), or null.
