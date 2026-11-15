@@ -188,4 +188,12 @@ export default {
   reviews: "回復習",
   "day in a row": "日連続",
   "days in a row": "日連続",
+  Select: "選択",
+  "Selected words": "選択した単語",
+  "{n} selected": "{n}件選択中",
+  "Select all shown": "表示中をすべて選択",
+  "I know these": "すべて知っている",
+  "Marked {n} words as known.": "{n}語を既知にしました。",
+  "Removed {n} words.": "{n}語を削除しました。",
+  "Select {word}": "{word}を選択",
 };

@@ -36,13 +36,28 @@ export default function WordsView({ onGoWatch, onGoRead }) {
   const { state, removeWord, knowWord, unknowWord, restoreWord, markInAnki } = useStore();
   const t = useT();
   const [sort, setSort] = useState("due");
-  const [undo, setUndo] = useState(null); // { text, word } after Remove or I know this
+  const [undo, setUndo] = useState(null); // { text, words } after Remove or I know this
   const [exported, setExported] = useState("");
   // Remove and I know this drop a word's review history, so both can be undone.
   const drop = (how, base, text) => {
     const word = state.words[base];
-    if (word) setUndo({ text: t(text, { word: base }), word });
+    if (word) setUndo({ text: t(text, { word: base }), words: [word] });
     how(base);
+  };
+  // Select mode: tick several rows, then act on them all at once.
+  const [picking, setPicking] = useState(false);
+  const [picked, setPicked] = useState(() => new Set());
+  const togglePick = (base) =>
+    setPicked((s) => {
+      const next = new Set(s);
+      next.has(base) ? next.delete(base) : next.add(base);
+      return next;
+    });
+  const dropMany = (how, bases, one, many) => {
+    const words = bases.map((b) => state.words[b]).filter(Boolean);
+    if (words.length) setUndo({ text: t(words.length === 1 ? one : many, { word: words[0].base, n: words.length }), words });
+    bases.forEach(how);
+    setPicked(new Set());
   };
   const [filter, setFilter] = useState("all");
   const filterRef = useMarker('[aria-pressed="true"]');
@@ -103,6 +118,10 @@ export default function WordsView({ onGoWatch, onGoRead }) {
       (filter === "all" || r.mark === filter) &&
       (!q || r.base.includes(q) || r.reading.includes(q) || r.glosses.join(" ").toLowerCase().includes(q))
   );
+
+  const pickedLearning = [...picked].filter((b) => state.words[b]);
+  const pickedKnown = [...picked].filter((b) => !state.words[b] && state.known[b]);
+  const allShownPicked = visible.length > 0 && visible.every((r) => picked.has(r.base));
 
   const savedWords = Object.values(state.words);
   const toSend = planBatch(savedWords, state).send;
@@ -188,8 +207,61 @@ export default function WordsView({ onGoWatch, onGoRead }) {
               {t("Send all to Anki")}
             </button>
           )}
+          {rows.length > 0 && (
+            <button
+              className="btn btn--quiet"
+              aria-pressed={picking}
+              onClick={() => {
+                setPicking(!picking);
+                setPicked(new Set());
+              }}
+            >
+              {t(picking ? "Done" : "Select")}
+            </button>
+          )}
         </div>
       </div>
+
+      {picking && (
+        <div className="words__bulk" role="toolbar" aria-label={t("Selected words")}>
+          <span className="words__bulk-count" role="status">
+            {t("{n} selected", { n: picked.size })}
+          </span>
+          <button
+            className="link"
+            onClick={() => setPicked(allShownPicked ? new Set() : new Set(visible.map((r) => r.base)))}
+            disabled={visible.length === 0}
+          >
+            {t(allShownPicked ? "Clear" : "Select all shown")}
+          </button>
+          <span className="words__bulk-actions">
+            <button
+              className="btn"
+              disabled={!pickedLearning.length}
+              onClick={() => dropMany(knowWord, pickedLearning, "Marked as known: {word}.", "Marked {n} words as known.")}
+            >
+              {t("I know these")}
+            </button>
+            <button
+              className="btn"
+              disabled={!pickedKnown.length}
+              onClick={() => {
+                pickedKnown.forEach(unknowWord);
+                setPicked(new Set());
+              }}
+            >
+              {t("Mark as new")}
+            </button>
+            <button
+              className="btn btn--quiet"
+              disabled={!pickedLearning.length}
+              onClick={() => dropMany(removeWord, pickedLearning, "Removed {word}.", "Removed {n} words.")}
+            >
+              {t("Remove")}
+            </button>
+          </span>
+        </div>
+      )}
 
       {(undo || exported) && (
         <p className="note words__undo" role="status">
@@ -199,7 +271,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
               <button
                 className="link"
                 onClick={() => {
-                  restoreWord(undo.word);
+                  undo.words.forEach(restoreWord);
                   setUndo(null);
                 }}
               >
@@ -229,11 +301,21 @@ export default function WordsView({ onGoWatch, onGoRead }) {
       ) : (
         <ul className="words__list">
           {visible.map((r) => (
-            <li key={r.base} className="words__row">
+            <li key={r.base} className={`words__row${picking ? " words__row--picking" : ""}`}>
+              {picking && (
+                <input
+                  type="checkbox"
+                  className="words__pick"
+                  checked={picked.has(r.base)}
+                  onChange={() => togglePick(r.base)}
+                  aria-label={t("Select {word}", { word: r.base })}
+                />
+              )}
               <button
                 className="words__summary"
-                aria-expanded={open === r.base}
-                onClick={() => setOpen(open === r.base ? null : r.base)}
+                aria-expanded={picking ? undefined : open === r.base}
+                tabIndex={picking ? -1 : undefined}
+                onClick={() => (picking ? togglePick(r.base) : setOpen(open === r.base ? null : r.base))}
               >
                 <span className={`words__term mk mk--${r.inAnki ? "inAnki" : r.mark}`} lang="ja">
                   {r.base}
@@ -248,7 +330,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
                   {r.mark === "known" && t("known")}
                 </span>
               </button>
-              {open === r.base && (
+              {open === r.base && !picking && (
                 <div className="words__detail">
                   <SceneStill base={r.base} />
                   {r.glosses.length > 2 && <p className="words__glosses">{r.glosses.join("; ")}</p>}

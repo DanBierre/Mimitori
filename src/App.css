@@ -2245,6 +2245,52 @@ rt.rt--known {
   border-bottom: 1px solid var(--line-soft);
 }
 
+/* Select mode: a tick box before each row, and one bar of actions for the ticked words. */
+.words__row--picking {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.words__row--picking .words__summary {
+  flex: 1;
+  min-width: 0;
+}
+
+.words__pick {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--ink-strong);
+}
+
+.words__bulk {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 0 0 12px;
+  padding: 10px 0;
+  border-bottom: 2px solid var(--text);
+  background: var(--bg);
+}
+
+.words__bulk-count {
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.words__bulk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
 .words__summary {
   display: grid;
   grid-template-columns: minmax(80px, auto) minmax(70px, auto) 1fr auto;
