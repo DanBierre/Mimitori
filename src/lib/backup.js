@@ -5,6 +5,8 @@
 // stills would need base64 in the file, add them if people miss them.
 
 // Old app name kept on purpose: renaming the key would wipe saved words and settings.
+import { dayKey } from "./progress.js";
+
 export const STORAGE_KEY = "nihongo-reader:v1";
 
 export function toBackup(state, now = Date.now()) {
@@ -32,7 +34,7 @@ export function parseBackup(text) {
 export const backupCounts = (s) => ({ saved: Object.keys(s.words).length, known: Object.keys(s.known).length });
 
 export function downloadBackup(state) {
-  const day = new Date().toISOString().slice(0, 10);
+  const day = dayKey(Date.now()); // local date: UTC would name a NZ morning backup after yesterday
   const url = URL.createObjectURL(new Blob([toBackup(state)], { type: "application/json" }));
   const a = document.createElement("a");
   a.href = url;
@@ -40,7 +42,7 @@ export function downloadBackup(state) {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000); // some browsers start the download after click returns
 }
 
 export function restoreBackup(parsed, storage = localStorage) {
