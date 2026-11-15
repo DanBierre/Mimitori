@@ -129,8 +129,10 @@ export default function WordsView({ onGoWatch, onGoRead }) {
       (!q || r.base.includes(q) || r.reading.includes(q) || r.glosses.join(" ").toLowerCase().includes(q))
   );
 
-  const pickedLearning = [...picked].filter((b) => state.words[b]);
-  const pickedKnown = [...picked].filter((b) => !state.words[b] && state.known[b]);
+  // Only rows still shown count: a filter or search can hide picked words.
+  const shownPicked = visible.filter((r) => picked.has(r.base)).map((r) => r.base);
+  const pickedLearning = shownPicked.filter((b) => state.words[b]);
+  const pickedKnown = shownPicked.filter((b) => !state.words[b] && state.known[b]);
   const allShownPicked = visible.length > 0 && visible.every((r) => picked.has(r.base));
 
   const savedWords = Object.values(state.words);
@@ -235,7 +237,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
       {picking && (
         <div className="words__bulk" role="toolbar" aria-label={t("Selected words")}>
           <span className="words__bulk-count" role="status">
-            {t("{n} selected", { n: picked.size })}
+            {t("{n} selected", { n: shownPicked.length })}
           </span>
           <button
             className="link"
