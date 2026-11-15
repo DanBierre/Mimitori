@@ -87,7 +87,9 @@ export function repairWords(words) {
   for (const [base, w] of Object.entries(words || {})) {
     if (!w || typeof w !== "object") continue;
     const ok = w.card && !Number.isNaN(new Date(w.card.due).getTime());
-    out[base] = ok ? { ...w, base: w.base || base } : { ...w, base: w.base || base, card: newCard() };
+    // A hand-edited backup can drop the meanings; Review and Words expect a list.
+    const fixed = { ...w, base: w.base || base, glosses: Array.isArray(w.glosses) ? w.glosses : [] };
+    out[base] = ok ? fixed : { ...fixed, card: newCard() };
   }
   return out;
 }

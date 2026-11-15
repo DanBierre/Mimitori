@@ -52,6 +52,7 @@ test("repairWords gives a fresh card to words that lost theirs", () => {
   assert.equal(out.猫.card, good.card);
   assert.ok(isDue(out.犬.card));
   assert.equal(out.犬.base, "犬");
+  assert.deepEqual(out.犬.glosses, []);
   assert.ok(!Number.isNaN(new Date(out.魚.card.due).getTime()));
   assert.equal("bad" in out, false);
   assert.deepEqual(repairWords(undefined), {});
