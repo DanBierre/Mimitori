@@ -6,6 +6,7 @@ import { planBatch, sendBatch, sendSaved } from "../lib/anki/batch";
 import { downloadCsv } from "../lib/exportCsv";
 import { formatInterval } from "../lib/srs";
 import { lookupWord } from "../lib/dict";
+import { levelTag, loadLevels } from "../lib/levels";
 import SceneStill from "./SceneStill";
 import { useMarker } from "../lib/useMarker";
 
@@ -64,6 +65,15 @@ export default function WordsView({ onGoWatch, onGoRead }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(null);
   const [batch, setBatch] = useState(null); // null | { running, step, total } | { done: message }
+
+  const [levels, setLevels] = useState(null);
+  useEffect(() => {
+    let live = true;
+    loadLevels().then((m) => live && setLevels(m));
+    return () => {
+      live = false;
+    };
+  }, []);
 
   // Known words keep only their key, so their reading and meaning come from the dictionary.
   const [meanings, setMeanings] = useState({});
@@ -325,6 +335,7 @@ export default function WordsView({ onGoWatch, onGoRead }) {
                 </span>
                 <span className="words__meaning">{r.glosses.slice(0, 2).join("; ")}</span>
                 <span className="words__state">
+                  {levels?.get(r.base) && <span className="words__level">{levelTag(levels.get(r.base), t)}</span>}
                   {r.mark === "due" && t("due now")}
                   {r.inAnki ? t("in Anki") : r.mark === "saved" && t("in {when}", { when: t(formatInterval(r.due - new Date())) })}
                   {r.mark === "known" && t("known")}
@@ -369,7 +380,8 @@ export default function WordsView({ onGoWatch, onGoRead }) {
         </p>
       )}
       <p className="words__credit">
-        {t("Word meanings come from JMdict, © the Electronic Dictionary Research and Development Group, used under CC BY-SA 4.0.")}
+        {t("Word meanings come from JMdict, © the Electronic Dictionary Research and Development Group, used under CC BY-SA 4.0.")}{" "}
+        {t("JLPT levels come from Jonathan Waller’s JLPT Resources, used under CC BY.")}
       </p>
     </section>
   );

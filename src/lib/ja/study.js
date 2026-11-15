@@ -196,4 +196,6 @@ export default {
   "Marked {n} words as known.": "{n}語を既知にしました。",
   "Removed {n} words.": "{n}語を削除しました。",
   "Select {word}": "{word}を選択",
+  common: "よく使う",
+  "JLPT levels come from Jonathan Waller’s JLPT Resources, used under CC BY.": "JLPTレベルはJonathan WallerのJLPT ResourcesによるものでCC BYに基づき使用。",
 };

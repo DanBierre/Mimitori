@@ -2332,6 +2332,10 @@ rt.rt--known {
   font-size: 16px;
 }
 
+.words__level {
+  margin-right: 10px;
+}
+
 .words__state {
   font-family: var(--mono);
   font-size: 11px;
