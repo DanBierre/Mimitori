@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dailyQueue, reviewNote } from "./srs.js";
+import { dailyQueue, isDue, newCard, repairWords, reviewNote } from "./srs.js";
 
 const now = new Date(2026, 10, 11, 12, 0);
 const word = (i, dueOffsetH, lastReviewH) => ({
@@ -44,4 +44,15 @@ test("review note wording", () => {
   assert.equal(reviewNote(20, 12), "20 to review today. The other 12 can wait.");
   assert.equal(reviewNote(5, 0), "5 to review today.");
   assert.equal(reviewNote(0, 0), "Nothing to review today.");
+});
+
+test("repairWords gives a fresh card to words that lost theirs", () => {
+  const good = { base: "猫", card: newCard() };
+  const out = repairWords({ 猫: good, 犬: { reading: "いぬ" }, 魚: { card: { due: "nope" } }, bad: null });
+  assert.equal(out.猫.card, good.card);
+  assert.ok(isDue(out.犬.card));
+  assert.equal(out.犬.base, "犬");
+  assert.ok(!Number.isNaN(new Date(out.魚.card.due).getTime()));
+  assert.equal("bad" in out, false);
+  assert.deepEqual(repairWords(undefined), {});
 });

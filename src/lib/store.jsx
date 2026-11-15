@@ -4,7 +4,7 @@
 // accounts are a later layer.
 
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from "react";
-import { becameKnown, dailyQueue, gradeCard, newCard } from "./srs";
+import { becameKnown, dailyQueue, gradeCard, newCard, repairWords } from "./srs";
 import { binImage, unbinImage } from "./images";
 import { loadCommon } from "./common";
 import { applyInk, applyTheme } from "./ink";
@@ -41,7 +41,7 @@ function load() {
     if (!raw) return DEFAULT_STATE;
     const parsed = JSON.parse(raw);
     return {
-      words: parsed.words || {},
+      words: repairWords(parsed.words),
       known: parsed.known || {},
       log: parsed.log || {},
       settings: {

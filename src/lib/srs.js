@@ -79,3 +79,15 @@ export function reviewNote(shown, waiting) {
   const head = shown === 0 ? "Nothing to review today." : `${shown} to review today.`;
   return waiting > 0 ? `${head} The other ${waiting} can wait.` : head;
 }
+
+// A hand-edited or damaged backup can hold a word with no review card, which
+// would crash the review queue and blank the app. Give such words a fresh card.
+export function repairWords(words) {
+  const out = {};
+  for (const [base, w] of Object.entries(words || {})) {
+    if (!w || typeof w !== "object") continue;
+    const ok = w.card && !Number.isNaN(new Date(w.card.due).getTime());
+    out[base] = ok ? { ...w, base: w.base || base } : { ...w, base: w.base || base, card: newCard() };
+  }
+  return out;
+}
