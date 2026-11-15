@@ -8,6 +8,7 @@ import ReviewView from "./components/ReviewView";
 import WordsView from "./components/WordsView";
 import SettingsView from "./components/SettingsView";
 import Icon from "./components/Icon";
+import TabGuard from "./components/TabGuard";
 import { useMarker } from "./lib/useMarker";
 import { createFlags } from "./lib/firstRun";
 import { isDark } from "./lib/ink";
@@ -156,14 +157,14 @@ function Shell() {
       <main className="app__main">
         {/* Read and Watch stay mounted so pasted text and the video keep their place. */}
         <div hidden={tab !== "read"}>
-          <ReadView onOpenSettings={openSettings} />
+          <TabGuard><ReadView onOpenSettings={openSettings} /></TabGuard>
         </div>
         <div hidden={tab !== "watch"}>
-          <WatchView active={tab === "watch"} onOpenSettings={openSettings} />
+          <TabGuard><WatchView active={tab === "watch"} onOpenSettings={openSettings} /></TabGuard>
         </div>
-        {tab === "settings" && <SettingsView active backLabel={backLabel} onBack={() => setTab(prevTab)} />}
-        {tab === "review" && !inAnkiMode && <ReviewView onGoRead={() => setTab("read")} onGoWatch={() => setTab("watch")} />}
-        {tab === "words" && <WordsView onGoWatch={() => setTab("watch")} onGoRead={() => setTab("read")} />}
+        {tab === "settings" && <TabGuard><SettingsView active backLabel={backLabel} onBack={() => setTab(prevTab)} /></TabGuard>}
+        {tab === "review" && !inAnkiMode && <TabGuard><ReviewView onGoRead={() => setTab("read")} onGoWatch={() => setTab("watch")} /></TabGuard>}
+        {tab === "words" && <TabGuard><WordsView onGoWatch={() => setTab("watch")} onGoRead={() => setTab("read")} /></TabGuard>}
       </main>
     </div>
   );

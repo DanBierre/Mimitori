@@ -224,4 +224,7 @@ export default {
   "Any level": "すべてのレベル",
   "Not on a JLPT list": "JLPTの範囲外",
   "Filter by JLPT level": "JLPTレベルで絞り込む",
+  "This page hit a snag": "このページで問題が起きました",
+  "Your saved words are safe. Try again, or reload the app.": "保存した単語は無事です。もう一度試すか、アプリを再読み込みしてください。",
+  "Reload": "再読み込み",
 };
