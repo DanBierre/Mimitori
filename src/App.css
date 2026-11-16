@@ -40,6 +40,50 @@
   color: var(--text);
 }
 
+.app__home {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.app__signin {
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+/* Top layer, so it sits under the header on its right edge */
+.account-pop {
+  inset: 60px 12px auto auto;
+  margin: 0;
+  padding: 0 16px 16px;
+}
+
+.account-pop .settings__section {
+  border-top: 0;
+  padding-top: 14px;
+}
+
+/* Narrow panel: each field on its own line, full width */
+.account-pop form.settings__row {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.account-pop form .settings__label {
+  flex: none;
+}
+
+.account-pop form .btn {
+  align-self: flex-start;
+}
+
 .app__side {
   display: flex;
   align-items: center;

@@ -6,6 +6,7 @@ export default {
   Words: "単語",
   Settings: "設定",
   Sections: "セクション",
+  "mimitori, back to Read": "mimitori、読むに戻る",
   " to review": "件の復習",
   "Install Mimitori as an app": "Mimitoriをアプリとしてインストール",
   "Switch to light": "ライトに切り替え",

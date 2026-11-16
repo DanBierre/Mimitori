@@ -1,5 +1,5 @@
 // account.js
-// Talks to the account server (server/handler.js): email sign-in codes, and one saved copy of
+// Talks to the account server (server/handler.js): email and password sign-in, and one saved copy of
 // the learner's words per account. The copy is the synced parts of the state, gzipped, in base64.
 import { mergeState, synced } from "./syncMerge.js";
 
@@ -56,12 +56,21 @@ export async function startSignIn(email) {
   }
 }
 
-// Returns { session, email }
-export async function finishSignIn(email, code) {
+// The emailed code makes the account, or resets its password. Returns { session, email }
+export async function finishSignIn(email, code, password) {
   try {
-    return await (await call("/auth/verify", { method: "POST", body: { email, code } })).json();
+    return await (await call("/auth/verify", { method: "POST", body: { email, code, password } })).json();
   } catch (e) {
     throw e.status === 400 ? fail(400, "That code didn't work. Check it, or send a new one.") : e;
+  }
+}
+
+// Returns { session, email }
+export async function logIn(email, password) {
+  try {
+    return await (await call("/auth/login", { method: "POST", body: { email, password } })).json();
+  } catch (e) {
+    throw e.status === 400 ? fail(400, "That email and password don't match.") : e;
   }
 }
 

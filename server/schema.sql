@@ -2,7 +2,10 @@
 CREATE TABLE IF NOT EXISTS accounts (
   id TEXT PRIMARY KEY,
   email TEXT NOT NULL UNIQUE,
-  created INTEGER NOT NULL
+  created INTEGER NOT NULL,
+  -- pbkdf2$rounds$salt$hash, set when an emailed code checks out. Added 16 Nov 2026:
+  -- ALTER TABLE accounts ADD COLUMN pw_hash TEXT;
+  pw_hash TEXT
 );
 -- A session is a random token the app keeps; only its SHA-256 hash is stored here
 CREATE TABLE IF NOT EXISTS sessions (

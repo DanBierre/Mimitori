@@ -10,10 +10,12 @@ const call = (deps, method, path, { body, token, headers = {} } = {}) =>
     body: typeof body === "string" ? body : body && JSON.stringify(body),
   }), deps);
 
+const PW = "correct horse";
+
 async function signIn(deps, email = "dan@example.com") {
   await call(deps, "POST", "/auth/start", { body: { email } });
   const code = deps.sent.at(-1).code;
-  const r = await call(deps, "POST", "/auth/verify", { body: { email, code } });
+  const r = await call(deps, "POST", "/auth/verify", { body: { email, code, password: PW } });
   return (await r.json()).session;
 }
 
@@ -30,8 +32,8 @@ test("a code works once", async () => {
   const deps = testDeps();
   await call(deps, "POST", "/auth/start", { body: { email: "a@b.co" } });
   const code = deps.sent[0].code;
-  assert.equal((await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code } })).status, 200);
-  assert.equal((await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code } })).status, 400);
+  assert.equal((await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code, password: PW } })).status, 200);
+  assert.equal((await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code, password: PW } })).status, 400);
 });
 
 test("five wrong tries cancel the code", async () => {
@@ -39,15 +41,15 @@ test("five wrong tries cancel the code", async () => {
   await call(deps, "POST", "/auth/start", { body: { email: "a@b.co" } });
   const code = deps.sent[0].code;
   const wrong = code === "000000" ? "111111" : "000000";
-  for (let i = 0; i < 5; i++) await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code: wrong } });
-  assert.equal((await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code } })).status, 400);
+  for (let i = 0; i < 5; i++) await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code: wrong, password: PW } });
+  assert.equal((await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code, password: PW } })).status, 400);
 });
 
 test("a code runs out after 10 minutes", async () => {
   const deps = testDeps();
   await call(deps, "POST", "/auth/start", { body: { email: "a@b.co" } });
   deps.tick(10 * 60_000 + 1);
-  assert.equal((await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code: deps.sent[0].code } })).status, 400);
+  assert.equal((await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code: deps.sent[0].code, password: PW } })).status, 400);
 });
 
 test("one mailbox gets at most 5 codes an hour, counting + and dot variants", async () => {
@@ -64,6 +66,42 @@ test("a bad address is refused", async () => {
   for (const email of ["", "nope", "a b@c.d", "a@b.c, x@y.z", 7]) {
     assert.equal((await call(deps, "POST", "/auth/start", { body: { email } })).status, 400);
   }
+});
+
+test("the code sets the password, then email and password sign in", async () => {
+  const deps = testDeps();
+  await signIn(deps);
+  const login = (password, email = "dan@example.com") => call(deps, "POST", "/auth/login", { body: { email, password } });
+  const r = await login(PW);
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).session.length, 64);
+  assert.equal((await login("wrong one")).status, 400);
+  assert.equal((await login(PW, "nobody@example.com")).status, 400);
+});
+
+test("a short password is refused and the code stays usable", async () => {
+  const deps = testDeps();
+  await call(deps, "POST", "/auth/start", { body: { email: "a@b.co" } });
+  const code = deps.sent[0].code;
+  assert.equal((await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code, password: "short" } })).status, 400);
+  assert.equal((await call(deps, "POST", "/auth/verify", { body: { email: "a@b.co", code, password: PW } })).status, 200);
+});
+
+test("a new code resets the password", async () => {
+  const deps = testDeps();
+  await signIn(deps);
+  await call(deps, "POST", "/auth/start", { body: { email: "dan@example.com" } });
+  await call(deps, "POST", "/auth/verify", { body: { email: "dan@example.com", code: deps.sent.at(-1).code, password: "new password" } });
+  const login = (password) => call(deps, "POST", "/auth/login", { body: { email: "dan@example.com", password } });
+  assert.equal((await login(PW)).status, 400);
+  assert.equal((await login("new password")).status, 200);
+});
+
+test("password guesses stop after 10 an hour", async () => {
+  const deps = testDeps();
+  await signIn(deps);
+  for (let i = 0; i < 10; i++) await call(deps, "POST", "/auth/login", { body: { email: "dan@example.com", password: "guess " + i } });
+  assert.equal((await call(deps, "POST", "/auth/login", { body: { email: "dan@example.com", password: PW } })).status, 429);
 });
 
 test("no session, no copy", async () => {

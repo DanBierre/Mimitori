@@ -7,7 +7,6 @@ import { listFailed, retryFailed } from "../lib/anki/queue";
 import { deckQuery } from "../lib/anki/known";
 import Icon from "./Icon";
 import { backupCounts, downloadBackup, parseBackup, restoreBackup } from "../lib/backup";
-import { useAccount } from "../lib/useSync";
 import { ROLE_LABELS, buildMapping, flatFields, hasWordField, lowConfidence, pickSampleQuery, templateParts } from "../lib/anki/settingsLogic";
 
 const STATUS_TEXT = {
@@ -429,8 +428,6 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
         )}
       </div>
 
-      <AccountSection />
-
       <div className="settings__section">
         <h3 className="settings__heading">{t("Backup")}</h3>
         <p className="note">
@@ -461,79 +458,3 @@ export default function SettingsView({ active, onBack, backLabel = "Read" }) {
 }
 
 // Sign in with an emailed code (no password); signed in, the words sync across devices.
-function AccountSection() {
-  const t = useT();
-  const { account, status, sync, startSignIn, finishSignIn, signOut, deleteAccount } = useAccount();
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [sent, setSent] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [confirming, setConfirming] = useState(false);
-
-  const run = (fn) => async (e) => {
-    e?.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      await fn();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  if (account) {
-    const when = status.at && new Date(status.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-    return (
-      <div className="settings__section">
-        <h3 className="settings__heading">{t("Account")}</h3>
-        <p className="note">{t("Signed in as {email}. Your words, known words and settings sync to your other devices.", { email: account.email })}</p>
-        <p className="settings__hint" aria-live="polite">
-          {status.busy ? t("Syncing…") : status.error ? t(status.error) : when ? t("Last synced at {time}", { time: when }) : ""}
-        </p>
-        <div className="settings__row">
-          <button className="btn" onClick={() => sync()} disabled={status.busy}>{t("Sync now")}</button>
-          <button className="btn btn--quiet" onClick={run(signOut)} disabled={busy}>{t("Sign out")}</button>
-          <button className="btn btn--quiet" onClick={() => setConfirming(true)}>{t("Delete account")}</button>
-        </div>
-        {error && <p className="note note--error">{t(error)}</p>}
-        {confirming && (
-          <div role="alert">
-            <p className="note">{t("This deletes your account and the copy of your words on our server. The words on this device stay put.")}</p>
-            <div className="settings__row">
-              <button className="btn btn--primary" onClick={run(deleteAccount)} disabled={busy}>{t("Delete account")}</button>
-              <button className="btn btn--quiet" onClick={() => setConfirming(false)}>{t("Cancel")}</button>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="settings__section">
-      <h3 className="settings__heading">{t("Account")}</h3>
-      <p className="note">{t("Your words live on this device only. Sign in to keep them on all your devices. We email you a code, so there's no password.")}</p>
-      {!sent ? (
-        <form className="settings__row" onSubmit={run(async () => { await startSignIn(email.trim()); setSent(true); })}>
-          <label className="settings__label" htmlFor="account-email">{t("Email")}</label>
-          <input id="account-email" className="text-input" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-          <button className="btn btn--primary" disabled={busy || !email.trim()}>{t("Send code")}</button>
-        </form>
-      ) : (
-        <>
-          <p className="note">{t("We sent a code to {email}. It works for 10 minutes.", { email: email.trim() })}</p>
-          <form className="settings__row" onSubmit={run(() => finishSignIn(email.trim(), code))}>
-            <label className="settings__label" htmlFor="account-code">{t("Code")}</label>
-            <input id="account-code" className="text-input" inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" required value={code} onChange={(e) => setCode(e.target.value.replace(/D/g, ""))} />
-            <button className="btn btn--primary" disabled={busy || code.length !== 6}>{t("Sign in")}</button>
-            <button type="button" className="btn btn--quiet" onClick={() => { setSent(false); setCode(""); setError(""); }}>{t("Use a different email")}</button>
-          </form>
-        </>
-      )}
-      {error && <p className="note note--error">{t(error)}</p>}
-    </div>
-  );
-}

@@ -13,7 +13,7 @@ function server() {
 }
 async function signIn(deps, email = "dan@example.com") {
   await startSignIn(email);
-  return (await finishSignIn(email, deps.sent.at(-1).code)).session;
+  return (await finishSignIn(email, deps.sent.at(-1).code, "correct horse")).session;
 }
 // A device: its state, and the reducer's "synced" join
 function device(state) {

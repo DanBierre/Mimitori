@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { anki, useAnki } from "./lib/anki/useAnki";
 import { flushQueue } from "./lib/anki/queue";
 import { StoreProvider, ankiMode, useReviewToday, useStore, useT } from "./lib/store";
-import { SyncProvider } from "./lib/useSync";
+import { SyncProvider, useAccount } from "./lib/useSync";
+import AccountPanel from "./components/AccountPanel";
 import ReadView from "./components/ReadView";
 import WatchView from "./components/WatchView";
 import ReviewView from "./components/ReviewView";
@@ -72,6 +73,7 @@ function Shell() {
   const inAnkiMode = ankiMode(state);
   const dark = isDark(state.settings.theme);
   const install = useInstallOffer();
+  const { account } = useAccount();
   const { queueCount, refreshQueue } = useAnki(inAnkiMode && tab !== "settings"); // keeps known words fresh; Settings runs its own
 
   // Send waiting cards when the app gains focus and every 30 s while any wait.
@@ -92,11 +94,13 @@ function Shell() {
     <div className="app">
       <header className="app__header">
         <h1 className="app__title">
+          <button className="app__home" aria-label={t("mimitori, back to Read")} onClick={() => setTab("read")}>
           <svg className="app__logo" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M6 10a7 7 0 1 1 13 3.6a10 10 0 0 1 -2 2a8 8 0 0 0 -2 3a4.5 4.5 0 0 1 -6.8 1.4" />
             <path d="M10.6 10a2.4 2.4 0 1 1 4.2 1.6" />
           </svg>
           mimitori
+          </button>
         </h1>
         <nav className="rail" aria-label={t("Sections")} ref={railRef}>
           <span className="marker rail__marker" aria-hidden="true" />
@@ -144,6 +148,18 @@ function Shell() {
           >
             <Icon key={dark ? "sun" : "moon"} name={dark ? "sun" : "moon"} size={19} />
           </button>
+          {/* Native popover: tapping outside or Esc closes it */}
+          {account ? (
+            <button className="icon-btn" popovertarget="account-pop" aria-label={t("Account")} title={account.email}>
+              <Icon name="user" size={20} />
+            </button>
+          ) : (
+            <button className="btn btn--quiet app__signin" popovertarget="account-pop">{t("Sign in")}</button>
+          )}
+          <div id="account-pop" popover="auto" className="popover account-pop">
+            {/* Fresh on each sign-in or sign-out, so no typed password or old step hangs about */}
+            <AccountPanel key={account ? "in" : "out"} />
+          </div>
           <button
             className="icon-btn"
             aria-label={tab === "settings" ? t("Close settings, back to {tab}", { tab: backLabel }) : t("Settings")}

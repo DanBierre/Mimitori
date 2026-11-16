@@ -76,18 +76,19 @@ export function SyncProvider({ children }) {
     };
   }, [account, sync]);
 
-  const api = useMemo(
-    () => ({
+  const api = useMemo(() => {
+    const signedIn = (a) => {
+      server.saveAccount(a);
+      setStatus({ busy: false, at: 0, error: "" });
+      setAccount(a);
+    };
+    return {
       account,
       status,
       sync,
       startSignIn: server.startSignIn,
-      finishSignIn: async (email, code) => {
-        const a = await server.finishSignIn(email, code);
-        server.saveAccount(a);
-        setStatus({ busy: false, at: 0, error: "" });
-        setAccount(a);
-      },
+      finishSignIn: async (email, code, password) => signedIn(await server.finishSignIn(email, code, password)),
+      logIn: async (email, password) => signedIn(await server.logIn(email, password)),
       signOut: async () => {
         await server.signOut(account?.session);
         forget();
@@ -96,9 +97,8 @@ export function SyncProvider({ children }) {
         await server.deleteAccount(account?.session);
         forget();
       },
-    }),
-    [account, status, sync, forget]
-  );
+    };
+  }, [account, status, sync, forget]);
 
   return <SyncContext.Provider value={api}>{children}</SyncContext.Provider>;
 }

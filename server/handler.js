@@ -1,8 +1,10 @@
-// Mimitori account server: email sign-in codes, sessions, and one saved copy per account.
+// Mimitori account server: email and password sign-in, sessions, and one saved copy per account.
+// An emailed code proves the address once, when the account is made or the password is reset.
 // Pure (no Cloudflare imports) so tests run it in Node. deps = { db, mail, now, random }.
 // The sign-in and its limits follow Shoji's account server, which has been in use for a while.
 
 const CODE_LIFE = 10 * 60_000, HOUR = 60 * 60_000, DAY = 24 * HOUR;
+const MAX_LOGINS_PER_HOUR = 10, PW_ROUNDS = 100_000; // the most PBKDF2 rounds Workers allow
 const MAX_TRIES = 5, MAX_CODES_PER_HOUR = 5, MAX_TRIES_PER_DAY = 30, MAX_STARTS_PER_IP = 20, MAX_VERIFIES_PER_IP = 60;
 // Every code mailed, from everyone, per hour: a ceiling on what abuse can cost. People who already have
 // an account count separately, so a flood of made-up addresses can't stop them signing in.
@@ -29,9 +31,28 @@ export async function sha256Hex(text) {
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
   return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
+const toHex = (bytes) => [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
 const hex = (deps, n) => [...deps.random(n)].map((b) => b.toString(16).padStart(2, "0")).join("");
 const cleanEmail = (e) => (typeof e === "string" && e.length <= 300 ? e.trim().toLowerCase() : "");
 const str = (v) => typeof v === "string" && v.trim() !== "";
+const goodPassword = (p) => typeof p === "string" && p.length >= 8 && p.length <= 200;
+
+// Salted PBKDF2, stored as pbkdf2$rounds$salt$hash, so the rounds can rise later without breaking old ones
+async function pbkdf2(password, salt, rounds) {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: "SHA-256", salt: Uint8Array.from(salt.match(/../g), (h) => parseInt(h, 16)), iterations: rounds }, key, 256);
+  return toHex(new Uint8Array(bits));
+}
+async function hashPassword(deps, password) {
+  const salt = hex(deps, 16);
+  return ["pbkdf2", PW_ROUNDS, salt, await pbkdf2(password, salt, PW_ROUNDS)].join("$");
+}
+// No account still costs a full hash, so the reply time doesn't say whether the address has one
+async function passwordMatches(password, stored) {
+  const [, rounds, salt, hash] = (stored || ["pbkdf2", PW_ROUNDS, "0".repeat(32), "-"].join("$")).split("$");
+  return (await pbkdf2(password, salt, Number(rounds))) === hash;
+}
 // name+1@ and dotted Gmail addresses reach one mailbox, so they share its limit
 export function mailbox(email) {
   let [user, domain] = email.split("@");
@@ -74,6 +95,13 @@ async function session(req, deps) {
   return { accountId: row.account_id, hash };
 }
 
+async function newSession(deps, accountId, email) {
+  const token = hex(deps, 32), now = deps.now();
+  await deps.db.prepare("INSERT INTO sessions (token_hash, account_id, created, last_seen) VALUES (?, ?, ?, ?)")
+    .bind(await sha256Hex(token), accountId, now, now).run();
+  return reply(200, { session: token, email });
+}
+
 // Over a limit still answers 200, so the reply never says anything about the address
 async function start(req, deps) {
   const email = cleanEmail((await req.json().catch(() => ({}))).email);
@@ -112,22 +140,37 @@ async function useCode(deps, email, code) {
   return false;
 }
 
+// The right code makes the account, or resets its password, and signs in
 async function verify(req, deps) {
   const b = await req.json().catch(() => ({}));
   const email = cleanEmail(b.email);
   if (!email || !str(b.code)) return reply(400, { error: "bad request" });
+  if (!goodPassword(b.password)) return reply(400, { error: "bad password" });
   const ip = fromIp(req);
   if (ip && !(await limit(deps, "ip-verify:" + ip, MAX_VERIFIES_PER_IP, HOUR))) return reply(429, { error: "too many tries" });
   if (!(await useCode(deps, email, b.code))) return reply(400, { error: "bad code" });
+  const pw = await hashPassword(deps, b.password);
   let account = await deps.db.prepare("SELECT id FROM accounts WHERE email = ?").bind(email).first();
-  if (!account) {
+  if (account) {
+    await deps.db.prepare("UPDATE accounts SET pw_hash = ? WHERE id = ?").bind(pw, account.id).run();
+  } else {
     account = { id: hex(deps, 16) };
-    await deps.db.prepare("INSERT INTO accounts (id, email, created) VALUES (?, ?, ?)").bind(account.id, email, deps.now()).run();
+    await deps.db.prepare("INSERT INTO accounts (id, email, created, pw_hash) VALUES (?, ?, ?, ?)").bind(account.id, email, deps.now(), pw).run();
   }
-  const token = hex(deps, 32), now = deps.now();
-  await deps.db.prepare("INSERT INTO sessions (token_hash, account_id, created, last_seen) VALUES (?, ?, ?, ?)")
-    .bind(await sha256Hex(token), account.id, now, now).run();
-  return reply(200, { session: token, email });
+  return newSession(deps, account.id, email);
+}
+
+// Email and password. One answer for a wrong password and an unknown address, so it never says which
+async function login(req, deps) {
+  const b = await req.json().catch(() => ({}));
+  const email = cleanEmail(b.email);
+  if (!email || typeof b.password !== "string" || b.password.length > 200) return reply(400, { error: "bad request" });
+  const ip = fromIp(req);
+  if ((ip && !(await limit(deps, "ip-verify:" + ip, MAX_VERIFIES_PER_IP, HOUR)))
+    || !(await limit(deps, "login:" + email, MAX_LOGINS_PER_HOUR, HOUR))) return reply(429, { error: "too many tries" });
+  const account = await deps.db.prepare("SELECT id, pw_hash FROM accounts WHERE email = ?").bind(email).first();
+  if (!(await passwordMatches(b.password, account?.pw_hash)) || !account?.pw_hash) return reply(400, { error: "bad login" });
+  return newSession(deps, account.id, email);
 }
 
 async function signout(req, deps) {
@@ -189,6 +232,7 @@ async function deleteAccount(req, deps) {
 const routes = {
   "POST /auth/start": start,
   "POST /auth/verify": verify,
+  "POST /auth/login": login,
   "POST /signout": signout,
   "GET /me": me,
   "GET /copy": getCopy,
