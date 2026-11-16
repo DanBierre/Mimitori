@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { anki, useAnki } from "./lib/anki/useAnki";
 import { flushQueue } from "./lib/anki/queue";
 import { StoreProvider, ankiMode, useReviewToday, useStore, useT } from "./lib/store";
+import { SyncProvider } from "./lib/useSync";
 import ReadView from "./components/ReadView";
 import WatchView from "./components/WatchView";
 import ReviewView from "./components/ReviewView";
@@ -173,7 +174,9 @@ function Shell() {
 export default function App() {
   return (
     <StoreProvider>
-      <Shell />
+      <SyncProvider>
+        <Shell />
+      </SyncProvider>
     </StoreProvider>
   );
 }

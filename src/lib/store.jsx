@@ -1,7 +1,7 @@
 // store.jsx
 // Local-first app state: saved words (with FSRS cards), known words, and
-// reading settings. Everything lives in localStorage on the device; sync and
-// accounts are a later layer.
+// reading settings. Everything lives in localStorage on the device; signed in,
+// useSync also keeps a copy on Mimitori's server (see syncMerge.js).
 
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from "react";
 import { becameKnown, dailyQueue, gradeCard, newCard, repairWords } from "./srs";
@@ -12,12 +12,17 @@ import { logReview, unlogReview } from "./progress";
 export { ankiMode, wordState } from "./anki/settingsLogic";
 
 import { STORAGE_KEY } from "./backup";
+import { mergeState } from "./syncMerge";
 import { translate } from "./i18n";
 
 const DEFAULT_STATE = {
   words: {}, // keyed by dictionary form
   known: {}, // dictionary form -> time marked (true on older data)
   log: {}, // local day (YYYY-MM-DD) -> reviews done, for the "this week" line
+  // When a word was removed / un-known, so syncing doesn't bring it back from another device
+  gone: {},
+  goneKnown: {},
+  settingsAt: 0, // last settings change, so the newer settings win when syncing
   // furigana: all | unknown | off
   settings: {
     furigana: "unknown",
@@ -44,6 +49,9 @@ function load() {
       words: repairWords(parsed.words),
       known: parsed.known || {},
       log: parsed.log || {},
+      gone: parsed.gone || {},
+      goneKnown: parsed.goneKnown || {},
+      settingsAt: parsed.settingsAt || 0,
       settings: {
         ...DEFAULT_STATE.settings,
         ...(parsed.settings || {}),
@@ -75,19 +83,21 @@ function reducer(state, action) {
       return {
         ...state,
         known,
+        goneKnown: unknown(state, entry.base),
         words: { ...state.words, [entry.base]: { ...entry, addedAt: Date.now(), card: newCard() } },
       };
     }
     case "remove": {
       const words = { ...state.words };
       delete words[action.base];
-      return { ...state, words };
+      return { ...state, words, gone: { ...state.gone, [action.base]: Date.now() } };
     }
     // Undo for remove / know: put the saved word back exactly as it was, review history and all.
     case "restore": {
       const known = { ...state.known };
       delete known[action.word.base];
-      return { ...state, known, words: { ...state.words, [action.word.base]: action.word } };
+      const word = { ...action.word, touched: Date.now() };
+      return { ...state, known, goneKnown: unknown(state, word.base), words: { ...state.words, [word.base]: word } };
     }
     // Undo of a review grade: the old card back, and the review off today's count.
     case "ungrade": {
@@ -97,12 +107,13 @@ function reducer(state, action) {
     case "know": {
       const words = { ...state.words };
       delete words[action.base];
-      return { ...state, words, known: { ...state.known, [action.base]: Date.now() } };
+      const now = Date.now();
+      return { ...state, words, gone: { ...state.gone, [action.base]: now }, known: { ...state.known, [action.base]: now } };
     }
     case "unknow": {
       const known = { ...state.known };
       delete known[action.base];
-      return { ...state, known };
+      return { ...state, known, goneKnown: { ...state.goneKnown, [action.base]: Date.now() } };
     }
     case "grade": {
       const word = state.words[action.base];
@@ -113,9 +124,12 @@ function reducer(state, action) {
       return next;
     }
     case "settings":
-      return { ...state, settings: { ...state.settings, ...action.patch } };
+      return { ...state, settingsAt: Date.now(), settings: { ...state.settings, ...action.patch } };
     case "watch":
-      return { ...state, settings: { ...state.settings, watch: { ...state.settings.watch, ...action.patch } } };
+      return { ...state, settingsAt: Date.now(), settings: { ...state.settings, watch: { ...state.settings.watch, ...action.patch } } };
+    // The server's copy arrived: join it with whatever changed here meanwhile
+    case "synced":
+      return { ...state, ...mergeState(state, action.remote) };
     case "ankiSettings":
       return { ...state, settings: { ...state.settings, anki: { ...state.settings.anki, ...action.patch } } };
     case "ankiWords":
@@ -130,6 +144,9 @@ function reducer(state, action) {
       return state;
   }
 }
+
+// A dated note that the word left the known list (only when it was there)
+const unknown = (state, base) => (state.known[base] ? { ...state.goneKnown, [base]: Date.now() } : state.goneKnown);
 
 const StoreContext = createContext(null);
 
@@ -187,6 +204,7 @@ export function StoreProvider({ children }) {
       markInAnki: (base) => dispatch({ type: "markInAnki", base }),
       setDeckNotes: (notes) => dispatch({ type: "ankiNotes", notes }),
       setAnkiWords: ({ known, inDeck }) => dispatch({ type: "ankiWords", known, inDeck }),
+      synced: (remote) => dispatch({ type: "synced", remote }),
     }),
     [state]
   );

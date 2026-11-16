@@ -8,3 +8,4 @@ fixtures/book/*.png
 public/pdfjs/
 public/mimitori.ankiaddon
 __pycache__/
+.wrangler/
