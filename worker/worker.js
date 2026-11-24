@@ -33,12 +33,15 @@ export default {
       });
     }
 
-    const text = (body.text || "").trim();
-    if (!text) {
-      return new Response(JSON.stringify({ error: "Missing 'text' field" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Must be a string (a number or object would throw on .trim) and short:
+    // every character is billed against the DeepL quota.
+    const MAX_TEXT = 2000;
+    const text = typeof body?.text === "string" ? body.text.trim() : "";
+    if (!text || text.length > MAX_TEXT) {
+      return new Response(
+        JSON.stringify({ error: text ? `'text' is over ${MAX_TEXT} characters` : "Missing 'text' field" }),
+        { status: text ? 413 : 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     // DEEPL_API_KEY is set as a secret (see worker/README.md) — never hardcode it here.
