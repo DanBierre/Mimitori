@@ -186,3 +186,22 @@ test("replies carry CORS headers, errors included", async () => {
   assert.equal(r.status, 500);
   assert.equal(r.headers.get("Access-Control-Allow-Origin"), "*");
 });
+
+test("wrong guesses from another address don't lock the owner out", async () => {
+  const deps = testDeps();
+  await signIn(deps);
+  const login = (password, ip) => call(deps, "POST", "/auth/login", { body: { email: "dan@example.com", password }, headers: { "CF-Connecting-IP": ip } });
+  for (let i = 0; i < 10; i++) await login("guess " + i, "203.0.113.9");
+  assert.equal((await login("guess", "203.0.113.9")).status, 429);
+  assert.equal((await login(PW, "198.51.100.4")).status, 200);
+});
+
+test("a good login resets the failed-guess count", async () => {
+  const deps = testDeps();
+  await signIn(deps);
+  const login = (password) => call(deps, "POST", "/auth/login", { body: { email: "dan@example.com", password } });
+  for (let i = 0; i < 9; i++) await login("guess " + i);
+  assert.equal((await login(PW)).status, 200);
+  for (let i = 0; i < 9; i++) await login("again " + i);
+  assert.equal((await login(PW)).status, 200);
+});
