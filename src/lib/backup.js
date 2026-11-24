@@ -10,8 +10,10 @@ import { dayKey } from "./progress.js";
 export const STORAGE_KEY = "nihongo-reader:v1";
 
 export function toBackup(state, now = Date.now()) {
-  const { words, known, settings, log } = state;
-  return JSON.stringify({ app: "mimitori", version: 1, savedAt: now, words, known, settings, log });
+  const { words, known, settings, log, gone, goneKnown } = state;
+  // gone/goneKnown are the dated "deleted" notes sync uses; without them a restored device
+  // forgets its deletions and the next sync brings the deleted words back.
+  return JSON.stringify({ app: "mimitori", version: 1, savedAt: now, words, known, settings, log, gone, goneKnown });
 }
 
 const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
@@ -28,7 +30,14 @@ export function parseBackup(text) {
   if (data.version > 1) throw new Error("That backup is from a newer Mimitori. Update the app, then try again.");
   if (!isObj(data.words) || !isObj(data.known)) throw new Error("That backup looks damaged, so nothing was changed.");
   const settings = isObj(data.settings) ? data.settings : {};
-  return { words: data.words, known: data.known, settings, ...(isObj(data.log) ? { log: data.log } : {}) };
+  return {
+    words: data.words,
+    known: data.known,
+    settings,
+    ...(isObj(data.log) ? { log: data.log } : {}),
+    ...(isObj(data.gone) ? { gone: data.gone } : {}),
+    ...(isObj(data.goneKnown) ? { goneKnown: data.goneKnown } : {}),
+  };
 }
 
 export const backupCounts = (s) => ({ saved: Object.keys(s.words).length, known: Object.keys(s.known).length });
