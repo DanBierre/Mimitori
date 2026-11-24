@@ -166,10 +166,13 @@ async function login(req, deps) {
   const email = cleanEmail(b.email);
   if (!email || typeof b.password !== "string" || b.password.length > 200) return reply(400, { error: "bad request" });
   const ip = fromIp(req);
+  // Per address AND per caller: a stranger's wrong guesses can't lock the owner out of their own account
+  const tries = "login:" + email + ":" + ip;
   if ((ip && !(await limit(deps, "ip-verify:" + ip, MAX_VERIFIES_PER_IP, HOUR)))
-    || !(await limit(deps, "login:" + email, MAX_LOGINS_PER_HOUR, HOUR))) return reply(429, { error: "too many tries" });
+    || !(await limit(deps, tries, MAX_LOGINS_PER_HOUR, HOUR))) return reply(429, { error: "too many tries" });
   const account = await deps.db.prepare("SELECT id, pw_hash FROM accounts WHERE email = ?").bind(email).first();
   if (!(await passwordMatches(b.password, account?.pw_hash)) || !account?.pw_hash) return reply(400, { error: "bad login" });
+  await deps.db.prepare("DELETE FROM attempts WHERE key = ?").bind(tries).run(); // a good login resets the count
   return newSession(deps, account.id, email);
 }
 
