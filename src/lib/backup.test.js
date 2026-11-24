@@ -31,3 +31,10 @@ test("restore writes to the app's storage slot", () => {
   restoreBackup(parseBackup(toBackup(state)), { setItem: (k, v) => m.set(k, v) });
   assert.deepEqual(JSON.parse(m.get(STORAGE_KEY)).known, state.known);
 });
+
+test("round trip keeps the deletion notes so sync doesn't bring deleted words back", () => {
+  const withGone = { ...state, gone: { 虎: 50 }, goneKnown: { 象: 60 } };
+  const back = parseBackup(toBackup(withGone, 1));
+  assert.deepEqual(back.gone, { 虎: 50 });
+  assert.deepEqual(back.goneKnown, { 象: 60 });
+});
