@@ -26,7 +26,7 @@ const stripTags = (s) => s.replace(/<[^>]+>/g, "");
 function parseBlocks(text, timeRe) {
   const cues = [];
   let skipped = 0;
-  for (const block of text.split(/\n{2,}/)) {
+  for (const block of text.split(/\n[ \t]*\n(?:[ \t]*\n)*/)) {
     const lines = block.split("\n");
     const at = lines.findIndex((l) => l.includes("-->"));
     if (at === -1) continue; // header, NOTE, STYLE, stray numbers

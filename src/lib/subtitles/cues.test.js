@@ -121,3 +121,11 @@ test("pickPrimary", () => {
   assert.deepEqual(pickPrimary(ja, en), [ja, en]);
   assert.deepEqual(pickPrimary(en, en), [en, en]);
 });
+
+test("a blank line with spaces still ends the cue", async () => {
+  const { parseSubtitles } = await import("./parse.js");
+  const srt = "1\n00:00:01,000 --> 00:00:02,000\nA\n \n2\n00:00:03,000 --> 00:00:04,000\nB\n";
+  const { cues } = parseSubtitles(srt, "a.srt");
+  assert.equal(cues.length, 2);
+  assert.equal(cues[1].text, "B");
+});
