@@ -6,14 +6,14 @@ let loaded = false;
 
 export async function loadCommon(fetchImpl = fetch) {
   if (loaded) return;
-  loaded = true;
   try {
     const res = await fetchImpl("/dict/common.json");
     const type = res.headers?.get("content-type") || "";
     if (!res.ok || type.includes("text/html")) return;
     common = new Set(await res.json());
+    loaded = true; // only after a good load, so a failure can retry
   } catch {
-    // leave the set empty
+    // leave the set empty; the next call tries again
   }
 }
 
