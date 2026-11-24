@@ -36,7 +36,7 @@ function katakanaToHiragana(str) {
 }
 
 // Kanji runs get readings; 々 〆 ヵ ヶ behave like kanji inside words (人々, 三ヶ月).
-const KANJI_RUN = /[一-龯々〆ヵヶ]+/g;
+const KANJI_RUN = /[㐀-䶿一-鿿\u{20000}-\u{2FFFF}々〆ヵヶ]+/gu; // incl. extension A and B (𠮷)
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Splits a word so the reading sits over the kanji only:
