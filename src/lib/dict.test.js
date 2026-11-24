@@ -22,3 +22,20 @@ test("lookupKeys falls back from a polite お/ご form to the plain word", () =>
   // Only before kanji: おいしい and ごろ stay as they are.
   assert.deepEqual(lookupKeys({ base: "おいしい", surface: "おいしい" }), ["おいしい", "おいしい"]);
 });
+
+test("loadDict retries after a failed load", async () => {
+  const { loadDict } = await import("./dict.js");
+  const real = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls++;
+    if (calls === 1) throw new Error("offline");
+    return { ok: true, headers: new Headers({ "content-type": "application/json" }), json: async () => ({ ok: 1 }) };
+  };
+  try {
+    assert.equal(await loadDict(), null);
+    assert.deepEqual(await loadDict(), { ok: 1 });
+  } finally {
+    globalThis.fetch = real;
+  }
+});

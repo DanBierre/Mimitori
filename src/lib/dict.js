@@ -31,6 +31,7 @@ export function loadDict() {
       })
       .catch(() => {
         dictStatus = "missing";
+        dictPromise = null; // let the next lookup try again
         return null;
       });
   }
