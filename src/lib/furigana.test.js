@@ -39,3 +39,8 @@ test("no reading", () => {
 test("no match falls back to whole word", () => {
   assert.deepEqual(furiganaSegments("食べ", "のむ"), [{ text: "食べ", ruby: "のむ" }]);
 });
+
+test("rare kanji outside the basic block still get the reading", () => {
+  assert.deepEqual(furiganaSegments("𠮷野家", "よしのや"), [{ text: "𠮷野家", ruby: "よしのや" }]);
+  assert.deepEqual(furiganaSegments("𠮷べ", "よしべ"), [{ text: "𠮷", ruby: "よし" }, { text: "べ" }]);
+});
